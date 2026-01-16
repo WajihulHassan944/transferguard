@@ -1,0 +1,221 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+/* Share Compliant Design System - Secure, Professional, EU-focused */
+
+@layer base {
+  :root {
+    --background: 220 14% 96%;
+    --foreground: 220 13% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 15%;
+
+    /* Primary: Professional Blue (security/trust brand color) */
+    --primary: 215 80% 45%;
+    --primary-foreground: 0 0% 100%;
+    
+    --primary-glow: 215 80% 55%;
+    --primary-dark: 215 80% 35%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 15%;
+    
+    --secondary-glow: 220 14% 90%;
+    --secondary-dark: 220 14% 85%;
+
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 215 80% 95%;
+    --accent-foreground: 215 80% 30%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 87%;
+    --input: 220 14% 94%;
+    --ring: 215 80% 45%;
+
+    --radius: 0.625rem;
+    
+    /* CTA Green - bright action color */
+    --cta: 145 72% 45%;
+    --cta-foreground: 0 0% 100%;
+    --cta-glow: 145 72% 55%;
+    
+    /* Blue accent variables */
+    --macos-blue: 215 80% 50%;
+    --macos-blue-light: 215 80% 60%;
+    --macos-folder: 215 75% 55%;
+    --macos-folder-light: 215 70% 65%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(215 80% 45%), hsl(215 80% 60%));
+    --gradient-eco: linear-gradient(135deg, hsl(215 80% 45%), hsl(200 60% 50%));
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65));
+    --gradient-blue-accent: linear-gradient(135deg, hsl(215 80% 50%), hsl(215 80% 65%));
+    --shadow-soft: 0 2px 8px -2px hsl(220 13% 20% / 0.08);
+    --shadow-glow: 0 0 20px hsl(215 80% 45% / 0.15);
+    --shadow-blue: 0 2px 10px -2px hsl(215 80% 50% / 0.2);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 220 13% 20%;
+    --sidebar-primary: 215 80% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 80% 96%;
+    --sidebar-accent-foreground: 215 80% 30%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 215 80% 45%;
+  }
+
+  .dark {
+    --background: 220 15% 10%;
+    --foreground: 220 10% 95%;
+
+    --card: 220 15% 14%;
+    --card-foreground: 220 10% 95%;
+
+    --popover: 220 15% 14%;
+    --popover-foreground: 220 10% 95%;
+
+    /* Primary: Professional Blue (security/trust brand color) */
+    --primary: 215 80% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    --primary-glow: 215 80% 60%;
+    --primary-dark: 215 80% 40%;
+
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 10% 95%;
+    
+    --secondary-glow: 220 15% 25%;
+    --secondary-dark: 220 15% 15%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 215 80% 20%;
+    --accent-foreground: 215 80% 85%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 22%;
+    --input: 220 15% 18%;
+    --ring: 215 80% 50%;
+    
+    /* CTA Green - bright action color */
+    --cta: 145 72% 50%;
+    --cta-foreground: 0 0% 100%;
+    --cta-glow: 145 72% 60%;
+    
+    /* Blue accent variables */
+    --macos-blue: 215 80% 55%;
+    --macos-blue-light: 215 80% 65%;
+    --macos-folder: 215 80% 60%;
+    --macos-folder-light: 215 75% 70%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(215 80% 50%), hsl(215 80% 65%));
+    --gradient-eco: linear-gradient(135deg, hsl(215 80% 50%), hsl(200 60% 55%));
+    --gradient-glass: linear-gradient(135deg, rgba(30,35,45,0.9), rgba(30,35,45,0.7));
+    --gradient-blue-accent: linear-gradient(135deg, hsl(215 80% 55%), hsl(215 80% 70%));
+    --shadow-soft: 0 2px 8px -2px hsl(220 15% 5% / 0.3);
+    --shadow-glow: 0 0 20px hsl(215 80% 50% / 0.2);
+    --shadow-blue: 0 2px 10px -2px hsl(215 80% 55% / 0.25);
+    
+    --sidebar-background: 220 15% 12%;
+    --sidebar-foreground: 220 10% 90%;
+    --sidebar-primary: 215 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 80% 18%;
+    --sidebar-accent-foreground: 215 80% 85%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 215 80% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 4px 20px -4px hsl(215 80% 45% / 0.15);
+  }
+  
+  .shadow-glow {
+    box-shadow: 0 0 40px hsl(215 80% 45% / 0.2);
+  }
+  
+  .shadow-blue {
+    box-shadow: 0 4px 20px -4px hsl(215 80% 45% / 0.15);
+  }
+  
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    box-shadow: 0 4px 20px -4px hsl(215 80% 45% / 0.15);
+  }
+  
+  .glass-card-strong {
+    @apply bg-card/95 backdrop-blur-xl border border-border;
+    box-shadow: 0 4px 20px -4px hsl(215 80% 45% / 0.15);
+  }
+  
+  .text-gradient-blue {
+    background: linear-gradient(135deg, hsl(215 80% 35%), hsl(215 80% 55%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+  }
+  
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(215 80% 40%), hsl(200 70% 50%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px -8px hsl(215 80% 45% / 0.2);
+  }
+  
+  .secure-pattern {
+    background-image: 
+      radial-gradient(circle at 20% 50%, hsl(215 80% 45% / 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(200 70% 45% / 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, hsl(215 80% 45% / 0.02) 0%, transparent 50%);
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
