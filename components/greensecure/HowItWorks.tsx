@@ -89,7 +89,7 @@ export const HowItWorks = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const {
     isVisible
-  } = useScrollProgress(sectionRef);
+  } = useScrollProgress( sectionRef as React.RefObject<HTMLElement>);
   const [activePlan, setActivePlan] = useState<PlanType>('professional');
   const currentConfig = planConfig[activePlan];
   const currentSteps = currentConfig.steps;

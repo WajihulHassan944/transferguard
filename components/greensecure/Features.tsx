@@ -37,7 +37,7 @@ const features: {
 
 export const Features = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { progress, isVisible } = useScrollProgress(sectionRef);
+  const { progress, isVisible } = useScrollProgress( sectionRef as React.RefObject<HTMLElement>);
   const { mouseX, mouseY } = useParallax();
 
   return (

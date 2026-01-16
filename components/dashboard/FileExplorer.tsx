@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -146,10 +145,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
   const [lockReason, setLockReason] = useState("");
   const [isLocking, setIsLocking] = useState(false);
 
-  useEffect(() => {
-    loadContent();
-  }, [currentFolder, userId]);
-
   // Close swipe when clicking elsewhere
   useEffect(() => {
     const handleClick = () => setSwipedItemId(null);
@@ -158,60 +153,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
       return () => document.removeEventListener("click", handleClick);
     }
   }, [swipedItemId]);
-
-  const loadContent = async () => {
-    setLoading(true);
-    
-    // Load folders
-    let foldersQuery = supabase
-      .from("folders")
-      .select("*")
-      .eq("user_id", userId);
-    
-    if (currentFolder === null) {
-      foldersQuery = foldersQuery.is("parent_folder_id", null);
-    } else {
-      foldersQuery = foldersQuery.eq("parent_folder_id", currentFolder);
-    }
-    
-    const { data: foldersData, error: foldersError } = await foldersQuery;
-
-    if (foldersError) {
-      toast.error("Error loading folders");
-    } else {
-      setFolders(foldersData || []);
-    }
-
-    // Load files
-    let filesQuery = supabase
-      .from("archived_files")
-      .select("*")
-      .eq("user_id", userId);
-    
-    if (currentFolder === null) {
-      filesQuery = filesQuery.is("folder_id", null);
-    } else {
-      filesQuery = filesQuery.eq("folder_id", currentFolder);
-    }
-    
-    const { data: filesData, error: filesError } = await filesQuery;
-
-    if (filesError) {
-      toast.error("Error loading files");
-    } else {
-      setFiles(filesData || []);
-    }
-
-    // Load all folders for move dialog
-    const { data: allFoldersData } = await supabase
-      .from("folders")
-      .select("*")
-      .eq("user_id", userId);
-    
-    setAllFolders(allFoldersData || []);
-
-    setLoading(false);
-  };
 
   const navigateToFolder = async (folderId: string | null) => {
     if (selectionMode) return; // Don't navigate in selection mode
@@ -238,25 +179,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
     }
   };
 
-  const createFolder = async () => {
-    if (!newFolderName.trim()) return;
-
-    const { error } = await supabase.from("folders").insert({
-      user_id: userId,
-      name: newFolderName.trim(),
-      parent_folder_id: currentFolder,
-    });
-
-    if (error) {
-      toast.error("Error creating folder");
-    } else {
-      toast.success("Folder created");
-      setNewFolderName("");
-      setNewFolderOpen(false);
-      loadContent();
-    }
-  };
-
   // Check if file is locked
   const isFileLocked = (file: FileItem): boolean => {
     if (!file.locked_until) return false;
@@ -267,158 +189,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
     return files.find(f => f.id === id);
   };
 
-  const handleRename = async () => {
-    if (!renameItem || !renameItem.name.trim()) return;
-
-    // Check if file is locked
-    if (renameItem.type === "file") {
-      const file = getLockedFile(renameItem.id);
-      if (file && isFileLocked(file)) {
-        toast.error(`This file is locked until ${new Date(file.locked_until!).toLocaleDateString()}`);
-        setRenameOpen(false);
-        setRenameItem(null);
-        return;
-      }
-    }
-
-    if (renameItem.type === "folder") {
-      const { error } = await supabase
-        .from("folders")
-        .update({ name: renameItem.name.trim() })
-        .eq("id", renameItem.id);
-
-      if (error) {
-        toast.error("Error renaming");
-      } else {
-        toast.success("Renamed");
-        loadContent();
-      }
-    } else {
-      const { error } = await supabase
-        .from("archived_files")
-        .update({ file_name: renameItem.name.trim() })
-        .eq("id", renameItem.id);
-
-      if (error) {
-        toast.error("Error renaming");
-      } else {
-        toast.success("Renamed");
-        loadContent();
-      }
-    }
-
-    setRenameOpen(false);
-    setRenameItem(null);
-  };
-
-  const handleMove = async () => {
-    if (!moveItem) return;
-
-    if (moveItem.type === "folder") {
-      const { error } = await supabase
-        .from("folders")
-        .update({ parent_folder_id: targetFolderId })
-        .eq("id", moveItem.id);
-
-      if (error) {
-        toast.error("Error moving");
-      } else {
-        toast.success("Moved");
-        loadContent();
-      }
-    } else {
-      const { error } = await supabase
-        .from("archived_files")
-        .update({ folder_id: targetFolderId })
-        .eq("id", moveItem.id);
-
-      if (error) {
-        toast.error("Error moving");
-      } else {
-        toast.success("Moved");
-        loadContent();
-      }
-    }
-
-    setMoveOpen(false);
-    setMoveItem(null);
-    setTargetFolderId(null);
-  };
-
-  const handleDelete = async (id: string, type: "folder" | "file") => {
-    // Check if file is locked
-    if (type === "file") {
-      const file = getLockedFile(id);
-      if (file && isFileLocked(file)) {
-        toast.error(`This file is locked until ${new Date(file.locked_until!).toLocaleDateString()}`);
-        return;
-      }
-    }
-
-    const confirmed = window.confirm(
-      type === "folder" 
-        ? "Are you sure you want to delete this folder and all its contents?" 
-        : "Are you sure you want to delete this file?"
-    );
-
-    if (!confirmed) return;
-
-    if (type === "folder") {
-      const { error } = await supabase.from("folders").delete().eq("id", id);
-      if (error) {
-        toast.error("Error deleting");
-      } else {
-        toast.success("Folder deleted");
-        loadContent();
-      }
-    } else {
-      const { error } = await supabase.from("archived_files").delete().eq("id", id);
-      if (error) {
-        toast.error("Error deleting");
-      } else {
-        toast.success("File deleted");
-        loadContent();
-      }
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedItems.length === 0) return;
-    
-    // Check for locked files
-    const lockedFiles = selectedItems.filter(item => {
-      if (item.type === "file") {
-        const file = getLockedFile(item.id);
-        return file && isFileLocked(file);
-      }
-      return false;
-    });
-
-    if (lockedFiles.length > 0) {
-      toast.error(`${lockedFiles.length} file(s) are locked and cannot be deleted`);
-      return;
-    }
-    
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${selectedItems.length} item(s)?`
-    );
-    
-    if (!confirmed) return;
-
-    for (const item of selectedItems) {
-      if (item.type === "folder") {
-        await supabase.from("folders").delete().eq("id", item.id);
-      } else {
-        await supabase.from("archived_files").delete().eq("id", item.id);
-      }
-    }
-
-    toast.success(`${selectedItems.length} item(s) deleted`);
-    setSelectedItems([]);
-    setSelectionMode(false);
-    loadContent();
-  };
-
+  
   const handleBulkMove = () => {
     if (selectedItems.length === 0) return;
     setMoveItem({ id: selectedItems[0].id, type: selectedItems[0].type });
@@ -495,38 +266,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
     
-    setUploading(true);
-    
-    try {
-      for (const file of selectedFiles) {
-        const s3Key = `${userId}/${currentFolder || 'root'}/${Date.now()}-${file.name}`;
-        
-        const { error } = await supabase.from("archived_files").insert({
-          user_id: userId,
-          file_name: file.name,
-          file_size: file.size,
-          mime_type: file.type,
-          folder_id: currentFolder,
-          folder_path: folderPath.length > 0 ? "/" + folderPath.map(f => f.name).join("/") : "/",
-          s3_key: s3Key,
-        });
-
-        if (error) {
-          toast.error(`Error uploading ${file.name}`);
-          console.error("Upload error:", error);
-        }
-      }
-      
-      toast.success(`${selectedFiles.length} file(s) uploaded`);
-      setSelectedFiles([]);
-      setUploadOpen(false);
-      loadContent();
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Error uploading files");
-    } finally {
-      setUploading(false);
-    }
+   
   };
 
   const toggleSelection = (item: SelectedItem) => {
@@ -606,53 +346,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
 
     setIsSharing(true);
 
-    try {
-      const expiresAt = shareExpiryDays === null 
-        ? null 
-        : new Date(Date.now() + shareExpiryDays * 24 * 60 * 60 * 1000).toISOString();
-      
-      // Simple password hash (in production, use bcrypt via edge function)
-      const passwordHash = sharePasswordEnabled && sharePassword 
-        ? btoa(sharePassword) // Base64 encode for demo - use proper hashing in production
-        : null;
-
-      // Create share for each email
-      for (const email of validEmails) {
-        const { error } = await supabase.from("file_shares").insert({
-          file_id: shareFileId,
-          shared_by: userId,
-          shared_with_email: email.trim().toLowerCase(),
-          message: shareMessage || null,
-          expires_at: expiresAt,
-          password_hash: passwordHash,
-          is_active: true,
-        });
-
-        if (error) throw error;
-      }
-
-      // Get the download token for the first share to show the link
-      const { data: shareData } = await supabase
-        .from("file_shares")
-        .select("download_token")
-        .eq("file_id", shareFileId)
-        .eq("shared_by", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (shareData) {
-        const downloadUrl = `${window.location.origin}/download?token=${shareData.download_token}`;
-        setShareLink(downloadUrl);
-      }
-
-      toast.success(`Shared with ${validEmails.length} recipient(s)`);
-    } catch (error) {
-      console.error("Share error:", error);
-      toast.error("Failed to share file");
-    } finally {
-      setIsSharing(false);
-    }
   };
 
   const copyShareLink = () => {
@@ -675,28 +368,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
     
     setIsLocking(true);
     
-    try {
-      const lockedUntil = new Date(Date.now() + lockDuration * 24 * 60 * 60 * 1000).toISOString();
-      
-      const { error } = await supabase
-        .from("archived_files")
-        .update({
-          locked_until: lockedUntil,
-          lock_reason: lockReason || null,
-        })
-        .eq("id", lockFileId);
-
-      if (error) throw error;
-
-      toast.success(`File locked for ${lockDuration} days`);
-      setLockOpen(false);
-      loadContent();
-    } catch (error) {
-      console.error("Lock error:", error);
-      toast.error("Failed to lock file");
-    } finally {
-      setIsLocking(false);
-    }
+   
   };
 
   const handleUnlockFile = async (fileId: string) => {
@@ -710,23 +382,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
       if (!confirmed) return;
     }
     
-    try {
-      const { error } = await supabase
-        .from("archived_files")
-        .update({
-          locked_until: null,
-          lock_reason: null,
-        })
-        .eq("id", fileId);
-
-      if (error) throw error;
-
-      toast.success("File unlocked");
-      loadContent();
-    } catch (error) {
-      console.error("Unlock error:", error);
-      toast.error("Failed to unlock file");
-    }
+  
   };
 
   return (
@@ -816,7 +472,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
             <Button 
               variant="destructive" 
               size="sm"
-              onClick={handleBulkDelete}
               disabled={selectedItems.length === 0}
             >
               <Trash2 className="h-4 w-4 mr-2" />
@@ -991,7 +646,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                         <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm shadow-sm" onClick={(e) => { e.stopPropagation(); setRenameItem({ id: folder.id, name: folder.name, type: "folder" }); setRenameOpen(true); }}>
                           <Pencil className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm shadow-sm text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(folder.id, "folder"); }}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm shadow-sm text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation();  }}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
@@ -1003,7 +658,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                       <Button variant="outline" size="icon" className="h-10 w-10" onClick={(e) => { e.stopPropagation(); setRenameItem({ id: folder.id, name: folder.name, type: "folder" }); setRenameOpen(true); setSwipedItemId(null); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="destructive" size="icon" className="h-10 w-10" onClick={(e) => { e.stopPropagation(); handleDelete(folder.id, "folder"); setSwipedItemId(null); }}>
+                      <Button variant="destructive" size="icon" className="h-10 w-10" onClick={(e) => { e.stopPropagation();  setSwipedItemId(null); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -1065,7 +720,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                         <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm shadow-sm" onClick={(e) => { e.stopPropagation(); openShareDialog(file.id, file.file_name); }}>
                           <Share2 className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm shadow-sm text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(file.id, "file"); }} disabled={isFileLocked(file)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm shadow-sm text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation();  }} disabled={isFileLocked(file)}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
@@ -1086,7 +741,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                           <Lock className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button variant="destructive" size="icon" className="h-10 w-10" onClick={(e) => { e.stopPropagation(); handleDelete(file.id, "file"); setSwipedItemId(null); }} disabled={isFileLocked(file)}>
+                      <Button variant="destructive" size="icon" className="h-10 w-10" onClick={(e) => { e.stopPropagation();  setSwipedItemId(null); }} disabled={isFileLocked(file)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -1145,7 +800,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setRenameItem({ id: folder.id, name: folder.name, type: "folder" }); setRenameOpen(true); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(folder.id, "folder"); }}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation();  }}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -1198,7 +853,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openShareDialog(file.id, file.file_name); }}>
                           <Share2 className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(file.id, "file"); }} disabled={isFileLocked(file)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation();  }} disabled={isFileLocked(file)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -1258,7 +913,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setRenameItem({ id: folder.id, name: folder.name, type: "folder" }); setRenameOpen(true); }}>
                               <Pencil className="h-3 w-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(folder.id, "folder"); }}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation();  }}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
@@ -1318,7 +973,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                                 <Lock className="h-3 w-3" />
                               </Button>
                             )}
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(file.id, "file"); }} disabled={isFileLocked(file)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); }} disabled={isFileLocked(file)}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
@@ -1346,7 +1001,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
                 placeholder="My new folder"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createFolder()}
               />
             </div>
           </div>
@@ -1354,7 +1008,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
             <Button variant="outline" onClick={() => setNewFolderOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={createFolder}>Create</Button>
+            <Button >Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1371,7 +1025,6 @@ export function FileExplorer({ userId }: FileExplorerProps) {
               <Input
                 value={renameItem?.name || ""}
                 onChange={(e) => setRenameItem(prev => prev ? { ...prev, name: e.target.value } : null)}
-                onKeyDown={(e) => e.key === "Enter" && handleRename()}
               />
             </div>
           </div>
@@ -1379,7 +1032,7 @@ export function FileExplorer({ userId }: FileExplorerProps) {
             <Button variant="outline" onClick={() => setRenameOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleRename}>Save</Button>
+            <Button >Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1421,19 +1074,12 @@ export function FileExplorer({ userId }: FileExplorerProps) {
               if (selectedItems.length > 1) {
                 // Bulk move
                 for (const item of selectedItems) {
-                  if (item.type === "folder") {
-                    await supabase.from("folders").update({ parent_folder_id: targetFolderId }).eq("id", item.id);
-                  } else {
-                    await supabase.from("archived_files").update({ folder_id: targetFolderId }).eq("id", item.id);
-                  }
                 }
                 toast.success(`${selectedItems.length} items moved`);
                 setSelectedItems([]);
                 setSelectionMode(false);
                 setMoveOpen(false);
-                loadContent();
               } else {
-                handleMove();
               }
             }}>Move</Button>
           </DialogFooter>

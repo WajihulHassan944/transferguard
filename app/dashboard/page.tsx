@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import {  DashboardViewSidebar } from "@/components/dashboard/DashboardSidebar";
 import { TransfersPanel } from "@/components/dashboard/TransfersPanel";
 import { CertificatesPanel } from "@/components/dashboard/CertificatesPanel";
 import { ContactsPanel } from "@/components/dashboard/ContactsPanel";
@@ -80,8 +80,15 @@ const proFeatures = [
 ];
 
 export default function Dashboard() {
-  const [user, setUser] = useState<null>(null);
-  const [session, setSession] = useState<null>(null);
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  plan: string;
+};
+
+const [user, setUser] = useState<User | null>(null);
+const [session, setSession] = useState<{ user: User } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<DashboardView>("transfers");
   const [userPlan, setUserPlan] = useState<string>("free");
@@ -130,7 +137,7 @@ const router = useRouter();
   if (false && !checkingPlan && !isPaidUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <DashboardHeader user={user} />
+        <DashboardHeader user={user!} />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-6">
           <div className="max-w-4xl w-full">
             {/* Main Card */}
@@ -287,7 +294,7 @@ const router = useRouter();
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <DashboardHeader user={user} />
       <div className="flex">
-        <DashboardSidebar 
+        <DashboardViewSidebar 
           activeView={activeView} 
           onViewChange={setActiveView} 
           userId={user.id}

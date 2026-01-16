@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DashboardView } from "@/pages/Dashboard";
+import { DashboardView } from "@/app/dashboard/page";
 import { Button } from "@/components/ui/button";
 import { 
   Send, 
@@ -16,7 +16,7 @@ import { StorageUsageCard } from "./StorageUsageCard";
 import { NewTransferDialog } from "./NewTransferDialog";
 import { cn } from "@/lib/utils";
 
-interface DashboardSidebarProps {
+interface DashboardViewSidebarProps {
   activeView: DashboardView;
   onViewChange: (view: DashboardView) => void;
   userId: string;
@@ -37,7 +37,7 @@ const settingsMenuItems: { id: DashboardView; label: string; icon: React.Element
   { id: "security", label: "Security", icon: Shield },
 ];
 
-export function DashboardSidebar({ activeView, onViewChange, userId, userEmail, onTransferCreated }: DashboardSidebarProps) {
+export function DashboardViewSidebar({ activeView, onViewChange, userId, userEmail, onTransferCreated }: DashboardViewSidebarProps) {
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
 
   const renderMenuItem = (item: { id: DashboardView; label: string; icon: React.ElementType }) => {

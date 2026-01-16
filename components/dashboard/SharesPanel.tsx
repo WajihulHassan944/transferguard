@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,58 +35,10 @@ export function SharesPanel({ userId }: SharesPanelProps) {
   const loadShares = async () => {
     setLoading(true);
     
-    // First get the shares
-    const { data: sharesData, error: sharesError } = await supabase
-      .from("file_shares")
-      .select("*")
-      .eq("shared_by", userId)
-      .order("created_at", { ascending: false });
-
-    if (sharesError) {
-      toast.error("Error loading shared files");
-      setLoading(false);
-      return;
-    }
-
-    // Then get file info for each share
-    if (sharesData && sharesData.length > 0) {
-      const fileIds = sharesData.map(s => s.file_id);
-      const { data: filesData } = await supabase
-        .from("archived_files")
-        .select("id, file_name, file_size")
-        .in("id", fileIds);
-
-      const filesMap = new Map(filesData?.map(f => [f.id, f]) || []);
-      
-      const enrichedShares = sharesData.map(share => ({
-        ...share,
-        file_name: filesMap.get(share.file_id)?.file_name,
-        file_size: filesMap.get(share.file_id)?.file_size,
-      }));
-
-      setShares(enrichedShares);
-    } else {
-      setShares([]);
-    }
-    
     setLoading(false);
   };
 
   const revokeShare = async (shareId: string) => {
-    const { error } = await supabase
-      .from("file_shares")
-      .update({ 
-        is_active: false, 
-        revoked_at: new Date().toISOString() 
-      })
-      .eq("id", shareId);
-
-    if (error) {
-      toast.error("Error revoking share");
-    } else {
-      toast.success("Share revoked");
-      loadShares();
-    }
   };
 
   const getShareStatus = (share: FileShare) => {

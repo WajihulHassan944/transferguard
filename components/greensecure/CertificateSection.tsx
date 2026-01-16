@@ -26,8 +26,11 @@ const benefits = [
 ];
 
 export const CertificateSection = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const { isVisible } = useScrollProgress(sectionRef);
+  const sectionRef = useRef<HTMLElement>(null);
+
+const { isVisible } = useScrollProgress(
+  sectionRef as React.RefObject<HTMLElement>
+);
 
   return (
     <section className="py-16 px-4 bg-background overflow-hidden relative" ref={sectionRef}>

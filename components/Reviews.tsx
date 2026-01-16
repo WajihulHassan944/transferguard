@@ -50,7 +50,7 @@ export const Reviews = () => {
             >
               <div className="flex items-center gap-4 mb-4">
                 <img 
-                  src={review.image} 
+                 src={review.image.src} 
                   alt={review.name}
                   className="w-12 h-12 rounded-full bg-muted object-cover"
                 />

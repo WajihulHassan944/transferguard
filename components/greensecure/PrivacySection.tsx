@@ -40,7 +40,7 @@ const certifications = [
 
 export const PrivacySection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { isVisible } = useScrollProgress(sectionRef);
+  const { isVisible } = useScrollProgress( sectionRef as React.RefObject<HTMLElement>);
 
   return (
     <section className="py-16 px-4 bg-gradient-to-b from-background to-muted/30" ref={sectionRef}>

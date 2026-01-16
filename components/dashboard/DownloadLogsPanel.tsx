@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -32,39 +31,6 @@ interface DownloadLogsPanelProps {
 export const DownloadLogsPanel = ({ isPaidUser }: DownloadLogsPanelProps) => {
   const [logs, setLogs] = useState<DownloadLog[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLogs = async () => {
-      if (!isPaidUser) {
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("download_logs")
-        .select(`
-          *,
-          file_shares (
-            id,
-            shared_with_email,
-            archived_files (
-              file_name
-            )
-          )
-        `)
-        .order("downloaded_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("Error fetching download logs:", error);
-      } else {
-        setLogs(data || []);
-      }
-      setLoading(false);
-    };
-
-    fetchLogs();
-  }, [isPaidUser]);
 
   const parseUserAgent = (ua: string | null): { device: string; os: string; browser: string; icon: 'mobile' | 'tablet' | 'desktop' } => {
     if (!ua) return { device: "Onbekend", os: "Onbekend", browser: "Onbekend", icon: 'desktop' };
