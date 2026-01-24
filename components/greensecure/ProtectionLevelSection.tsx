@@ -1,100 +1,89 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Shield, Scale } from "lucide-react";
+import { Shield, Scale, Check } from "lucide-react";
 import Link from "next/link";
+
 export const ProtectionLevelSection = () => {
+  const professionalFeatures = [
+    "Tamper-Evident Sealed PDF",
+    "AATL-Certificate Signed",
+    "Proof of Content & Delivery"
+  ];
+
+  const legalFeatures = [
+    "Everything in Professional +",
+    "Blockchain Anchored Timestamp",
+    "Qualified eIDAS Regulation",
+    "Identity Verification included"
+  ];
+
   return (
     <section className="py-20 sm:py-28 px-4 bg-muted/30">
-      <div className="container max-w-6xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-14">
-          Choose the level of proof that fits your case.
+      <div className="container max-w-5xl mx-auto">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-12 sm:mb-16">
+          Legal certainty for every delivery — <span className="text-amber-500">choose the level</span> that fits your needs
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Standard Card */}
-          <Card className="p-6 sm:p-8 bg-background hover:shadow-lg transition-shadow flex flex-col h-full">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
-                <Mail className="h-8 w-8 text-slate-600" />
-              </div>
-            </div>
-
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-4">Secure Transfer & Logging</h3>
-
-            <div className="flex-1 flex flex-col">
-              <p className="font-semibold text-foreground mb-2">For everyday client files & correspondence.</p>
-              <p className="text-muted-foreground text-sm sm:text-base mb-3">
-                Send files with end-to-end encryption. Includes a detailed delivery receipt via email containing the
-                recipient's IP address, device info, timestamp, and hash-check.
-              </p>
-              <p className="italic text-muted-foreground text-sm sm:text-base">
-                Perfect for your own case administration.
-              </p>
-            </div>
-
-            <div className="mt-6">
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
-              >
-                <Link href="/signup/pro?plan=standard">Choose Standard</Link>
-              </Button>
-            </div>
-          </Card>
-
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Professional Card */}
-          <Card className="p-6 sm:p-8 bg-background hover:shadow-lg transition-shadow flex flex-col h-full">
+          <Card className="relative p-8 bg-background border-l-4 border-l-blue-500 border-t border-r border-b border-border hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-xl">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                <Shield className="h-8 w-8 text-blue-500" />
+              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                <Shield className="h-8 w-8 text-blue-500" strokeWidth={1.5} />
               </div>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-4">Certified Proof of Delivery</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-center mb-2">Court-Admissible Evidence</h3>
+            <p className="text-muted-foreground text-center mb-6 text-sm leading-relaxed">Generates a tamper-proof Audit Trail with an Adobe-trusted seal. Provides strong, admissible evidence of delivery and file integrity for commercial disputes.</p>
 
-            <div className="flex-1 flex flex-col">
-              <p className="font-semibold text-foreground mb-2">For critical deadlines & formal disputes.</p>
-              <p className="text-muted-foreground text-sm sm:text-base mb-3">
-                Includes everything in Standard, but upgrades the email receipt to a Tamper-Evident Sealed PDF. Signed
-                with an AATL-certificate, ensuring the audit trail cannot be altered after issuance.
-              </p>
-              <p className="italic text-muted-foreground text-sm sm:text-base">Ready to submit as evidence.</p>
-            </div>
+            <ul className="space-y-3 flex-1">
+              {professionalFeatures.map((feature, index) => (
+                <li key={index} className="flex items-center gap-3">
+                  <Check className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                  <span className="text-foreground">{feature}</span>
+                </li>
+              ))}
+            </ul>
 
-            <div className="mt-6">
-              <Button asChild size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white">
-                <Link href="/signup/pro?plan=professional">Choose Professional</Link>
+            <div className="mt-8">
+              <Button asChild size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-lg h-12 text-base font-medium">
+                <Link href="/signup/pro?plan=professional">Select Professional</Link>
               </Button>
             </div>
           </Card>
 
           {/* Legal Card */}
-          <Card className="p-6 sm:p-8 bg-background hover:shadow-lg transition-shadow flex flex-col h-full">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
-                <Scale className="h-8 w-8 text-amber-600" />
+          <Card className="relative p-8 bg-background border-2 border-amber-400 hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-xl overflow-visible">
+            {/* Court Ready Badge */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-5 py-1.5 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
+              COURT READY
+            </div>
+
+            <div className="flex justify-center mb-6 mt-2">
+              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
+                <Scale className="h-8 w-8 text-amber-600" strokeWidth={1.5} />
               </div>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-4">Irrefutable proof of delivery in court</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-center mb-2">Legal-Grade Evidence</h3>
+            <p className="text-muted-foreground text-center mb-6">For high-stakes disputes</p>
 
-            <div className="flex-1 flex flex-col">
-              <p className="font-semibold text-foreground mb-2">For critical, high-stakes documents.</p>
-              <p className="text-muted-foreground text-sm sm:text-base mb-3">
-                Use QERDS credits for blockchain-validated, identity-verified evidence with the highest legal standing.
-              </p>
-              <p className="italic text-muted-foreground text-sm sm:text-base">Comparable to a Digital Notary Seal.</p>
-            </div>
+            <ul className="space-y-3 flex-1">
+              {legalFeatures.map((feature, index) => (
+                <li key={index} className="flex items-center gap-3">
+                  <Check className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                  <span className="text-foreground">{feature}</span>
+                </li>
+              ))}
+            </ul>
 
-            <div className="mt-6">
+            <div className="mt-8">
               <Button
                 asChild
                 size="lg"
-                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg h-12 text-base font-medium"
               >
-                <Link href="/signup/pro?plan=legal">Choose Legal</Link>
+                <Link href="/signup/pro?plan=legal">Select Legal</Link>
               </Button>
             </div>
           </Card>

@@ -1,10 +1,11 @@
-import { Check, Minus, Shield, Lock, Server, Crown, Sparkles, Scale, FileCheck, Gem, Mail, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Minus, Shield, Lock, Server, Scale, FileCheck, Mail, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { BurdenOfProofSection } from "./BurdenOfProofSection";
 import Link from "next/link";
 
 const securityFeatures = [
@@ -16,37 +17,29 @@ const securityFeatures = [
 
 interface Feature {
   name: string;
-  basic: boolean | string;
   pro: boolean | string;
   legal: boolean | string;
   proOnly?: boolean;
   legalOnly?: boolean;
   isCategory?: boolean;
-  subtext?: { basic?: string; pro?: string; legal?: string };
+  subtext?: { pro?: string; legal?: string };
 }
 
 const features: Feature[] = [
   // Essentials
-  { name: "Essentials", basic: "", pro: "", legal: "", isCategory: true },
-  { name: "Storage / Max file size", basic: "1 TB / 10 GB", pro: "2 TB / 50 GB", legal: "3 TB / 100 GB" },
-  { name: "Secure Transfer (2FA)", basic: "Unlimited", pro: "Unlimited", legal: "Unlimited" },
+  { name: "Essentials", pro: "", legal: "", isCategory: true },
+  { name: "Storage / Max file size", pro: "2 TB / 50 GB", legal: "3 TB / 100 GB" },
+  { name: "Secure Transfer (2FA)", pro: "Unlimited", legal: "Unlimited" },
 
   // Security Features
-  { name: "Security Features", basic: "", pro: "", legal: "Includes everything in Pro, plus:", isCategory: true },
-  {
-    name: "Validation Level",
-    basic: "Level 1: Standard",
-    pro: "Level 2: Professional",
-    legal: "Level 3: Qualified Validation",
-  },
-  { name: "Audit Trail Type", basic: "Standard Log", pro: "Adobe Certified PDF", legal: "included" },
-  { name: "IP & Access Logging", basic: "Standard Log", pro: "Sealed in Report", legal: "included" },
-  { name: "Anti-Tamper Seal", basic: false, pro: "Incl. Timestamp", legal: "included" },
-  { name: "The Upgrades (Unique to Legal)", basic: "", pro: "", legal: "", isCategory: true },
-  { name: "QERDS Blockchain", basic: false, pro: false, legal: "Guaranteed Unaltered", legalOnly: true },
+  { name: "Security Features", pro: "", legal: "Includes everything in Pro, plus:", isCategory: true },
+  { name: "Audit Trail Type", pro: "Adobe Certified PDF", legal: "included" },
+  { name: "IP & Access Logging", pro: "Sealed in Report", legal: "included" },
+  { name: "Anti-Tamper Seal", pro: "Incl. Timestamp", legal: "included" },
+  { name: "The Upgrades (Unique to Legal)", pro: "", legal: "", isCategory: true },
+  { name: "QERDS Blockchain", pro: false, legal: "Guaranteed Unaltered", legalOnly: true },
   {
     name: "QERDS Credits",
-    basic: false,
     pro: false,
     legal: "✨ 10 Credits /mo",
     legalOnly: true,
@@ -54,40 +47,22 @@ const features: Feature[] = [
   },
 
   // Legal Standing
-  { name: "Legal Standing", basic: "", pro: "", legal: "", isCategory: true },
+  { name: "Legal Standing", pro: "", legal: "", isCategory: true },
   {
     name: "Evidence Strength",
-    basic: "Internal Record",
-    pro: "Proof of Integrity",
+    pro: "Proof of Delivery",
     legal: "Irrefutable Proof",
     subtext: { pro: "(File is 100% unaltered)", legal: "(Identity + Content verified)" },
   },
-  { name: "Comparable to", basic: "Standard Mail", pro: "Registered Mail", legal: "Digital Notary" },
+  { name: "Comparable to", pro: "Registered Mail", legal: "Digital Notary" },
 
   // Extras
-  { name: "Extras", basic: "", pro: "", legal: "", isCategory: true },
-  { name: "Custom Branding", basic: true, pro: true, legal: true },
-  { name: "Priority Support", basic: false, pro: true, legal: true, proOnly: true },
+  { name: "Extras", pro: "", legal: "", isCategory: true },
+  { name: "Custom Branding", pro: true, legal: true },
+  { name: "Priority Support", pro: true, legal: true, proOnly: true },
 ];
 
 const plans = [
-  {
-    name: "Standard",
-    monthlyPrice: 23,
-    yearlyPrice: 19,
-    subtitle: "Privacy & Security",
-    description: "Secure file transfers with basic logging",
-    recommended: false,
-    badge: null,
-    cta: "Choose Standard",
-    ctaSubtext: "Direct Access",
-    highlights: [
-      "1 TB storage, 10 GB max file size",
-      "Unlimited secure transfers (2FA)",
-      "Standard audit logs",
-      "Custom branding",
-    ],
-  },
   {
     name: "Professional",
     monthlyPrice: 42,
@@ -100,9 +75,11 @@ const plans = [
     ctaSubtext: "Try Risk-Free",
     highlights: [
       "2 TB storage, 50 GB max file size",
-      "Adobe Certified PDF proof",
-      "Anti-tamper seal with timestamp",
-      "Priority support",
+      "Unlimited PDF proof reports",
+      "Adobe Certified & timestamped",
+      "Anti-tamper sealed delivery",
+      "Priority support included",
+      "Real-time tracking & logging",
     ],
   },
   {
@@ -110,16 +87,18 @@ const plans = [
     monthlyPrice: 95,
     yearlyPrice: 79,
     subtitle: "QERDS Certified Legal Proof",
-    description: "10 QERDS credits/mo for irrefutable proof",
+    description: "Everything in Professional + QERDS",
     recommended: false,
     badge: null,
     cta: "Subscribe Now",
     ctaSubtext: "Full Legal Protection",
     highlights: [
+      "Everything in Professional, plus:",
       "3 TB storage, 100 GB max file size",
       "10 QERDS credits per month",
       "Blockchain-verified evidence",
-      "Comparable to Digital Notary",
+      "Qualified eIDAS timestamping",
+      "Identity verification included",
     ],
   },
 ];
@@ -171,39 +150,14 @@ export const PricingSection = () => {
     return (plan.monthlyPrice - plan.yearlyPrice) * 12;
   };
 
-  const getPlanIcon = (planName: string) => {
-    switch (planName) {
-      case "Standard":
-        return <Mail className="h-6 w-6" />;
-      case "Professional":
-        return <Shield className="h-6 w-6" />;
-      case "Legal":
-        return <Scale className="h-6 w-6" />;
-      default:
-        return null;
-    }
-  };
-
-  const getPlanIconBg = (planName: string) => {
-    switch (planName) {
-      case "Standard":
-        return "bg-blue-100 text-blue-600";
-      case "Professional":
-        return "bg-primary/10 text-primary";
-      case "Legal":
-        return "bg-amber-100 text-amber-600";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
   return (
     <section id="pricing" className="py-16 sm:py-24 px-4 bg-muted/30">
       <div className="container max-w-5xl mx-auto">
         <div className="text-center mb-12 sm:mb-16">
-          <p className="text-primary font-medium text-sm tracking-wide uppercase mb-3">Pricing</p>
+          <p className="text-blue-600 font-semibold text-sm tracking-wide uppercase mb-3">Pricing</p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Secure transfers with <span className="text-primary">legal-grade evidence</span>
+            Secure transfers with <span className="text-primary">legal-grade</span>{" "}
+            <span className="text-primary">evidence</span>
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Turn every file transfer into a forensically sealed piece of evidence. From audit-ready logs to qualified
@@ -213,109 +167,139 @@ export const PricingSection = () => {
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 mb-4">
             <span
-              className={`text-xs sm:text-sm font-medium transition-colors ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}
+              className={`text-sm font-medium transition-colors ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}
             >
               Monthly
             </span>
-            <Switch checked={isYearly} onCheckedChange={setIsYearly} className="data-[state=checked]:bg-primary" />
+            <Switch checked={isYearly} onCheckedChange={setIsYearly} className="data-[state=checked]:bg-green-500" />
             <span
-              className={`text-xs sm:text-sm font-medium transition-colors ${isYearly ? "text-foreground" : "text-muted-foreground"}`}
+              className={`text-sm font-medium transition-colors ${isYearly ? "text-foreground" : "text-muted-foreground"}`}
             >
               Yearly
             </span>
             {isYearly && (
-              <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 text-xs">
+              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs font-medium">
                 Save €192/yr
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Simplified Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {plans.map((plan) => (
-            <Card
-              key={plan.name}
-              className={`p-6 transition-all duration-300 hover:shadow-lg flex flex-col ${
-                plan.name === "Professional"
-                  ? "border-primary border-2 bg-primary/5 relative"
-                  : plan.name === "Legal"
-                    ? "border-amber-500 border-2 bg-gradient-to-b from-amber-50 to-background relative"
-                    : "bg-background hover:border-primary/30"
-              }`}
-            >
-              {plan.name === "Professional" && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1">
-                  <FileCheck className="h-3 w-3 mr-1" />
-                  Most Popular
-                </Badge>
+        {/* Pricing Cards - New Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
+          {/* Professional Card */}
+          <Card className="relative overflow-hidden bg-background shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col">
+            {/* Most Popular Badge */}
+            <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-10">
+              <Badge className="bg-blue-600 text-white text-xs px-4 py-1.5 rounded-b-lg rounded-t-none shadow-md">
+                <FileCheck className="h-3 w-3 mr-1.5" />
+                Most Popular
+              </Badge>
+            </div>
+            
+            {/* Blue Header */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-10 pb-6 px-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-blue-400/30 flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-7 w-7 text-white" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-1">Professional</h3>
+            </div>
+
+            {/* Price Section */}
+            <div className="bg-background px-6 py-6 text-center border-b border-border">
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-4xl font-bold text-blue-600">€{getPrice(plans[0])}</span>
+                <span className="text-muted-foreground">/user/mo</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">excl. VAT</p>
+              {isYearly && (
+                <p className="text-sm text-green-600 font-medium mt-1">Save €{getYearlySavings(plans[0])}/year</p>
               )}
+              {!isYearly && <div className="h-5 mt-1" />}
+            </div>
 
-              {/* Icon */}
-              <div className="flex justify-center mb-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getPlanIconBg(plan.name)}`}>
-                  {getPlanIcon(plan.name)}
-                </div>
-              </div>
-
-              {/* Plan name & subtitle */}
-              <div className="text-center mb-4">
-                <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                <p className={`text-sm font-medium ${plan.name === "Legal" ? "text-amber-600" : "text-primary"}`}>
-                  {plan.subtitle}
-                </p>
-              </div>
-
-              {/* Price */}
-              <div className="text-center mb-4">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold">€{getPrice(plan)}</span>
-                  <span className="text-muted-foreground">/mo</span>
-                </div>
-                {isYearly && (
-                  <p className="text-sm text-green-600 font-medium mt-1">Save €{getYearlySavings(plan)}/year</p>
-                )}
-                {!isYearly && <div className="h-5 mt-1" />}
-              </div>
-
-              {/* Highlights */}
-              <div className="space-y-3 mb-6 flex-grow">
-                {plan.highlights.map((highlight, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-sm">
-                    <div className="w-5 h-5 rounded bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="h-3 w-3 text-white" />
-                    </div>
-                    <span>{highlight}</span>
+            {/* Features */}
+            <div className="px-6 py-6 flex-grow">
+              <div className="space-y-3">
+                {plans[0].highlights.map((highlight, idx) => (
+                  <div key={idx} className="flex items-start gap-3 text-sm">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground">{highlight}</span>
                   </div>
                 ))}
               </div>
+            </div>
 
-              {/* CTA Button - Always at bottom */}
-              <div className="mt-auto">
-                <Button
-                  asChild
-                  variant={plan.name === "Standard" ? "outline" : "default"}
-                  size="lg"
-                  className={`w-full ${
-                    plan.name === "Professional"
-                      ? "bg-cta hover:bg-cta/90 text-white shadow-lg"
-                      : plan.name === "Legal"
-                        ? "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg"
-                        : ""
-                  }`}
-                >
-                  <Link href={plan.name === "Legal" ? "/signup/legal" : `/signup/pro?plan=${plan.name.toLowerCase()}`}>
-                    {plan.name === "Standard" && <Mail className="h-4 w-4 mr-2" />}
-                    {plan.name === "Professional" && <Shield className="h-4 w-4 mr-2" />}
-                    {plan.name === "Legal" && <Scale className="h-4 w-4 mr-2" />}
-                    {plan.cta}
-                  </Link>
-                </Button>
-                {plan.ctaSubtext && <p className="text-xs text-muted-foreground text-center mt-2">{plan.ctaSubtext}</p>}
-                {!plan.ctaSubtext && <div className="h-5 mt-2" />}
+            {/* CTA */}
+            <div className="px-6 pb-6">
+              <Button
+                asChild
+                size="lg"
+                className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base font-medium rounded-lg shadow-md"
+              >
+                <Link href="/signup/pro?plan=professional">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Start 14-Day Trial
+                </Link>
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-3">Try Risk-Free</p>
+            </div>
+          </Card>
+
+          {/* Legal Card */}
+          <Card className="relative overflow-hidden bg-background shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col">
+            {/* Amber/Orange Header */}
+            <div className="bg-gradient-to-br from-amber-500 to-amber-600 pt-10 pb-6 px-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-amber-400/30 flex items-center justify-center mx-auto mb-4">
+                <Scale className="h-7 w-7 text-white" strokeWidth={1.5} />
               </div>
-            </Card>
-          ))}
+              <h3 className="text-2xl font-bold text-white mb-1">Legal</h3>
+            </div>
+
+            {/* Price Section */}
+            <div className="bg-background px-6 py-6 text-center border-b border-border">
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-4xl font-bold text-amber-600">€{getPrice(plans[1])}</span>
+                <span className="text-muted-foreground">/user/mo</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">excl. VAT</p>
+              {isYearly && (
+                <p className="text-sm text-green-600 font-medium mt-1">Save €{getYearlySavings(plans[1])}/year</p>
+              )}
+              {!isYearly && <div className="h-5 mt-1" />}
+            </div>
+
+            {/* Features */}
+            <div className="px-6 py-6 flex-grow">
+              <div className="space-y-3">
+                {plans[1].highlights.map((highlight, idx) => (
+                  <div key={idx} className={`flex items-start gap-3 text-sm ${idx === 0 ? "pb-2 mb-1 border-b border-amber-200" : ""}`}>
+                    {idx === 0 ? (
+                      <Shield className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    )}
+                    <span className={`${idx === 0 ? "font-medium text-amber-700" : "text-foreground"}`}>{highlight}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="px-6 pb-6">
+              <Button
+                asChild
+                size="lg"
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white h-12 text-base font-medium rounded-lg shadow-md"
+              >
+                <Link href="/signup/legal">
+                  <Scale className="h-4 w-4 mr-2" />
+                  Subscribe Now
+                </Link>
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-3">Full Legal Protection</p>
+            </div>
+          </Card>
         </div>
 
         {/* Compare All Features Toggle */}
@@ -340,21 +324,21 @@ export const PricingSection = () => {
             {/* Desktop: Table-based comparison */}
             <div className="hidden sm:block">
               {/* Header row with plan names */}
-              <div className="grid grid-cols-4 gap-3 lg:gap-4 mb-0">
+              <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-0">
                 <div className="col-span-1" />
                 {plans.map((plan) => (
                   <div
                     key={plan.name}
                     className={`p-4 text-center rounded-t-lg ${
                       plan.name === "Professional"
-                        ? "bg-primary/10 border-x border-t border-primary"
+                        ? "bg-blue-50 border-x border-t border-blue-200"
                         : plan.name === "Legal"
-                          ? "bg-amber-50 border-x border-t border-amber-500"
+                          ? "bg-amber-50 border-x border-t border-amber-200"
                           : "bg-muted/50 border-x border-t border-border"
                     }`}
                   >
                     <h4 className="font-semibold">{plan.name}</h4>
-                    <p className="text-sm text-muted-foreground">€{getPrice(plan)}/mo</p>
+                    <p className="text-sm text-muted-foreground">€{getPrice(plan)}/user/mo</p>
                   </div>
                 ))}
               </div>
@@ -367,10 +351,9 @@ export const PricingSection = () => {
                     return (
                       <div
                         key={feature.name}
-                        className="grid grid-cols-4 gap-3 lg:gap-4 px-3 lg:px-6 py-2 lg:py-3 bg-muted/50 border-b border-border"
+                        className="grid grid-cols-3 gap-3 lg:gap-4 px-3 lg:px-6 py-2 lg:py-3 bg-muted/50 border-b border-border"
                       >
                         <div className="text-xs lg:text-sm font-bold text-foreground">{feature.name}</div>
-                        <div />
                         <div />
                         <div className="text-center">
                           {feature.legal && typeof feature.legal === "string" && (
@@ -385,15 +368,12 @@ export const PricingSection = () => {
                   return (
                     <div
                       key={feature.name}
-                      className={`grid grid-cols-4 gap-3 lg:gap-4 px-3 lg:px-6 py-3 lg:py-4 hover:bg-muted/30 transition-colors ${
+                      className={`grid grid-cols-3 gap-3 lg:gap-4 px-3 lg:px-6 py-3 lg:py-4 hover:bg-muted/30 transition-colors ${
                         index !== features.length - 1 ? "border-b border-border" : ""
                       } ${feature.legalOnly ? "bg-amber-50/50" : ""}`}
                     >
                       <div className="text-xs lg:text-sm font-medium flex items-center gap-1 lg:gap-2">
                         <span className="line-clamp-2">{feature.name}</span>
-                      </div>
-                      <div className="text-center">
-                        <FeatureValue value={feature.basic} subtext={feature.subtext?.basic} />
                       </div>
                       <div className="text-center">
                         <FeatureValue value={feature.pro} subtext={feature.subtext?.pro} />
@@ -414,9 +394,9 @@ export const PricingSection = () => {
                   key={plan.name}
                   className={`p-4 ${
                     plan.name === "Professional"
-                      ? "border-primary"
+                      ? "border-blue-300"
                       : plan.name === "Legal"
-                        ? "border-amber-500"
+                        ? "border-amber-300"
                         : ""
                   }`}
                 >
@@ -426,11 +406,9 @@ export const PricingSection = () => {
                       .filter((f) => !f.isCategory)
                       .map((feature) => {
                         const value =
-                          plan.name === "Standard"
-                            ? feature.basic
-                            : plan.name === "Professional"
-                              ? feature.pro
-                              : feature.legal;
+                          plan.name === "Professional"
+                            ? feature.pro
+                            : feature.legal;
                         return (
                           <div key={feature.name} className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0">
                             <span className="text-muted-foreground">{feature.name}</span>
@@ -452,6 +430,9 @@ export const PricingSection = () => {
             </div>
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Burden of Proof Section */}
+        <BurdenOfProofSection compact showCTA={false} />
       </div>
     </section>
   );

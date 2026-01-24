@@ -42,8 +42,7 @@ export const Header = () => {
           </Button>
           <Button asChild className="group bg-cta hover:bg-cta/90">
             <Link href="/signup/pro">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              Create Free Account<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
         </div>

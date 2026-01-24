@@ -1,45 +1,76 @@
-import { Shield, Lock, Heart, Users, Eye, Server, Globe, ArrowRight } from "lucide-react";
+import { Shield, Lock, Heart, Users, Eye, Server, Globe, ArrowRight, CircleDollarSign, Bot, ShieldOff, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+const dataPromises = [
+  {
+    icon: CircleDollarSign,
+    title: "We will never sell your data",
+    highlight: "never sell",
+    description: "Your files and metadata are not for sale. Not now, not ever.",
+    color: "primary",
+  },
+  {
+    icon: Bot,
+    title: "We will never train AI on your files",
+    highlight: "never train AI",
+    description: "Your documents, photos, and files are yours alone.",
+    color: "amber",
+  },
+  {
+    icon: ShieldOff,
+    title: "No US Cloud Act Risk",
+    highlight: "No US Cloud Act",
+    description: "Unlike US providers (Dropbox, WeTransfer), we are not subject to the US Cloud Act. Your data remains strictly under European law.",
+    color: "primary",
+  },
+  {
+    icon: BookOpen,
+    title: "We will always be transparent",
+    highlight: "always be transparent",
+    description: "If our policies change, you'll be the first to know.",
+    color: "amber",
+  },
+];
 
 const coreValues = [
   {
-    icon: Lock,
-    title: "Your Data, Your Property",
-    description: "We believe that data belonging to you should remain yours. Period. We never sell, share, or use your files for any purpose other than delivering them safely to your recipients."
-  },
-  {
-    icon: Eye,
-    title: "No AI Training",
-    description: "Your files will never be used to train AI models or for any commercial purposes. We're a file transfer service, not a data mining company."
-  },
-  {
     icon: Shield,
-    title: "Privacy by Design",
-    description: "End-to-end encryption, zero-knowledge architecture, and strict access controls ensure that only you and your intended recipients can access your files."
+    title: "Proof of Delivery",
+    description: "We provide legally binding proof that your documents were delivered and received. Essential for contracts, legal notices, and compliance requirements."
+  },
+  {
+    icon: Lock,
+    title: "Secure by Default",
+    description: "End-to-end encryption ensures your files are protected from upload to download. Only you and your intended recipient can access the content."
   },
   {
     icon: Server,
-    title: "EU Data Sovereignty",
-    description: "All data is stored exclusively within the European Union, protected by GDPR and the strictest privacy regulations in the world."
+    title: "EU Infrastructure",
+    description: "All data is processed and stored exclusively within ISO 27001 certified EU data centers, protected by GDPR and European privacy regulations."
   },
   {
     icon: Users,
     title: "Built for Professionals",
-    description: "Designed for law firms, healthcare, and businesses that handle sensitive data. Security shouldn't be complicated."
+    description: "Designed for law firms, notaries, healthcare providers, and businesses that need verifiable proof of document delivery."
+  },
+  {
+    icon: Eye,
+    title: "Privacy First",
+    description: "Your files are never scanned, analyzed, or used for any purpose other than secure delivery. We respect your data privacy."
   },
   {
     icon: Globe,
-    title: "100% Independent",
-    description: "No big tech. No GAFAM. We are fully independent and will never be acquired by companies that don't share our values."
+    title: "Independent & Trusted",
+    description: "We are a fully independent European company. No big tech affiliations, no data mining, no compromises on your security."
   }
 ];
 
 const stats = [
   { value: "100%", label: "EU Data Storage" },
-  { value: "Zero", label: "Knowledge Encryption" },
-  { value: "ISO 27001", label: "Certified" },
+  { value: "eIDAS", label: "QERDS Compliant" },
+  { value: "ISO 27001", label: "Certified Infra" },
   { value: "AES-256", label: "Encryption" }
 ];
 
@@ -51,17 +82,17 @@ export default function About() {
       <section className="py-24 px-4 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="container max-w-4xl mx-auto text-center">
           <p className="text-primary font-medium text-sm tracking-wide uppercase mb-3 opacity-0 animate-fade-in-up">
-            Our Mission
+            About Us
           </p>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight opacity-0 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Secure file sharing
-            <span className="block text-primary">built for professionals</span>
+            Secure Registered
+            <span className="block text-primary">Document Delivery</span>
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            We built Transfer Guard with a simple belief: sharing files should be easy, 
-            secure, and respectful of your privacy. No compromises.
+            Transfer Guard is the trusted platform for sending documents with legally binding 
+            proof of delivery. We combine enterprise-grade security with EU-compliant infrastructure.
           </p>
 
           {/* Stats */}
@@ -79,60 +110,63 @@ export default function About() {
       {/* Story Section */}
       <section className="py-24 px-4">
         <div className="container max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Why We Built Transfer Guard</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Why Transfer Guard?</h2>
           
           <div className="prose prose-lg max-w-none text-muted-foreground space-y-6">
             <p>
-              In a world where big tech companies monetize every bit of data they can get their hands on, 
-              we saw a need for something different. A service that puts users first, not advertisers.
+              Traditional email and file sharing services can't prove that your documents were actually 
+              received. When it matters legally — contracts, legal notices, compliance deadlines — 
+              you need verifiable proof of delivery.
             </p>
             
             <p>
-              Too many file sharing services treat your data as their product. They scan your files, 
-              build profiles about you, and sell insights to the highest bidder. Some even use your 
-              documents to train AI models without your consent.
+              <strong className="text-foreground">That's exactly what Transfer Guard provides.</strong>
             </p>
             
             <p>
-              <strong className="text-foreground">We reject this approach entirely.</strong>
+              We combine secure file transfer with legally binding delivery certificates. Every transfer 
+              is tracked, timestamped, and documented. For our Legal plan, we provide eIDAS-compliant 
+              QERDS (Qualified Electronic Registered Delivery Service) certificates that hold up in court.
             </p>
             
             <p>
-              Transfer Guard was built on the principle that your data belongs to you. When you upload 
-              a file, it's encrypted, delivered, and that's it. We don't peek inside. We don't analyze it. 
-              We don't keep it longer than necessary. And we certainly don't sell it.
+              Our infrastructure runs exclusively on ISO 27001 certified European servers. Your data 
+              never leaves the EU, ensuring full GDPR compliance and protection from foreign data access laws.
             </p>
             
             <p>
-              Beyond privacy, we provide legally binding proof of delivery. With our Legally Sealed PDF 
-              certificates, you can prove that documents were sent AND received — essential for legal 
-              proceedings, contractual deadlines, and compliance requirements.
+              Whether you're a law firm sending case documents, a notary delivering contracts, 
+              or a business sharing sensitive files — Transfer Guard gives you the security and 
+              proof you need.
             </p>
           </div>
         </div>
       </section>
 
       {/* Core Values */}
-      <section className="py-24 px-4 bg-muted/30">
-        <div className="container max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-primary font-medium text-sm tracking-wide uppercase mb-3">
+      <section className="py-24 px-4 bg-muted/20">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-primary font-medium text-sm tracking-widest uppercase mb-4">
               Values
             </p>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Our Core Values</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              These principles guide every decision we make, from product design to business partnerships.
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+              Built on <span className="text-primary">Trust</span>, <span className="text-primary">Security</span>, and
+              <span className="block"><span className="text-primary">Legal Certainty</span>.</span>
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              <span className="font-medium text-foreground">Our Promise to You.</span> These principles guide every decision we make.
             </p>
           </div>
           
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {coreValues.map((value) => (
-              <Card key={value.title} className="p-8 bg-background border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 group">
-                <div className="p-3 rounded-xl bg-primary/10 w-fit mb-6 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                  <value.icon className="h-6 w-6 text-primary" />
+              <Card key={value.title} className="p-6 bg-background/80 backdrop-blur-sm border border-border/60 rounded-2xl hover:shadow-md transition-all duration-200">
+                <div className="p-2.5 rounded-xl bg-primary/10 w-fit mb-5">
+                  <value.icon className="h-5 w-5 text-primary" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{value.title}</h3>
-                <p className="text-muted-foreground">{value.description}</p>
+                <h3 className="text-base font-bold mb-2 text-foreground">{value.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
               </Card>
             ))}
           </div>
@@ -140,55 +174,56 @@ export default function About() {
       </section>
 
       {/* Data Promise */}
-      <section className="py-24 px-4">
-        <div className="container max-w-3xl mx-auto">
-          <Card className="p-10 border-2 border-primary/20 bg-card">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Globe className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold">Our Data Promise</h2>
-            </div>
-            
-            <ul className="space-y-6">
-              <li className="flex items-start gap-4 group">
-                <div className="p-2 rounded-lg bg-primary/10 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                  <Shield className="h-4 w-4 text-primary" />
+      <section className="py-24 px-4 bg-muted/20">
+        <div className="container max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Our Data Promise</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Your trust is our most valuable asset. Here is our commitment to protecting your privacy.
+            </p>
+          </div>
+          
+          {/* 2x2 Grid of Promise Cards */}
+          <div className="grid gap-5 md:grid-cols-2">
+            {dataPromises.map((promise) => (
+              <Card 
+                key={promise.title} 
+                className="p-8 bg-background/80 backdrop-blur-sm border border-border/60 rounded-2xl hover:shadow-md transition-all duration-200 text-center"
+              >
+                {/* Icon */}
+                <div className={`mx-auto mb-5 p-4 rounded-2xl w-fit ${
+                  promise.color === "amber" ? "bg-amber-100" : "bg-primary/10"
+                }`}>
+                  <promise.icon 
+                    className={`h-10 w-10 ${
+                      promise.color === "amber" ? "text-amber-600" : "text-primary"
+                    }`} 
+                    strokeWidth={1.5} 
+                  />
                 </div>
-                <div>
-                  <p className="font-semibold">We will never sell your data</p>
-                  <p className="text-muted-foreground">Your files and metadata are not for sale. Not now, not ever.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4 group">
-                <div className="p-2 rounded-lg bg-primary/10 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                  <Shield className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold">We will never train AI on your files</p>
-                  <p className="text-muted-foreground">Your documents, photos, and files are yours alone.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4 group">
-                <div className="p-2 rounded-lg bg-primary/10 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                  <Shield className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold">We will never share data with third parties</p>
-                  <p className="text-muted-foreground">Unless required by law, your data stays between you and your recipients.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4 group">
-                <div className="p-2 rounded-lg bg-primary/10 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                  <Shield className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold">We will always be transparent</p>
-                  <p className="text-muted-foreground">If our policies change, you'll be the first to know.</p>
-                </div>
-              </li>
-            </ul>
-          </Card>
+                
+                {/* Title with highlighted keyword */}
+                <h3 className="text-lg font-bold mb-2 text-foreground">
+                  {promise.title.split(promise.highlight).map((part, i, arr) => (
+                    <span key={i}>
+                      {part}
+                      {i < arr.length - 1 && (
+                        <span className={promise.color === "amber" ? "text-amber-600" : "text-primary"}>
+                          {promise.highlight}
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </h3>
+                
+                {/* Description */}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {promise.description}
+                </p>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -197,16 +232,16 @@ export default function About() {
         <div className="container max-w-3xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Ready to get started?</h2>
           <p className="text-lg text-muted-foreground mb-10">
-            Start your 14-day free trial today. Cancel anytime.
+            Start your 14-day free trial today. No credit card needed.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="text-lg px-8 py-6 h-auto group">
+            <Button size="lg" asChild className="text-lg px-8 py-6 h-auto group bg-green-600 hover:bg-green-700 text-white">
               <Link href="/signup/pro">
-                Start Your Free Trial
+                Start Free Registered File Transfer
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="text-lg px-8 py-6 h-auto hover:bg-muted/50">
+            <Button size="lg" variant="outline" asChild className="text-lg px-8 py-6 h-auto border-2 border-border hover:bg-muted/50">
               <Link href="/#pricing">View Pricing</Link>
             </Button>
           </div>

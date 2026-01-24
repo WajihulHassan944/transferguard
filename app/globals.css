@@ -1,1 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+button{
+    cursor: pointer;
+}
+
+.upload-progress-container-new {
+  width: 100%;
+  max-width: 100%; /* adjust as needed */
+  height: 11px;
+  background: #d1d5db; /* light grey / white */
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 40px;
+}
+.upload-progress-bar-new {
+  height: 100%;
+  background: linear-gradient(90deg, #c084fc, #ec4899, #60a5fa);
+  background-size: 200% 100%; /* allow animation */
+  animation: progressGradient 3s ease infinite;
+  border-radius: 12px 0 0 12px;
+  position: relative;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Animate the gradient left-to-right */
+@keyframes progressGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.upload-progress-thumb {
+  position: absolute;
+  right: -20px; /* attach to the end of green bar */
+  bottom: -28px; /* place below bar */
+  font-size: 13px;
+  font-weight: bold;
+  color: #16a34a;
+  background: #ffffff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  white-space: nowrap;
+}

@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { baseUrl } from "@/const";
+import * as openpgp from "openpgp";
+
 import {
   Dialog,
   DialogContent,
@@ -92,22 +95,35 @@ export function NewTransferDialog({
   const [userPlan, setUserPlan] = useState<string>("free");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+const progressRef = useRef<HTMLInputElement>(null);
+const [progress, setProgress] = useState(0);
+const [uploadKey, setUploadKey] = useState<string | null>(null);
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
   const showPublicWarning = recipientEmail && isPublicDomain(recipientEmail);
+const handleFiles = useCallback((newFiles: FileList | File[]) => {
+  const fileArray = Array.from(newFiles);
 
-  const handleFiles = useCallback((newFiles: FileList | File[]) => {
-    const fileArray = Array.from(newFiles);
-    const newTotalSize = totalSize + fileArray.reduce((acc, file) => acc + file.size, 0);
-    
-    if (newTotalSize > MAX_SIZE_BYTES) {
-      toast.error("Total size exceeds 10GB limit");
-      return;
-    }
+  if (fileArray.length > 1) {
+    toast.error("Only one file is allowed per transfer");
+    return;
+  }
 
-    setFiles(prev => [...prev, ...fileArray]);
-    toast.success(`${fileArray.length} file(s) added`);
-  }, [totalSize]);
+  const file = fileArray[0];
+
+  // ❌ block .exe explicitly
+  if (file.name.toLowerCase().endsWith(".exe")) {
+    toast.error("Executable (.exe) files are not allowed");
+    return;
+  }
+
+  if (file.size > MAX_SIZE_BYTES) {
+    toast.error("File exceeds 10GB limit");
+    return;
+  }
+
+  setFiles([file]);
+}, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -140,6 +156,136 @@ export function NewTransferDialog({
 
      
   const isValid = recipientEmail && files.length > 0;
+  
+
+  const encryptFileWithPGP = async (file: File) => {
+  const arrayBuffer = await file.arrayBuffer();
+
+  const message = await openpgp.createMessage({
+    binary: new Uint8Array(arrayBuffer),
+  });
+
+  // simple symmetric encryption (no keys required)
+  const encrypted = await openpgp.encrypt({
+    message,
+    passwords: [crypto.randomUUID()], // random one-time password
+    format: "binary",
+  });
+
+  return new Blob([encrypted], {
+    type: "application/octet-stream",
+  });
+};
+
+
+const handleSubmit = async () => {
+  if (!files[0]) return;
+
+  try {
+    setIsUploading(true);
+    setProgress(0);
+
+    const file = files[0];
+
+    const expiresAt = new Date(
+      Date.now() + Number(expiryDays) * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    /* ---------------------------------- */
+    /* 🔐 STEP 0: encrypt file FIRST       */
+    /* ---------------------------------- */
+    const encryptedBlob = await encryptFileWithPGP(file);
+
+    /* ---------------------------------- */
+    /* STEP 1: get signed upload URL       */
+    /* ---------------------------------- */
+    const uploadRes = await fetch(`${baseUrl}/transfers/upload-url`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: "application/octet-stream", // encrypted
+        fileSize: encryptedBlob.size, // encrypted size
+      }),
+    });
+
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok) throw new Error(uploadData.message);
+
+    const { uploadUrl, key, bucket } = uploadData;
+    setUploadKey(key);
+
+    /* ---------------------------------- */
+    /* STEP 2: PUT encrypted file to S3    */
+    /* ---------------------------------- */
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", uploadUrl, true);
+
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          setProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () =>
+        xhr.status >= 200 && xhr.status < 300
+          ? resolve()
+          : reject(new Error("Upload failed"));
+
+      xhr.onerror = () => reject(new Error("Upload failed"));
+
+      // ✅ send encrypted blob (NOT raw file)
+      xhr.send(encryptedBlob);
+    });
+
+    /* ---------------------------------- */
+    /* STEP 3: save metadata in DB         */
+    /* ---------------------------------- */
+    const metaRes = await fetch(`${baseUrl}/transfers/create`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipientEmail,
+        message,
+        dossierNumber,
+        securityLevel: "standard",
+        expiresAt,
+
+        file: {
+          name: file.name, // keep original name
+          size: encryptedBlob.size, // encrypted size
+          type: "application/octet-stream",
+        },
+
+        key,
+        bucket,
+        totalSizeBytes: encryptedBlob.size,
+        encryption: "pgp",
+      }),
+    });
+
+    const metaData = await metaRes.json();
+    if (!metaRes.ok) throw new Error(metaData.message);
+console.log(metaData);
+    toast.success("Secure transfer created successfully");
+
+    resetForm();
+    onTransferCreated();
+    onOpenChange(false);
+
+  } catch (err: any) {
+    toast.error(err.message || "Something went wrong");
+  } finally {
+    setIsUploading(false);
+    setProgress(0);
+  }
+};
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -292,12 +438,31 @@ export function NewTransferDialog({
           </div>
         </div>
 
+
+{isUploading && (
+  <div className="upload-progress-container-new" ref={progressRef}>
+    <div 
+      className="upload-progress-bar-new"
+      style={{
+        width: `${progress}%`,
+        borderRadius: progress === 100 
+          ? "10px"          // fully rounded if 100%
+          : "10px 0 0 10px" // only left rounded while loading
+      }}
+    >
+      <span className="upload-progress-thumb">{progress}%</span>
+    </div>
+  </div>
+)}
+
+
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button  disabled={!isValid || isUploading}>
-            {isUploading ? "Creating..." : "Send Transfer"}
+        <Button onClick={handleSubmit} disabled={!isValid || isUploading}>
+    {isUploading ? "Creating..." : "Send Transfer"}
           </Button>
         </DialogFooter>
       </DialogContent>

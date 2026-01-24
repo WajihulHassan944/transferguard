@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, User, Building, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { MFAVerification } from "@/components/auth/MFAVerification";
+import {baseUrl} from "@/const/index"
+import withoutAuth from '@/hooks/withoutAuth';
+
 import {
   Dialog,
   DialogContent,
@@ -18,10 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { loginUser } from "@/redux/features/userSlice";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@/redux/hooks";
 
 type AuthStep = "login" | "mfa_verify";
 
-export default function Auth() {
+const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,35 +40,115 @@ export default function Auth() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const router = useRouter();
- 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    const dispatch = useDispatch();
 
-    try {
-        toast.success("Successfully logged in!");
-        // MFA check is handled by onAuthStateChange
-    } catch (error) {
-      toast.error("An error occurred");
-    } finally {
-      setLoading(false);
+const usered = useAppSelector((state) => state.user);
+
+  console.log("usr is", usered);
+ 
+
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+ 
+  try {
+    // 1️⃣ Login request
+    const res = await fetch(`${baseUrl}/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Login failed");
     }
-  };
+
+    toast.success("Login successful");
+
+    // 2️⃣ MFA handling (if required)
+    if (data?.mfaRequired) {
+      setAuthStep("mfa_verify");
+      return;
+    }
+
+    // 3️⃣ Fetch user details (same as old place)
+    const userDetailsRes = await fetch(`${baseUrl}/users/userdetails`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const userDetailsData = await userDetailsRes.json();
+
+    if (!userDetailsRes.ok || !userDetailsData.success) {
+      throw new Error("Failed to fetch user details");
+    }
+
+    // 4️⃣ Dispatch user to redux
+    const userWithWallet = {
+      ...userDetailsData.user,
+    };
+
+    dispatch(loginUser(userWithWallet));
+
+    // 5️⃣ Redirect
+    router.push("/dashboard");
+
+  } catch (error: any) {
+    console.error(error);
+    toast.error(error.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
-        toast.success("Account created! Redirecting...");
-    } catch (error) {
-      toast.error("An error occurred");
-    } finally {
-      setLoading(false);
+  try {
+    const response = await fetch(`${baseUrl}/users/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        company_name: companyName || undefined,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Registration failed");
     }
-  };
+
+    toast.success(
+      "Registration successful! Please check your email to verify your account."
+    );
+
+    // Reset form
+    setFirstName("");
+    setLastName("");
+    setCompanyName("");
+    setEmail("");
+    setPassword("");
+
+    // 👉 Switch back to Login tab after success
+    setAuthStep("login");
+  } catch (error: any) {
+    toast.error(error.message || "An error occurred during signup");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleMFASuccess = () => {
     router.push("/dashboard");
@@ -292,3 +378,4 @@ export default function Auth() {
     </div>
   );
 }
+export default withoutAuth(Auth);

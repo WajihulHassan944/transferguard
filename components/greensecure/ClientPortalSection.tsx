@@ -7,13 +7,15 @@ export const ClientPortalSection = () => {
       <div className="container max-w-6xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">Included in all plans</Badge>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Client Upload Portal
+          
+          <h2 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">
+            Receive Sensitive Client Files
           </h2>
+          <h3 className="text-2xl md:text-3xl font-bold mb-4 tracking-tight text-primary">
+            Securely & in Your Own Branding
+          </h3>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Give your clients a secure, branded portal to upload files directly to you. 
-            Fully customizable with your logo, wallpaper, and colors.
+            Offer clients a professional, encrypted upload portal. Fully customizable with your logo and colors, no technical knowledge required.
           </p>
         </div>
 

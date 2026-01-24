@@ -12,6 +12,8 @@ import { ClientPortalsPanel } from "@/components/dashboard/ClientPortalsPanel";
 import { SecurityPanel } from "@/components/dashboard/SecurityPanel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import withAuth from '@/hooks/withAuth';
+
 import { 
   Sparkles, 
   ArrowRight, 
@@ -25,6 +27,8 @@ import {
   Crown
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import { useAppSelector } from "@/redux/hooks";
 
 export type DashboardView = "transfers" | "certificates" | "contacts" | "teams" | "profile" | "branding" | "security" | "portals";
 
@@ -79,14 +83,16 @@ const proFeatures = [
   }
 ];
 
-export default function Dashboard() {
+const Dashboard = () => {
 type User = {
   id: string;
   email: string;
   name: string;
   plan: string;
 };
+const usered = useAppSelector((state) => state.user);
 
+  console.log("usr is", usered);
 const [user, setUser] = useState<User | null>(null);
 const [session, setSession] = useState<{ user: User } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -137,7 +143,7 @@ const router = useRouter();
   if (false && !checkingPlan && !isPaidUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <DashboardHeader user={user!} />
+        <DashboardHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-6">
           <div className="max-w-4xl w-full">
             {/* Main Card */}
@@ -292,7 +298,7 @@ const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <DashboardHeader user={user} />
+      <DashboardHeader />
       <div className="flex">
         <DashboardViewSidebar 
           activeView={activeView} 
@@ -310,3 +316,6 @@ const router = useRouter();
     </div>
   );
 }
+
+
+export default withAuth(Dashboard);
