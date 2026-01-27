@@ -1,0 +1,85 @@
+
+.users-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.users-stats-grid .stat-card {
+  border-radius: 12px;
+  padding: 25px;
+  background: #f9fafb;
+  border:1px solid #e5e7eb;
+  box-shadow: 0 1px 3px #0000001a, 0 1px 2px -1px #0000001a;
+}
+
+.users-stats-grid .stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  margin-bottom: 35px;
+}
+
+.users-stats-grid .stat-header h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+.users-stats-grid .stat-icon {
+  width: 17px;
+  height: 17px;
+  color: #374151;
+}
+
+.users-stats-grid .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 8px 0 4px 0;
+  color: #000;
+}
+
+.users-stats-grid .stat-subtext {
+  font-size: 13px;
+  color: #333;
+}
+
+
+
+
+@media (max-width: 768px) {
+  
+  /* Stats grid: 2 columns instead of 4 */
+  .users-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 15px 0;
+  }
+
+  .users-stats-grid .stat-card {
+    padding: 18px;
+  }
+
+  .users-stats-grid .stat-header {
+    margin-bottom: 20px;
+  }
+
+  .users-stats-grid .stat-header h3 {
+    font-size: 13px;
+  }
+
+  .users-stats-grid .stat-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .users-stats-grid .stat-value {
+    font-size: 20px;
+  }
+
+  .users-stats-grid .stat-subtext {
+    font-size: 12px;
+  }
+}

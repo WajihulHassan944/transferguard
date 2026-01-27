@@ -1,0 +1,160 @@
+
+.login-container-admin {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fbf9fa;;
+ 
+}
+
+.login-container-admin .login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  width: 400px;
+}
+
+.login-container-admin .login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-container-admin .login-logo {
+  height: 50px;
+  margin-bottom: 10px;
+}
+
+.login-container-admin .login-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.login-container-admin .login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-container-admin .login-form label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.login-container-admin .login-form input[type="text"],
+.login-container-admin .login-form input[type="password"] {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.login-container-admin .login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 26px 0 !important;
+  font-size: 14px;
+  color: #475569;
+}
+.login-container-admin .login-options .rememberLabel{
+    margin-top: 2px;
+}
+.login-container-admin .forgot-password {
+  text-decoration: none;
+  color: #6366f1;
+}
+
+.login-container-admin .login-button {
+  padding: 12px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.login-container-admin .login-button:hover {
+  background-color: #1e2939;
+}
+
+.login-container-admin .login-footer {
+  text-align: center;
+  font-size: 14px;
+  color: #475569;
+}
+
+.login-container-admin .login-footer a {
+  color: #1e2939;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.login-container-admin  input[type="checkbox"] {
+    transform: scale(1.5); /* Increases the visual size */
+    margin: 5px; /* Optional spacing */
+    cursor: pointer;
+}
+.loader {
+  display: inline-block;   /* ✅ prevents weird stretching */
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-top-color: transparent; /* orange highlight */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;   /* ✅ keeps aligned inside button */
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 768px) {
+  .login-container-admin {
+    padding: 20px;
+  }
+
+  .login-container-admin .login-card {
+    width: 100%;       /* take full width */
+    max-width: 100%;   /* prevent overflow */
+    padding:25px 20px;     /* reduce padding */
+   }
+
+  .login-container-admin .login-title {
+    font-size: 20px; /* slightly smaller */
+  }
+
+  .login-container-admin .login-form label {
+    font-size: 13px;
+  }
+
+  .login-container-admin .login-form input[type="text"],
+  .login-container-admin .login-form input[type="password"] {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .login-container-admin .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .login-container-admin .login-button {
+    width: 100%; /* full-width button for mobile */
+    font-size: 15px;
+  }
+
+  .login-container-admin .login-footer {
+    font-size: 13px;
+  }
+}

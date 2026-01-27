@@ -1,0 +1,26 @@
+.invoice-modal-top{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 14%;
+    padding-right: 16%;
+}
+/* Close button */
+.invoice-close-btn {
+  color: #393d45; /* gray-500 */
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.invoice-close-btn:hover {
+  color: #1f2937; /* gray-800 */
+}
+
+/* Header buttons container */
+.invoice-btn-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}

@@ -1,0 +1,219 @@
+.pages-wrapper {
+  margin-top: 20px;
+}
+
+/* Search Bar (based on your provided CSS) */
+.search-bar {
+  position: relative;
+  margin: 30px 0;
+  width: 100%;
+  box-shadow: 0 1px 2px 0 #0000000d;
+
+  background: transparent;
+}
+
+.search-bar .search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 10px 10px 36px;
+  border: 1px solid #f1f5f9;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+/* Grid */
+.pages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 25px;
+}
+
+/* Card */
+.pages-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow:0 1px 3px 0 #0000001a,0 1px 2px -1px #0000001a;
+  padding: 28px;
+  transition: all 0.2s ease;
+}
+
+.pages-card:hover {
+  background: #f3f4f6;
+}
+
+/* Header */
+.pages-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.pages-icon-box {
+  background: #f1f5f9;
+  color: #4b5563;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pages-title-box {
+  flex: 1;
+  margin-left: 10px;
+}
+
+.pages-title-box h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pages-title-box p {
+  margin: 2px 0 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.pages-menu-icon {
+  color: #333;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Status */
+.pages-status {
+  margin: 15px 0;
+}
+
+.status-badge {
+  background: #6366f1;
+  color: white;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Meta Row */
+.pages-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #374151;
+}
+
+.pages-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 15px 0;
+}
+
+/* Footer */
+.pages-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+@media (max-width: 768px) {
+  .pages-wrapper {
+    margin-top: 15px;
+  }
+
+  .search-bar {
+    margin: 20px 0;
+  }
+
+  .search-bar input {
+    padding: 8px 8px 8px 32px;
+    font-size: 0.8125rem;
+  }
+
+  .pages-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 18px;
+  }
+
+  .pages-card {
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+
+
+  .pages-title-box {
+    margin-left: 0;
+  }
+
+
+}
+/* Dropdown container (absolute near 3 dots icon) */
+.pages-dropdown {
+  position: absolute;
+  top: 28px; /* adjust to align under 3 dots */
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-width: 120px;
+  z-index: 20;
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+/* Dropdown button */
+.pages-dropdown button {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Hover effect */
+.pages-dropdown button:hover {
+  background: #f5f5f5;
+  color: #111;
+}
+
+/* Add subtle animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.pages-menu-container{
+  position: relative;
+}

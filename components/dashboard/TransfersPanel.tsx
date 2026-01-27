@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+
+import { baseUrl } from "@/const";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -73,82 +75,6 @@ interface Transfer {
 
 type SecurityLevel = 'standard' | 'adobe_sealed' | 'qerds';
 
-// Demo data
-const DEMO_TRANSFERS: (Transfer & { security_level?: SecurityLevel })[] = [
-  {
-    id: "demo-1",
-    sender_email: "you@yourcompany.com",
-    recipient_email: "legal@client.com",
-    recipient_phone: "+31 6 12345678",
-    message: "Please review and sign the attached contract.",
-    dossier_number: "2024-0142",
-    download_token: "demo-token-1",
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    downloaded_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    revoked_at: null,
-    verified_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    security_level: 'qerds',
-    files: [
-      { id: "f1", file_name: "Project_Alpha_Contract.pdf", file_size: 12456789, mime_type: "application/pdf" },
-    ]
-  },
-  {
-    id: "demo-2",
-    sender_email: "you@yourcompany.com",
-    recipient_email: "cfo@company.com",
-    recipient_phone: null,
-    message: "Annual financial report attached.",
-    dossier_number: "FIN-2024-Q4",
-    download_token: "demo-token-2",
-    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    downloaded_at: null,
-    revoked_at: null,
-    verified_at: null,
-    created_at: new Date().toISOString(),
-    security_level: 'adobe_sealed',
-    files: [
-      { id: "f3", file_name: "Q3_Financials_Draft.xlsx", file_size: 4234567, mime_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
-    ]
-  },
-  {
-    id: "demo-3",
-    sender_email: "you@yourcompany.com",
-    recipient_email: "notary@firm.nl",
-    recipient_phone: "+31 6 98765432",
-    message: "Merger documents for legal validation",
-    dossier_number: "MA-2024-001",
-    download_token: "demo-token-3",
-    expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    downloaded_at: null,
-    revoked_at: null,
-    verified_at: null,
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    security_level: 'qerds',
-    files: [
-      { id: "f5", file_name: "Merg_Acq_Final.zip", file_size: 240678901, mime_type: "application/zip" }
-    ]
-  },
-  {
-    id: "demo-4",
-    sender_email: "you@yourcompany.com",
-    recipient_email: "wrong-recipient@example.com",
-    recipient_phone: null,
-    message: "Confidential documents",
-    dossier_number: null,
-    download_token: "demo-token-4",
-    expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    downloaded_at: null,
-    revoked_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    verified_at: null,
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    security_level: 'standard',
-    files: [
-      { id: "f6", file_name: "Company_Logo.png", file_size: 234567, mime_type: "image/png" },
-      { id: "f7", file_name: "Brand_Guidelines.pdf", file_size: 3456789, mime_type: "application/pdf" }
-    ]
-  }
-];
 
 // Security level configuration with consistent colors
 const getSecurityLevelInfo = (level: SecurityLevel | undefined, hasPhone: boolean) => {
@@ -229,6 +155,31 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
   const [isRevoking, setIsRevoking] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+useEffect(() => {
+  const fetchTransfers = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${baseUrl}/transfers/my`, {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to load transfers");
+      }
+
+      setTransfers(data.transfers); // must match Transfer interface
+    } catch (err: any) {
+      toast.error(err.message || "Failed to fetch transfers");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTransfers();
+}, [userId]);
 
   const getStatus = (transfer: Transfer & { security_level?: SecurityLevel }) => {
     const now = new Date();
@@ -288,23 +239,82 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
     setNewExpiryDays("7");
     setReshareOpen(true);
   };
+const handleReshare = async () => {
+  if (!selectedTransfer || !newRecipientEmail) return;
 
-  const handleReshare = async () => {
-    if (!selectedTransfer || !newRecipientEmail) return;
+  try {
     setIsResharing(true);
-    
-   };
+
+    const res = await fetch(`${baseUrl}/transfers/${selectedTransfer.id}/reshare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        recipient_email: newRecipientEmail,
+        recipient_phone: newRecipientPhone || null,
+        message: newMessage,
+        expires_in_days: Number(newExpiryDays),
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to reshare");
+    }
+
+    setTransfers((prev) => [data.transfer, ...prev]);
+    setReshareOpen(false);
+    toast.success("Document reshared successfully");
+  } catch (err: any) {
+    toast.error(err.message || "Reshare failed");
+  } finally {
+    setIsResharing(false);
+  }
+};
 
   const openRevokeDialog = (transfer: Transfer) => {
     setTransferToRevoke(transfer);
     setRevokeDialogOpen(true);
   };
+const handleRevoke = async () => {
+  if (!transferToRevoke) return;
 
-  const handleRevoke = async () => {
-    if (!transferToRevoke) return;
+  try {
     setIsRevoking(true);
-      setIsRevoking(false);
-   };
+
+    const res = await fetch(`${baseUrl}/transfers/revoke/${transferToRevoke.id}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to revoke access");
+    }
+
+   setTransfers((prev) =>
+  prev.map((t) =>
+    t.id === transferToRevoke.id
+      ? {
+          ...t,
+          revoked_at: data.transfer?.revoked_at || new Date().toISOString(),
+        }
+      : t
+  )
+);
+
+
+    toast.success("Access revoked");
+    setRevokeDialogOpen(false);
+  } catch (err: any) {
+    toast.error(err.message || "Revoke failed");
+  } finally {
+    setIsRevoking(false);
+  }
+};
+
 
   const filteredTransfers = searchQuery
     ? transfers.filter(t => 
@@ -381,7 +391,8 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+        <TooltipProvider delayDuration={150}>
+        <div className="space-y-3">
             {filteredTransfers.map((transfer) => {
               const status = getStatus(transfer as Transfer & { security_level?: SecurityLevel });
               const securityInfo = getSecurityLevelInfo(
@@ -476,16 +487,19 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
                       )}
                       
                       
-                      {/* Clone & Send - always visible for resending to others */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openReshare(transfer)}
-                        className="hidden sm:flex"
-                      >
-                        <Send className="h-4 w-4 mr-1.5" />
-                        Clone & Send
-                      </Button>
+                  {/* Clone & Send - hide when revoked */}
+{!isRevoked && (
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={() => openReshare(transfer)}
+    className="hidden sm:flex"
+  >
+    <Send className="h-4 w-4 mr-1.5" />
+    Clone & Send
+  </Button>
+)}
+
                       
                       {/* Revoke Button */}
                       {canRevoke(transfer) && (
@@ -521,10 +535,13 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
                             <ExternalLink className="h-4 w-4 mr-2" />
                             Copy download link
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openReshare(transfer)} className="sm:hidden">
-                            <Send className="h-4 w-4 mr-2" />
-                            Clone & Send New
-                          </DropdownMenuItem>
+                         {!isRevoked && (
+  <DropdownMenuItem onClick={() => openReshare(transfer)} className="sm:hidden">
+    <Send className="h-4 w-4 mr-2" />
+    Clone & Send New
+  </DropdownMenuItem>
+)}
+
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -532,7 +549,7 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
                 </Card>
               );
             })}
-          </div>
+          </div> </TooltipProvider>
         )}
       </div>
 

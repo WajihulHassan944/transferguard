@@ -1,0 +1,69 @@
+.top-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 85px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 30px;
+  padding-right: 24px;
+  transition: all 0.3s ease;
+  z-index: 900;
+  font-family: 'GeistSans', 'GeistSans Fallback', sans-serif;
+}
+
+/* when sidebar is open (220px wide) */
+.top-nav.shifted {
+  left: 250px;
+  width: calc(100% - 250px);
+}
+
+/* when sidebar is collapsed (70px wide) */
+.top-nav.full {
+  left: 70px;
+  width: calc(100% - 70px);
+}
+
+.top-nav-left h1 {
+  font-size: 24px;
+  margin: 0;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.top-nav-left p {
+  margin: 0;
+  font-size: 14px;
+  color: #777;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .top-nav.shifted,
+  .top-nav.full {
+    left: 0 !important;
+    width: 100% !important;
+  }
+
+  .top-nav {
+    left: 0 !important;
+    width: 100% !important;
+    padding: 20px; /* smaller padding on mobile */
+    padding-top: 80px; /* extra space */
+    height: auto; /* let content decide height */
+    flex-direction: column; /* stack items */
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .top-nav-left h1 {
+    font-size: 20px;
+  }
+
+  .top-nav-left p {
+    font-size: 13px;
+  }
+}

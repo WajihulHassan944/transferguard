@@ -1,0 +1,220 @@
+.media-table-wrapper {
+  margin: 25px 0;
+  padding: 5px 0;
+  border-radius: 12px;
+  background: #f8fafc;
+  border:2px solid #e5e7eb;
+  border-radius: 8px;
+
+}
+
+.media-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+  overflow-x: auto;
+  font-family: 'Inter', sans-serif;
+}
+
+.media-table thead {
+  background: #f8fafc;
+  text-align: left;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.media-table th,
+.media-table td {
+  padding: 16px 16px;
+  font-size: 14px;
+  color: #444;
+}
+
+.media-table th {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.media-row {
+  border-bottom: 2px solid #e5e7eb;
+  height: 72px; /* gives consistent height across rows */
+}
+
+
+.media-row:last-child {
+  border-bottom: none;
+}
+
+.table-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #6d28d9;
+  cursor: pointer;
+}
+
+.preview-cell {
+  display: flex;
+  align-items: center;
+}
+
+.preview-img,
+.video-placeholder {
+  width: 60px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+}
+
+.video-placeholder {
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background: #d97706;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: lowercase;
+}
+
+.type-cell-table {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #374151;
+  font-weight: 500;
+  position: relative;
+  height: 79px;
+}
+
+.actions-cell {
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+}
+/* ✅ Added: Make video previews same small size as images */
+.preview-video {
+  width: 60px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+
+/* ✅ Optional: Prevent cells from stretching due to video/image size */
+.preview-cell {
+  width: 70px;
+  height: 45px;
+}
+
+/* ✅ Added: Ensure table rows align neatly even with mixed content */
+.media-row td {
+  vertical-align: middle;
+  position: relative;
+}
+/* WRAPPER */
+.media-actions-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dots icon */
+.media-actions-dots {
+  cursor: pointer;
+  position: relative;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.media-actions-dots:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Dropdown Menu */
+.media-dropdown-menu-updated {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  width: 165px;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 6px 0;
+  box-shadow: 0 10px 15px -3px #0000001a,0 4px 6px -4px #0000001a;
+  z-index: 550;
+  animation: fadeInMenu 0.15s ease-out;
+  border:1px solid #e5e7eb;
+}
+
+/* Items */
+.media-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #222;
+  transition: background 0.15s ease;
+  margin-top: -5px;
+    font-family: "GeistSans","GeistSans Fallback";
+}
+
+.media-menu-item:hover {
+  background: #f5f5f5;
+}
+
+.media-menu-item svg {
+  color: #444;
+  margin-top: 3px;
+}
+
+/* Delete style */
+.media-delete {
+  color: #d92828;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 0;
+}
+
+.media-delete svg {
+  color: #d92828;
+}
+
+/* Smooth fade animation */
+@keyframes fadeInMenu {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+

@@ -1,0 +1,200 @@
+.price-schedules {
+  font-family: 'GeistSans', 'GeistSans Fallback', sans-serif;
+  margin-top: 40px;
+}
+
+.price-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+.table-wrapper {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.price-table th,
+.price-table td {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+}
+
+.price-table th {
+  background: #f9fafb;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.price-table tr + tr td {
+  border-top: 1px solid #e5e7eb;
+}
+
+.product-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.price-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.discount-badge {
+  background: #d97706;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.period {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+}
+
+.period svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.period div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.to-text {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #6366f1;
+  color: #fff;
+}
+
+.status-badge.scheduled {
+  background: #d97706;
+  color: #fff;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #fee2e2;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .price-table th,
+  .price-table td {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+}
+@media (max-width: 768px) {
+  .price-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .table-wrapper {
+    overflow: auto;
+    border-radius: 10px;
+  }
+
+  .price-table th,
+  .price-table td {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+
+  .discount-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .period {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .period div {
+    line-height: 1.2;
+  }
+
+  .price-value {
+    font-size: 13px;
+  }
+
+  .product-name {
+    font-size: 13px;
+  }
+
+  .delete-btn {
+    padding: 4px;
+  }
+
+  .price-schedules {
+    margin-top: 30px;
+  }
+}
+.strikethrough {
+  text-decoration: line-through;
+  color: #888;
+  margin-right: 4px;
+}
+
+/* Skeleton Loader */
+.skeleton-row .skeleton-cell {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(100deg, #f3f4f6 40%, #e5e7eb 50%, #f3f4f6 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  margin: 6px 0;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+

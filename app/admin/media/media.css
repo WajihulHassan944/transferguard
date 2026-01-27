@@ -1,0 +1,103 @@
+.media-container {
+  padding: 30px;
+  padding-left: 50px;
+  color: #1a1a1a;
+  background-color: #fbf9fa;
+  
+  font-family: 'GeistSans', 'GeistSans Fallback', sans-serif;
+  
+}
+
+.media-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.media-header h2 {
+  font-size: 30px;
+  color: #000;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0;
+}
+
+.media-header p {
+  color: #6b7280;
+  font-weight: 400;
+  margin: 4px 0 0;
+}
+@media (max-width: 768px) {
+  .media-container {
+    padding: 20px;
+    padding-top: 90px; /* requested */
+  }
+
+  .media-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .media-header h2 {
+    font-size: 22px;
+  }
+
+  .media-header p {
+    font-size: 13px;
+  }
+}
+
+
+.media-container .add-btn {
+  background:#6366f1;
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  text-shadow: 0 1px 2px 0 #0000000d;
+  font-size: 13px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000,0 0 #0000;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+    font-family: "GeistSans","GeistSans Fallback";
+}
+.media-container .add-video {
+  background:#fff;
+  color: #000;
+  border: 1px solid #e5e7eb;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  text-shadow: 0 1px 2px 0 #0000000d;
+  font-size: 13px;
+  box-shadow:0 1px 2px 0 #0000000d;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+    font-family: "GeistSans","GeistSans Fallback";
+}
+
+.media-container .add-btn:hover, .media-container .add-video:hover {
+ background: #7e7fd9;
+ color: #fff;
+}
+.media-container .add-btn span{
+    font-size: 19px;
+    margin-top: -3px;
+font-weight: 400;
+}
+.header-btns{
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+.btn-upload{
+    margin-bottom: -5px;
+}

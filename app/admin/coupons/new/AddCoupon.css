@@ -1,0 +1,367 @@
+.add-coupon-container {
+  background-color: #fbf9fa;
+  padding: 25px;
+  padding-left: 40px;
+  padding-top: 9px;
+  min-height: 100vh;
+  color: #4b5563;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 35px;
+  cursor: pointer;
+  margin-left: 15px;
+}
+.header-left .back-text{
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    margin-left: 5px;
+}
+.header-left div, .backLink{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.header-left div:nth-of-type(2){
+    flex-direction: column;
+    align-items: flex-start;
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.preview-btn,
+.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+      background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  padding: 9px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: "GeistSans","GeistSans Fallback";
+}
+
+.preview-btn {
+  color: #374151;
+}
+
+.save-btn {
+  background: #0891b2;
+  color: #fff;
+}
+
+.page-title {
+  font-size: 30px;
+  font-weight: 700;
+  margin-top: 15px;
+  color: #4b5563;
+}
+
+.page-subtitle {
+  margin-bottom: 20px;
+  color: #4b5563;
+}
+
+.coupon-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.left-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+    background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  padding: 25px;
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 25px;
+}
+.flexedDiv{
+    display: flex;
+    gap:20px;
+}
+.flexedDiv .form-group{
+    flex:1;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #000000;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px;
+  border:1px solid #f1f5f9;
+  outline: none;
+    box-shadow:  0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000,0 1px 2px 0 #0000000d;
+  border-radius: 6px;
+  font-size: 14px;
+  background: transparent;
+    font-family: "GeistSans","GeistSans Fallback";
+}
+
+.form-group textarea {
+  resize: none;
+  height: 80px;
+}
+
+.discount-types {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.discount-types button {
+flex:1;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  text-align: left;
+  padding: 10px 12px;
+  background: #fff;
+  cursor: pointer;
+  color: #4b5563;
+  font-family: "GeistSans","GeistSans Fallback";
+  font-weight: 500;
+}
+
+.discount-types button.active {
+  background: #0891b2;
+  color: #fff;
+}
+.form-check {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+  color: #000000;
+  font-weight: 500;
+}
+
+.form-check span{
+    font-weight: 400;
+    font-size: 13.5px !important;
+}
+.form-text {
+  max-width: 80%;
+}
+
+.form-check label {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.form-check span {
+  font-size: 12px;
+  color: #555;
+}
+
+/* Toggle Switch (smaller) */
+.form-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;   /* smaller width */
+  height: 20px;  /* smaller height */
+  cursor: pointer;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 20px; /* fully rounded */
+}
+
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  height: 14px;  /* smaller knob */
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: #4b5563;
+}
+
+.toggle-input:checked + .toggle-slider:before {
+  transform: translateX(16px); /* smaller move */
+}
+
+.coupon-preview {
+  border: 2px dashed #d1d5dc;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  font-weight: bold;
+  color: #4b5563;
+}
+.coupon-preview span{
+    font-size: 18px;
+}
+.coupon-preview small {
+  display: block;
+  margin-top: 5px;
+  font-weight: normal;
+  color: #6b7280;
+}
+.blacked{
+    color: #000000;
+}
+.specialInput{
+    font-family: "GeistMono",ui-monospace,SFMono-Regular,Roboto Mono,Menlo,Monaco,Liberation Mono,DejaVu Sans Mono,Courier New,monospace;
+}
+
+.coupon-preview-only{
+  max-width: 500px;
+}
+
+
+@media (max-width: 768px) {
+  .add-coupon-container {
+    padding: 20px;
+    padding-top: 90px; /* requested */
+  }
+
+  /* Header */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .header-left {
+    margin-left: 0;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .page-title {
+    font-size: 22px;
+    margin-top: 10px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .preview-btn,
+  .save-btn {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  /* Layout collapses into single column */
+  .coupon-layout {
+    flex-direction: column;
+  }
+
+  .left-section,
+  .right-section {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Card padding reduced */
+  .card {
+    padding: 18px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .discount-types {
+    flex-direction: column;
+  }
+
+  .discount-types button {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  /* Preview only card centered */
+  .coupon-preview-only {
+    max-width: 100%;
+  }
+  
+.flexedDiv .form-group{
+    width:100px;
+}
+}

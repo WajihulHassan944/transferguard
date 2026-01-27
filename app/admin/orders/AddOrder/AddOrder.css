@@ -1,0 +1,88 @@
+/* Reuse modal-overlay-credits base styles */
+
+/* Form rows */
+.modal-body .form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-body .form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label.text-gray-400 {
+  color: #9ca3af !important; /* Tailwind gray-400 */
+}
+
+.form-group input:disabled {
+  background-color: #f9fafb; /* light gray */
+  color: #6b7280; /* gray-500 */
+  cursor: not-allowed;
+  border: 1px solid #d1d5db; /* gray-300 */
+}
+.note-preview {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: #f9f9f9;
+  border-left: 3px solid #0070f3;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+}
+
+
+.note-field label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
+}
+.result-details {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 13px; /* smaller overall */
+}
+
+.result-title {
+  font-size: 15px; /* smaller title */
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 4px;
+}
+
+.result-item {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 100px;
+  display: inline-block;
+  font-size: 13.5px;
+}
+
+.value {
+  color: #111827;
+  font-weight: 400;
+  word-break: break-word;
+  font-size: 13.5px;
+}
+
+.refund-details {
+  margin-top: 4px;
+  margin-left: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13.5px;
+}

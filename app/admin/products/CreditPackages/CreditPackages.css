@@ -1,0 +1,154 @@
+.credit-packages {
+  font-family: 'GeistSans', 'GeistSans Fallback', sans-serif;
+  margin-top: 40px;
+}
+
+.credit-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 24px;
+}
+
+.credit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.credit-card {
+  background: #f8fafc;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 28px;
+  position: relative;
+  transition: 0.3s ease;
+}
+
+.credit-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.credit-card.popular {
+  border: 2px solid #6366f1;
+}
+
+.badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #6366f1;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.pkg-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.pkg-desc {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.pkg-price {
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin: 10px 0;
+  margin-bottom: 20px;
+}
+
+.pkg-credits {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6366f1;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+
+.pkg-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pkg-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  margin: 9px 0;
+}
+
+.pkg-features li svg {
+  color: #6366f1;
+}
+
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 20px 0;
+}
+
+.pkg-status {
+  margin-bottom: 16px;
+}
+
+.inactive-badge,.active-badge {
+  background: #6366f1;
+  color: white;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+
+}
+.inactive-badge {
+  background: #d97706;
+}
+
+.pkg-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn:hover {
+  background: #f9fafb;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .credit-grid {
+    grid-template-columns: 1fr;
+  }
+}

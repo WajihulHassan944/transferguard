@@ -1,0 +1,139 @@
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.close-btn-unique {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+.close-btn-unique:hover {
+  background: #f3f4f6;
+}
+
+/* Form layout (unchanged mostly) */
+.modal-form { display:flex; flex-direction:column; gap:16px; }
+
+.form-row { display:flex; gap:16px; }
+
+.form-group { display:flex; flex-direction:column; flex:1; }
+.form-group label { font-size:13px; color:#374151; margin-bottom:6px; }
+
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="endDate"],
+.form-group input[type="text"] {
+  border:none;
+    box-shadow:  0 1px 2px 0 #0000000d;
+  
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:14px;
+  outline:none;
+  transition:border 0.2s ease;
+}
+
+/* START DATE input with calendar icon */
+.with-icon .input-icon {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  padding:10px 12px;
+}
+.with-icon .input-icon svg { color:#6b7280; flex-shrink:0; }
+.with-icon .input-icon input {
+  border:none;
+  outline:none;
+  flex:1;
+  padding:0;
+  font-size:14px;
+}
+
+/* END DATE: no calendar icon; when noEndDate is checked show a placeholder overlay */
+.end-input {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background: #fff;
+}
+.end-input input[type="date"] {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  padding: 0;
+  background: transparent;
+}
+
+/* visually indicate disabled state when "No end date" is active */
+.end-input.disabled {
+  background: #f8fafc;
+  color: #9ca3af;
+  border-style: dashed;
+}
+
+/* show "No end date" overlay text when disabled */
+.end-placeholder {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #6b7280;
+  background: #fff;
+  min-width: 100px;
+  pointer-events: none;
+}
+
+/* small checkbox label */
+.no-end {
+  font-size: 13px;
+  color: #6b7280;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+}
+
+/* preview and actions (unchanged) */
+.preview-box {
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  padding:14px 16px;
+}
+.preview-title { font-size:13px; color:#374151; font-weight:500; margin-bottom:4px; }
+.preview-text { font-size:14px; color:#6b7280; line-height:1.5; }
+.preview-text .highlight { color:#6366f1; }
+.highlighted{
+    color: #6366f1;
+}
+/* actions */
+.form-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:8px; }
+.cancel-btn, .save-btn { padding:8px 16px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:none; }
+.cancel-btn { background:#f3f4f6; color:#374151; }
+.save-btn { background:#6366f1; color:white; }
+
+/* small responsive tweak */
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
+}
+.strikethrough {
+  text-decoration: line-through;
+  color: #888;
+  margin-right: 6px;
+}

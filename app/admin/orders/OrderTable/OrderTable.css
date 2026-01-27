@@ -1,0 +1,269 @@
+/* Search */
+.search-bar {
+  position: relative;
+  margin: 20px 0;
+  width: 370px;
+  box-shadow: 0 1px 2px 0 #0000000d;
+  border:1px solid #f1f5f9;
+  background: transparent;
+}
+
+.search-bar .search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #9ca3af; /* Tailwind gray-400 style */
+  pointer-events: none; /* click passes through */
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 10px 10px 36px; /* left padding for icon */
+  border:1px solid #f1f5f9;
+  background: transparent;
+  border-radius: 8px;
+  font-size: .875rem;
+  text-shadow: 0 1px 2px 0 #0000000d;
+
+}
+
+
+/* Table */
+.table-container {
+  background: #f9fafb;
+  padding: 16px 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 0 #0000,0 0 #0000,0 1px 3px 0 #0000001a,0 1px 2px -1px #0000001a;
+  text-shadow: 0 1px 3px 0 #0000001a,0 1px 2px -1px #0000001a;
+    border:1px solid #e5e7eb;
+      color: #000;
+}
+
+.table-container h3 {
+  margin: 10px 0;
+  margin-bottom: 5px;
+  color: #000;
+}
+
+.table-container p {
+  font-size: 14px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 25px;
+}
+
+th, td {
+  padding: 12px 10px;
+  text-align: left;
+}
+
+th {
+  
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  
+}
+
+td {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.status.inactive {
+  background: #fee2e2; /* light red */
+  color: #dc2626;      /* red text */
+}
+
+.status.completed {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status.pending {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+
+.status.processing {
+  background: #e0f2fe;
+  color: #2563eb;
+}
+.status.paid {
+  background: #dbeafe; /* light blue */
+  color: #1d4ed8;      /* blue text */
+}
+
+.status.cancelled {
+  background: #fee2e2; /* light red */
+  color: #dc2626;      /* red text */
+}
+
+/* Actions */
+.action-menu {
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.action-menu:hover {
+  color: #111827;
+}
+
+.customer {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.customer-email {
+  font-size: 13px;
+  color: #333;
+}
+@media (max-width: 768px) {
+  /* Search bar full width */
+  .search-bar {
+    width: 100%;
+  }
+
+  /* Table container */
+  .table-container {
+    padding: 12px;
+    font-size: 13px;
+    overflow-x: auto;
+  }
+
+  th, td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .status {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+}
+.admin-added {
+  font-style: italic;
+  color: #6b7280; /* gray-500 */
+}
+.relative{
+  position: relative;
+}
+
+.relative .dropdown-menu-table {
+  position: absolute;
+  top: 34px;
+  right: 65%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  width: 120px;
+  animation: fadeIn 0.15s ease-in-out;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+/* base style for all dropdown buttons */
+.dropdown-menu-table button {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* neutral hover for all */
+.dropdown-menu-table button:hover {
+  background: #f3f4f6; /* light gray */
+  color: #111827; /* dark text */
+}
+
+/* special hover just for delete */
+.dropdown-menu-table button.delete-btn:hover {
+  background: #fef2f2;
+  color: #dc2626; /* red */
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.order-date-cell {
+  vertical-align: top;
+}
+
+.order-date-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-date {
+  font-weight: 500;
+  color: #111827; /* text-gray-900 */
+}
+
+.order-time {
+  font-size: 12px;
+  font-style: italic;
+  color: #6b7280; /* text-gray-500 */
+  margin-top: 2px;
+}
+.order-date-cell {
+  vertical-align: top;
+}
+
+.order-date-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-date {
+  font-weight: 500;
+  color: #111827; /* text-gray-900 */
+}
+
+.order-time {
+  font-size: 12px;
+  font-style: italic;
+  color: #6b7280; /* text-gray-500 */
+  margin-top: 2px;
+}
+
+.action-btn:hover:not(.disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.action-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}

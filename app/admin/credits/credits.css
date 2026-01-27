@@ -1,0 +1,47 @@
+.credits-container {
+  padding: 25px;
+  padding-left: 40px;
+  min-height: 100vh;
+  color: #1a1a1a;
+  background-color: #fbf9fa;
+  
+}
+
+.credits-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.credits-header h2 {
+  font-size: 30px;
+  color: #000;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0;
+}
+
+.credits-header p {
+  color: #333;
+  margin: 4px 0 0;
+}
+@media (max-width: 768px) {
+  .credits-container {
+    padding: 20px;
+    padding-top: 90px; /* requested */
+  }
+
+  .credits-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .credits-header h2 {
+    font-size: 22px;
+  }
+
+  .credits-header p {
+    font-size: 13px;
+  }
+}
