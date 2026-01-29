@@ -1,21 +1,32 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
+  // Identity
+  id: null,
   firstName: null,
   lastName: null,
-  profileUrl: null,
   email: null,
-  country: null,
-  role: [],
+  profileUrl: null,
+
+  // Account
+  role: null,
+  status: null,
   verified: false,
+  twoFAEnabled: false,
+
+  // Meta
+  country: null,
   createdAt: null,
+  lastLogin: null,
+
+  // App state
   isLoggedIn: false,
   isAuthenticated: false,
   isHydrated: false,
 };
 
 const userSlice = createSlice({
-  name: 'user',
+  name: "user",
   initialState,
   reducers: {
     loginUser: (state, action) => {
@@ -27,12 +38,14 @@ const userSlice = createSlice({
         isHydrated: true,
       };
     },
+
     logoutUser: () => {
       return {
         ...initialState,
         isHydrated: true,
       };
     },
+
     updateProfile: (state, action) => {
       return {
         ...state,
@@ -40,12 +53,19 @@ const userSlice = createSlice({
         isHydrated: true,
       };
     },
+
     setVerified: (state, action) => {
       state.verified = action.payload;
     },
+
+    setTwoFAEnabled: (state, action) => {
+      state.twoFAEnabled = action.payload;
+    },
+
     setAuthentication: (state, action) => {
       state.isAuthenticated = action.payload;
     },
+
     setHydrated: (state, action) => {
       state.isHydrated = action.payload;
     },
@@ -57,6 +77,7 @@ export const {
   logoutUser,
   updateProfile,
   setVerified,
+  setTwoFAEnabled,
   setAuthentication,
   setHydrated,
 } = userSlice.actions;

@@ -1,10 +1,20 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Shield, Smartphone, Copy, Check, Loader2 } from "lucide-react";
+
+import { refreshAndDispatchUser } from '@/utils/refreshUser';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { Shield, Smartphone, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { baseUrl } from "@/const";
+import { useDispatch } from "react-redux";
 
 interface MFAEnrollmentProps {
   onComplete: () => void;
@@ -14,124 +24,151 @@ interface MFAEnrollmentProps {
 export function MFAEnrollment({ onComplete, onSkip }: MFAEnrollmentProps) {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
-  const [factorId, setFactorId] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
-  const [copied, setCopied] = useState(false);
+const dispatch = useDispatch();
 
   useEffect(() => {
     startEnrollment();
   }, []);
 
+  /* =========================
+     STEP 1: SETUP MFA
+  ========================= */
   const startEnrollment = async () => {
-    setEnrolling(true);
+    try {
+      setEnrolling(true);
+
+      const res = await fetch(`${baseUrl}/users/2fa/setup`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to start MFA setup");
+      }
+
+      setQrCode(data.qr);
+      setSecret(data.secret); // store secret internally only
+    } catch (err: any) {
+      toast.error(err.message || "Unable to setup 2FA");
+      onSkip?.();
+    } finally {
       setEnrolling(false);
-  };
-
-  const verifyAndActivate = async () => {
-    if (!factorId || verifyCode.length !== 6) return;
- };
-
-  const copySecret = () => {
-    if (secret) {
-      navigator.clipboard.writeText(secret);
-      setCopied(true);
-      toast.success("Secret copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 
+  /* =========================
+     STEP 2: VERIFY & ACTIVATE
+  ========================= */
+  const verifyAndActivate = async () => {
+    if (!secret || verifyCode.length !== 6) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${baseUrl}/users/2fa/verify-setup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          token: verifyCode,
+          secret, // send the secret to backend
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Invalid verification code");
+      }
+      onComplete();
+       await refreshAndDispatchUser(dispatch);
+    } catch (err: any) {
+      toast.error(err.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
+     LOADING STATE
+  ========================= */
   if (enrolling) {
     return (
       <Card className="p-8 max-w-md mx-auto">
         <div className="flex flex-col items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">Setting up two-factor authentication...</p>
+          <p className="text-muted-foreground">
+            Setting up two-factor authentication...
+          </p>
         </div>
       </Card>
     );
   }
 
+  /* =========================
+     MAIN RENDER
+  ========================= */
   return (
     <Card className="p-8 max-w-md mx-auto">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <Shield className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Enable Two-Factor Authentication</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          Enable Two-Factor Authentication
+        </h2>
         <p className="text-muted-foreground text-sm">
-          Secure your account with an authenticator app like Google Authenticator or Authy
+          Scan the QR code using Google Authenticator or Authy, then enter the 6-digit code.
         </p>
       </div>
 
       <div className="space-y-6">
-        {/* Step 1: Scan QR Code */}
+        {/* STEP 1: Scan QR */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
               1
             </div>
-            <Label className="font-medium">Scan QR code with your authenticator app</Label>
+            <Label className="font-medium">
+              Scan QR code with your authenticator app
+            </Label>
           </div>
-          
+
           {qrCode && (
             <div className="flex justify-center p-4 bg-white rounded-lg">
               <img src={qrCode} alt="QR Code for MFA" className="w-48 h-48" />
             </div>
           )}
-          
-          {/* Manual entry option */}
-          {secret && (
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-2">
-                Or enter this code manually:
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <code className="px-3 py-1.5 bg-muted rounded text-xs font-mono break-all">
-                  {secret}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={copySecret}
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Step 2: Enter verification code */}
+        {/* STEP 2: Enter code */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
               2
             </div>
-            <Label className="font-medium">Enter the 6-digit code from your app</Label>
+            <Label className="font-medium">
+              Enter the 6-digit code from your app
+            </Label>
           </div>
-          
+
           <div className="flex justify-center">
-            <InputOTP
-              value={verifyCode}
-              onChange={setVerifyCode}
-              maxLength={6}
-            >
+            <InputOTP value={verifyCode} onChange={setVerifyCode} maxLength={6}>
               <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <InputOTPSlot key={i} index={i} />
+                ))}
               </InputOTPGroup>
             </InputOTP>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* ACTIONS */}
         <div className="space-y-3">
           <Button
             onClick={verifyAndActivate}
@@ -150,13 +187,9 @@ export function MFAEnrollment({ onComplete, onSkip }: MFAEnrollmentProps) {
               </>
             )}
           </Button>
-          
+
           {onSkip && (
-            <Button
-              variant="ghost"
-              onClick={onSkip}
-              className="w-full"
-            >
+            <Button variant="ghost" onClick={onSkip} className="w-full">
               Skip for now
             </Button>
           )}
