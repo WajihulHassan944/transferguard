@@ -38,6 +38,7 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+const [tempToken, setTempToken] = useState<string | null>(null);
 
   const router = useRouter();
     const dispatch = useDispatch();
@@ -68,11 +69,11 @@ const handleLogin = async (e: React.FormEvent) => {
 
     toast.success("Login successful");
 
-    // 2️⃣ MFA handling (if required)
-    if (data?.mfaRequired) {
-      setAuthStep("mfa_verify");
-      return;
-    }
+  if (data?.requires2FA) {
+  setTempToken(data.tempToken);
+  setAuthStep("mfa_verify");
+  return;
+}
 
     // 3️⃣ Fetch user details (same as old place)
     const userDetailsRes = await fetch(`${baseUrl}/users/userdetails`, {
@@ -178,7 +179,13 @@ const handleLogin = async (e: React.FormEvent) => {
               <img src='/assets/transferguard-logo-transparent.png' alt="Transfer Guard" className="h-32" />
             </div>
           </div>
-          <MFAVerification onSuccess={handleMFASuccess}  />
+          {authStep === "mfa_verify" && tempToken && (
+  <MFAVerification
+    tempToken={tempToken}
+    onBack={() => setAuthStep("login")}
+  />
+)}
+
         </div>
       </div>
     );

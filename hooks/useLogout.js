@@ -3,8 +3,8 @@ import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '@/redux/features/userSlice';
 import { baseUrl } from '@/const';
+import { toast } from "sonner";
 
-import { Toaster, toast } from 'react-hot-toast';
 const useLogout = () => {
   const dispatch = useDispatch();
   const router = useRouter();

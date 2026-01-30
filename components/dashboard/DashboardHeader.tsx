@@ -12,16 +12,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import useLogout from "@/hooks/useLogout";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAppSelector } from "@/redux/hooks";
 
 export function DashboardHeader() {
   const router = useRouter();
-
+const logout = useLogout();
   const user = useAppSelector((state) => state.user);
 
   const handleLogout = async () => {
-    // TODO: hook real logout later
+    logout();
     toast.success("Logged out");
     router.push("/");
   };

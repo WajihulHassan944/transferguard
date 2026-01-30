@@ -1,19 +1,66 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Shield, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { baseUrl } from "@/const";
+import { useDispatch } from "react-redux";
+import { loginUser } from "@/redux/features/userSlice";
+import { useRouter } from "next/navigation";
+import { refreshAndDispatchUser } from "@/utils/refreshUser";
 
 interface MFAVerificationProps {
-  onSuccess: () => void;
+  tempToken: string;
   onBack?: () => void;
 }
 
-export function MFAVerification({ onSuccess, onBack }: MFAVerificationProps) {
+export function MFAVerification({ tempToken, onBack }: MFAVerificationProps) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const handleVerify = async () => {
+    if (code.length !== 6) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${baseUrl}/users/2fa/verify-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          token: code,
+          tempToken,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Invalid code");
+      }
+console.log("data from backend", data);
+      refreshAndDispatchUser(dispatch);
+
+      toast.success("Login successful");
+      router.push("/dashboard");
+    } catch (err: any) {
+      toast.error(err.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card className="p-8 max-w-md mx-auto">
@@ -21,7 +68,9 @@ export function MFAVerification({ onSuccess, onBack }: MFAVerificationProps) {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <Shield className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Two-Factor Authentication</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          Two-Factor Authentication
+        </h2>
         <p className="text-muted-foreground text-sm">
           Enter the 6-digit code from your authenticator app
         </p>
@@ -29,21 +78,16 @@ export function MFAVerification({ onSuccess, onBack }: MFAVerificationProps) {
 
       <div className="space-y-6">
         <div className="space-y-3">
-          <Label className="font-medium text-center block">Verification Code</Label>
+          <Label className="font-medium text-center block">
+            Verification Code
+          </Label>
+
           <div className="flex justify-center">
-            <InputOTP
-              value={code}
-              onChange={setCode}
-              maxLength={6}
-              autoFocus
-            >
+            <InputOTP value={code} onChange={setCode} maxLength={6} autoFocus>
               <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <InputOTPSlot key={i} index={i} />
+                ))}
               </InputOTPGroup>
             </InputOTP>
           </div>
@@ -51,6 +95,7 @@ export function MFAVerification({ onSuccess, onBack }: MFAVerificationProps) {
 
         <div className="space-y-3">
           <Button
+            onClick={handleVerify}
             disabled={code.length !== 6 || loading}
             className="w-full"
           >
@@ -63,13 +108,9 @@ export function MFAVerification({ onSuccess, onBack }: MFAVerificationProps) {
               "Verify"
             )}
           </Button>
-          
+
           {onBack && (
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="w-full"
-            >
+            <Button variant="ghost" onClick={onBack} className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to login
             </Button>
@@ -77,7 +118,7 @@ export function MFAVerification({ onSuccess, onBack }: MFAVerificationProps) {
         </div>
 
         <p className="text-xs text-center text-muted-foreground">
-          Open your authenticator app (Google Authenticator, Authy, etc.) to view your code
+          Open your authenticator app to get the code
         </p>
       </div>
     </Card>
