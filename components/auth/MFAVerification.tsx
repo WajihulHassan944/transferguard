@@ -21,9 +21,13 @@ import { getLoginMeta } from "@/hooks/getLoginMeta";
 interface MFAVerificationProps {
   tempToken: string;
   onBack?: () => void;
+  onSuccess?: () => void;
 }
-
-export function MFAVerification({ tempToken, onBack }: MFAVerificationProps) {
+export function MFAVerification({
+  tempToken,
+  onBack,
+  onSuccess,
+}: MFAVerificationProps) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +60,11 @@ console.log("data from backend", data);
       refreshAndDispatchUser(dispatch);
 
       toast.success("Login successful");
-      router.push("/dashboard");
+      if (onSuccess) {
+  onSuccess();
+} else {
+  router.push("/dashboard");
+}
     } catch (err: any) {
       toast.error(err.message || "Verification failed");
     } finally {
