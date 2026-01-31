@@ -73,7 +73,7 @@ interface Transfer {
   files?: TransferFile[];
 }
 
-type SecurityLevel = 'standard' | 'adobe_sealed' | 'qerds';
+type SecurityLevel = 'starter' | 'adobe_sealed' | 'qerds';
 
 
 // Security level configuration with consistent colors
@@ -104,10 +104,10 @@ const getSecurityLevelInfo = (level: SecurityLevel | undefined, hasPhone: boolea
       badgeBorder: 'border-slate-200',
     };
   }
-  // Standard (Level 1) - Bronze/Brown
+  // starter (Level 1) - Bronze/Brown
   return {
     level: 1,
-    label: 'Standard',
+    label: 'starter',
     icon: Shield,
     iconColor: 'text-amber-700',
     bgColor: 'bg-gradient-to-r from-amber-600 to-amber-700',
@@ -216,7 +216,7 @@ useEffect(() => {
       };
     }
     return { 
-      label: "Pending", 
+      label:"Active", 
       sublabel: `expires ${format(expiresAt, "d MMM", { locale: nl })}`,
       bgColor: "bg-sky-50", 
       textColor: "text-sky-700",
