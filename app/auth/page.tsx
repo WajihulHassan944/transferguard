@@ -182,8 +182,9 @@ const handleLogin = async (e: React.FormEvent) => {
             </div>
           </div>
           {authStep === "mfa_verify" && tempToken && (
-  <MFAVerification
+   <MFAVerification
     tempToken={tempToken}
+    onSuccess={handleMFASuccess}
     onBack={() => setAuthStep("login")}
   />
 )}
