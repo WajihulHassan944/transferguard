@@ -16,6 +16,7 @@ import { useDispatch } from "react-redux";
 import { loginUser } from "@/redux/features/userSlice";
 import { useRouter } from "next/navigation";
 import { refreshAndDispatchUser } from "@/utils/refreshUser";
+import { getLoginMeta } from "@/hooks/getLoginMeta";
 
 interface MFAVerificationProps {
   tempToken: string;
@@ -34,7 +35,7 @@ export function MFAVerification({ tempToken, onBack }: MFAVerificationProps) {
 
     try {
       setLoading(true);
-
+const loginMeta = await getLoginMeta();
       const res = await fetch(`${baseUrl}/users/2fa/verify-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,6 +43,7 @@ export function MFAVerification({ tempToken, onBack }: MFAVerificationProps) {
         body: JSON.stringify({
           token: code,
           tempToken,
+          loginMeta,
         }),
       });
 

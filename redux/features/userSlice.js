@@ -17,7 +17,7 @@ const initialState = {
   // Meta
   country: null,
   createdAt: null,
-  lastLogin: null,
+  lastLogin: [],
 
   // App state
   isLoggedIn: false,

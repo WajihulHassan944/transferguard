@@ -114,7 +114,7 @@ const dispatch = useDispatch();
      MAIN RENDER
   ========================= */
   return (
-    <Card className="p-8 max-w-md mx-auto">
+    <Card className="p-8 max-w-md mx-auto max-h-[95vh] overflow-auto">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <Shield className="h-8 w-8 text-primary" />

@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { loginUser } from "@/redux/features/userSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "@/redux/hooks";
+import { getLoginMeta } from "@/hooks/getLoginMeta";
 
 type AuthStep = "login" | "mfa_verify";
 
@@ -53,12 +54,13 @@ const handleLogin = async (e: React.FormEvent) => {
   setLoading(true);
  
   try {
+    const loginMeta = await getLoginMeta();
     // 1️⃣ Login request
     const res = await fetch(`${baseUrl}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, loginMeta }),
     });
 
     const data = await res.json();
