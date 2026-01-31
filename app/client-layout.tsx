@@ -42,7 +42,7 @@ const LayoutContent: React.FC<{ pathname: string; children: React.ReactNode }> =
   const role =
     typeof user.role === "string"
       ? user.role
-      : Array.isArray(user.role) && user.role.length > 0
+      : Array.isArray(user.role) 
       ? String(user.role[0])
       : null;
 console.log(role);
