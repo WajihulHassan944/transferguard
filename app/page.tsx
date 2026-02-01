@@ -12,6 +12,10 @@ import { FinalCTA } from "@/components/greensecure/FinalCTA";
 
 import ComingSoon from "./coming-soon/page";
 import { useAppSelector } from "@/redux/hooks";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { ComparisonSection } from "@/components/greensecure/ComparisonSection";
+import { IdentityVerificationSection } from "@/components/greensecure/IdentityVerificationSection";
+import { StatsBar } from "@/components/greensecure/StatsBar";
 
 const Home: React.FC = () => {
   const user = useAppSelector((state) => state.user);
@@ -38,26 +42,45 @@ const role =
 
   // Admin-only content
   return (
-    <main className="min-h-screen space-y-8 sm:space-y-12 lg:space-y-16">
+      <main className="min-h-screen">
       <Hero />
-      <HowItWorks />
-
-      <section id="privacy">
-        <PrivacySection />
-      </section>
-
-      <ProtectionLevelSection />
-
-      <section id="pricing">
-        <PricingSection />
-      </section>
-
-      <CertificateSection />
-      <ClientPortalSection />
-      <FAQSection />
-      <FinalCTA />
+      <ScrollReveal>
+        <ComparisonSection />
+      </ScrollReveal>
+      <ScrollReveal delay={100}>
+        <IdentityVerificationSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <StatsBar />
+      </ScrollReveal>
+      <ScrollReveal delay={100}>
+        <HowItWorks />
+      </ScrollReveal>
+      <ScrollReveal>
+        <section id="privacy">
+          <PrivacySection />
+        </section>
+      </ScrollReveal>
+      <ScrollReveal delay={100}>
+        <ProtectionLevelSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <section id="pricing">
+          <PricingSection />
+        </section>
+      </ScrollReveal>
+      <ScrollReveal delay={100}>
+        <ClientPortalSection />
+      </ScrollReveal>
+      <ScrollReveal>
+        <FAQSection />
+      </ScrollReveal>
+      <ScrollReveal delay={100}>
+        <FinalCTA />
+      </ScrollReveal>
     </main>
-  );
+  
+    );
 };
 
 export default Home;

@@ -1,139 +1,169 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
-/* Share Compliant Design System - Secure, Professional, EU-focused */
+
 
 @layer base {
   :root {
-    --background: 220 14% 96%;
-    --foreground: 220 13% 15%;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 15%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 15%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary: Professional Blue (security/trust brand color) */
-    --primary: 215 80% 45%;
+    /* Primary: Fresh Moneybird Blue */
+    --primary: 217 91% 50%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-glow: 215 80% 55%;
-    --primary-dark: 215 80% 35%;
+    --primary-glow: 217 91% 60%;
+    --primary-dark: 217 91% 40%;
 
     --secondary: 220 14% 96%;
-    --secondary-foreground: 220 13% 15%;
+    --secondary-foreground: 222 47% 11%;
     
-    --secondary-glow: 220 14% 90%;
-    --secondary-dark: 220 14% 85%;
+    --secondary-glow: 220 14% 92%;
+    --secondary-dark: 220 14% 88%;
 
-    --muted: 220 14% 92%;
+    --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 215 80% 95%;
-    --accent-foreground: 215 80% 30%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 87%;
-    --input: 220 14% 94%;
-    --ring: 215 80% 45%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 50%;
 
-    --radius: 0.625rem;
+    --radius: 1rem;
+    
+    /* CTA Green - bright action color */
+    --cta: 145 72% 40%;
+    --cta-foreground: 0 0% 100%;
+    --cta-glow: 145 72% 50%;
+    
+    /* Success/Verified Green */
+    --success: 152 69% 40%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 152 76% 95%;
+    --success-border: 152 60% 70%;
+    
+    /* Legal badge - Amber */
+    --legal: 45 93% 47%;
+    --legal-foreground: 26 90% 25%;
+    --legal-light: 45 100% 94%;
+    --legal-border: 45 90% 70%;
+    
+    /* Blue accent variables */
+    --macos-blue: 217 91% 55%;
+    --macos-blue-light: 217 91% 65%;
+    --macos-folder: 217 85% 60%;
+    --macos-folder-light: 217 80% 70%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 50%), hsl(217 91% 65%));
+    --gradient-eco: linear-gradient(135deg, hsl(217 91% 50%), hsl(200 70% 55%));
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+    --gradient-blue-accent: linear-gradient(135deg, hsl(217 91% 55%), hsl(217 91% 70%));
+    --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 4px 10px -4px rgb(0 0 0 / 0.04);
+    --shadow-xl: 0 20px 40px -10px rgb(0 0 0 / 0.1), 0 8px 16px -8px rgb(0 0 0 / 0.06);
+    --shadow-glow: 0 0 30px hsl(217 91% 50% / 0.12);
+    --shadow-blue: 0 4px 20px -4px hsl(217 91% 50% / 0.2);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 50%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary: Fresh Moneybird Blue */
+    --primary: 217 91% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --primary-glow: 217 91% 65%;
+    --primary-dark: 217 91% 45%;
+
+    --secondary: 220 20% 17%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --secondary-glow: 220 20% 22%;
+    --secondary-dark: 220 20% 12%;
+
+    --muted: 220 20% 17%;
+    --muted-foreground: 220 15% 65%;
+
+    --accent: 220 20% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 17%;
+    --ring: 217 91% 55%;
     
     /* CTA Green - bright action color */
     --cta: 145 72% 45%;
     --cta-foreground: 0 0% 100%;
     --cta-glow: 145 72% 55%;
     
-    /* Blue accent variables */
-    --macos-blue: 215 80% 50%;
-    --macos-blue-light: 215 80% 60%;
-    --macos-folder: 215 75% 55%;
-    --macos-folder-light: 215 70% 65%;
+    /* Success/Verified Green */
+    --success: 152 69% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 152 30% 20%;
+    --success-border: 152 40% 35%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(215 80% 45%), hsl(215 80% 60%));
-    --gradient-eco: linear-gradient(135deg, hsl(215 80% 45%), hsl(200 60% 50%));
-    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65));
-    --gradient-blue-accent: linear-gradient(135deg, hsl(215 80% 50%), hsl(215 80% 65%));
-    --shadow-soft: 0 2px 8px -2px hsl(220 13% 20% / 0.08);
-    --shadow-glow: 0 0 20px hsl(215 80% 45% / 0.15);
-    --shadow-blue: 0 2px 10px -2px hsl(215 80% 50% / 0.2);
-    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --sidebar-background: 220 14% 96%;
-    --sidebar-foreground: 220 13% 20%;
-    --sidebar-primary: 215 80% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 80% 96%;
-    --sidebar-accent-foreground: 215 80% 30%;
-    --sidebar-border: 220 13% 90%;
-    --sidebar-ring: 215 80% 45%;
-  }
-
-  .dark {
-    --background: 220 15% 10%;
-    --foreground: 220 10% 95%;
-
-    --card: 220 15% 14%;
-    --card-foreground: 220 10% 95%;
-
-    --popover: 220 15% 14%;
-    --popover-foreground: 220 10% 95%;
-
-    /* Primary: Professional Blue (security/trust brand color) */
-    --primary: 215 80% 50%;
-    --primary-foreground: 0 0% 100%;
-    
-    --primary-glow: 215 80% 60%;
-    --primary-dark: 215 80% 40%;
-
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 220 10% 95%;
-    
-    --secondary-glow: 220 15% 25%;
-    --secondary-dark: 220 15% 15%;
-
-    --muted: 220 15% 18%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 215 80% 20%;
-    --accent-foreground: 215 80% 85%;
-
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 15% 22%;
-    --input: 220 15% 18%;
-    --ring: 215 80% 50%;
-    
-    /* CTA Green - bright action color */
-    --cta: 145 72% 50%;
-    --cta-foreground: 0 0% 100%;
-    --cta-glow: 145 72% 60%;
+    /* Legal badge - Amber */
+    --legal: 45 93% 52%;
+    --legal-foreground: 26 90% 20%;
+    --legal-light: 45 50% 20%;
+    --legal-border: 45 60% 40%;
     
     /* Blue accent variables */
-    --macos-blue: 215 80% 55%;
-    --macos-blue-light: 215 80% 65%;
-    --macos-folder: 215 80% 60%;
-    --macos-folder-light: 215 75% 70%;
+    --macos-blue: 217 91% 60%;
+    --macos-blue-light: 217 91% 70%;
+    --macos-folder: 217 85% 65%;
+    --macos-folder-light: 217 80% 75%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(215 80% 50%), hsl(215 80% 65%));
-    --gradient-eco: linear-gradient(135deg, hsl(215 80% 50%), hsl(200 60% 55%));
-    --gradient-glass: linear-gradient(135deg, rgba(30,35,45,0.9), rgba(30,35,45,0.7));
-    --gradient-blue-accent: linear-gradient(135deg, hsl(215 80% 55%), hsl(215 80% 70%));
-    --shadow-soft: 0 2px 8px -2px hsl(220 15% 5% / 0.3);
-    --shadow-glow: 0 0 20px hsl(215 80% 50% / 0.2);
-    --shadow-blue: 0 2px 10px -2px hsl(215 80% 55% / 0.25);
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 55%), hsl(217 91% 70%));
+    --gradient-eco: linear-gradient(135deg, hsl(217 91% 55%), hsl(200 70% 60%));
+    --gradient-glass: linear-gradient(135deg, rgba(20,25,35,0.95), rgba(20,25,35,0.85));
+    --gradient-blue-accent: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 75%));
+    --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.25), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.25), 0 4px 10px -4px rgb(0 0 0 / 0.15);
+    --shadow-xl: 0 20px 40px -10px rgb(0 0 0 / 0.3), 0 8px 16px -8px rgb(0 0 0 / 0.2);
+    --shadow-glow: 0 0 30px hsl(217 91% 55% / 0.15);
+    --shadow-blue: 0 4px 20px -4px hsl(217 91% 55% / 0.25);
     
-    --sidebar-background: 220 15% 12%;
-    --sidebar-foreground: 220 10% 90%;
-    --sidebar-primary: 215 80% 50%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 217 91% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 80% 18%;
-    --sidebar-accent-foreground: 215 80% 85%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 215 80% 50%;
+    --sidebar-accent: 220 20% 17%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 217 91% 55%;
   }
 }
 
@@ -147,7 +177,7 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-poppins font-semibold tracking-tight;
+    @apply font-jakarta font-bold tracking-tight;
   }
 }
 
@@ -219,3 +249,4 @@
     }
   }
 }
+

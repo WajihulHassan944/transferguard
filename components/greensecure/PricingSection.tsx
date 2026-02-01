@@ -1,4 +1,4 @@
-import { Check, Minus, Shield, Lock, Server, Scale, FileCheck, Mail, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Shield, Fingerprint, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,14 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BurdenOfProofSection } from "./BurdenOfProofSection";
+import { TrustedPartnersSection } from "./TrustedPartnersSection";
 import Link from "next/link";
-
-const securityFeatures = [
-  { icon: Shield, text: "ISO 27001 Infrastructure" },
-  { icon: Lock, text: "End-to-End Encryption" },
-  { icon: Server, text: "100% EU Data Residency" },
-  { icon: Scale, text: "Court-Admissible Proof" },
-];
 
 interface Feature {
   name: string;
@@ -26,37 +20,19 @@ interface Feature {
 }
 
 const features: Feature[] = [
-  // Essentials
   { name: "Essentials", pro: "", legal: "", isCategory: true },
   { name: "Storage / Max file size", pro: "2 TB / 50 GB", legal: "3 TB / 100 GB" },
   { name: "Secure Transfer (2FA)", pro: "Unlimited", legal: "Unlimited" },
-
-  // Security Features
   { name: "Security Features", pro: "", legal: "Includes everything in Pro, plus:", isCategory: true },
   { name: "Audit Trail Type", pro: "Adobe Certified PDF", legal: "included" },
   { name: "IP & Access Logging", pro: "Sealed in Report", legal: "included" },
   { name: "Anti-Tamper Seal", pro: "Incl. Timestamp", legal: "included" },
   { name: "The Upgrades (Unique to Legal)", pro: "", legal: "", isCategory: true },
-  { name: "QERDS Blockchain", pro: false, legal: "Guaranteed Unaltered", legalOnly: true },
-  {
-    name: "QERDS Credits",
-    pro: false,
-    legal: "✨ 10 Credits /mo",
-    legalOnly: true,
-    subtext: { legal: "(Top-ups available)" },
-  },
-
-  // Legal Standing
+  { name: "Identity Verification", pro: false, legal: "Biometric ID Check", legalOnly: true },
+  { name: "ID Verification Credits", pro: false, legal: "✨ 10 Credits /mo", legalOnly: true, subtext: { legal: "(Extra: €5 each)" } },
   { name: "Legal Standing", pro: "", legal: "", isCategory: true },
-  {
-    name: "Evidence Strength",
-    pro: "Proof of Delivery",
-    legal: "Irrefutable Proof",
-    subtext: { pro: "(File is 100% unaltered)", legal: "(Identity + Content verified)" },
-  },
-  { name: "Comparable to", pro: "Registered Mail", legal: "Digital Notary" },
-
-  // Extras
+  { name: "Evidence Strength", pro: "Proof of Delivery", legal: "Identity-Verified Proof", subtext: { pro: "(File is 100% unaltered)", legal: "(Identity + Content verified)" } },
+  { name: "Comparable to", pro: "Registered Mail", legal: "Signed Receipt" },
   { name: "Extras", pro: "", legal: "", isCategory: true },
   { name: "Custom Branding", pro: true, legal: true },
   { name: "Priority Support", pro: true, legal: true, proOnly: true },
@@ -65,12 +41,12 @@ const features: Feature[] = [
 const plans = [
   {
     name: "Professional",
-    monthlyPrice: 42,
-    yearlyPrice: 35,
+    monthlyPrice: 47,
+    yearlyPrice: 39,
+    extraSeatMonthlyPrice: 19,
+    extraSeatYearlyPrice: 15,
     subtitle: "Verified file delivery sealed PDF",
     description: "Adobe Certified PDF for proof of integrity",
-    recommended: true,
-    badge: null,
     cta: "Start 14-Day Trial",
     ctaSubtext: "Try Risk-Free",
     highlights: [
@@ -86,19 +62,19 @@ const plans = [
     name: "Legal",
     monthlyPrice: 95,
     yearlyPrice: 79,
-    subtitle: "QERDS Certified Legal Proof",
-    description: "Everything in Professional + QERDS",
-    recommended: false,
-    badge: null,
+    extraSeatMonthlyPrice: 39,
+    extraSeatYearlyPrice: 31,
+    subtitle: "Identity-Verified Delivery",
+    description: "Everything in Professional + ID Verification",
     cta: "Subscribe Now",
     ctaSubtext: "Full Legal Protection",
     highlights: [
       "Everything in Professional, plus:",
       "3 TB storage, 100 GB max file size",
-      "10 QERDS credits per month",
-      "Blockchain-verified evidence",
-      "Qualified eIDAS timestamping",
-      "Identity verification included",
+      "10 ID verifications included (extra: €5 each)",
+      "Biometric NFC identity verification",
+      "Government ID document check",
+      "Complete non-repudiation package",
     ],
   },
 ];
@@ -107,115 +83,143 @@ const FeatureValue = ({ value, subtext }: { value: boolean | string; subtext?: s
   if (value === "included") {
     return (
       <div className="flex items-center justify-center gap-1.5">
-        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-green-500 flex items-center justify-center">
-          <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+        <div className="w-5 h-5 rounded-full bg-cta flex items-center justify-center">
+          <Check className="h-3 w-3 text-white" />
         </div>
-        <span className="text-xs sm:text-sm font-medium text-green-600">Included</span>
+        <span className="text-sm font-medium text-cta">Included</span>
       </div>
     );
   }
   if (typeof value === "string" && value !== "") {
     return (
       <div className="flex flex-col items-center">
-        <span className="text-xs sm:text-sm font-medium">{value}</span>
-        {subtext && <span className="text-[10px] sm:text-xs text-muted-foreground italic">{subtext}</span>}
+        <span className="text-sm font-medium">{value}</span>
+        {subtext && <span className="text-xs text-muted-foreground">{subtext}</span>}
       </div>
     );
   }
   if (value === true) {
     return (
       <div className="flex justify-center">
-        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-green-500 flex items-center justify-center">
-          <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+        <div className="w-5 h-5 rounded-full bg-cta flex items-center justify-center">
+          <Check className="h-3 w-3 text-white" />
         </div>
       </div>
     );
   }
-  return (
-    <div className="flex justify-center">
-      <span className="text-muted-foreground">—</span>
-    </div>
-  );
+  return <span className="text-muted-foreground">—</span>;
 };
 
 export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
+  const [userCount, setUserCount] = useState(1);
 
-  const getPrice = (plan: (typeof plans)[0]) => {
-    return isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+  const userOptions = [1, 3, 5, 10];
+
+  const getMonthlyTotal = (plan: (typeof plans)[0]) => {
+    const basePrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+    const extraSeatPrice = isYearly ? plan.extraSeatYearlyPrice : plan.extraSeatMonthlyPrice;
+    const extraUsers = Math.max(0, userCount - 1);
+    return basePrice + (extraUsers * extraSeatPrice);
+  };
+
+  const getYearlyTotal = (plan: (typeof plans)[0]) => {
+    const monthlyTotal = getMonthlyTotal(plan);
+    return monthlyTotal * 12;
   };
 
   const getYearlySavings = (plan: (typeof plans)[0]) => {
-    return (plan.monthlyPrice - plan.yearlyPrice) * 12;
+    const monthlyPriceTotal = plan.monthlyPrice + (Math.max(0, userCount - 1) * plan.extraSeatMonthlyPrice);
+    const yearlyPriceTotal = plan.yearlyPrice + (Math.max(0, userCount - 1) * plan.extraSeatYearlyPrice);
+    return (monthlyPriceTotal - yearlyPriceTotal) * 12;
   };
 
   return (
-    <section id="pricing" className="py-16 sm:py-24 px-4 bg-muted/30">
+    <section id="pricing" className="py-24 lg:py-32 px-4 bg-background">
       <div className="container max-w-5xl mx-auto">
-        <div className="text-center mb-12 sm:mb-16">
-          <p className="text-blue-600 font-semibold text-sm tracking-wide uppercase mb-3">Pricing</p>
+        {/* Header */}
+        <div className="text-center mb-10">
+          <p className="text-primary font-semibold text-sm tracking-wide uppercase mb-4">Pricing</p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Secure transfers with <span className="text-primary">legal-grade</span>{" "}
-            <span className="text-primary">evidence</span>
+            Secure transfers with{" "}
+            <span className="text-primary">legal-grade evidence</span>
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Turn every file transfer into a forensically sealed piece of evidence. From audit-ready logs to qualified
-            eIDAS registration.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Turn every file transfer into a forensically sealed piece of evidence. From audit-ready logs to identity-verified delivery.
           </p>
 
+          {/* User Count Toggle */}
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <span className="text-sm font-medium text-muted-foreground">Number of Users</span>
+            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-1">
+              {userOptions.map((count) => (
+                <button
+                  key={count}
+                  onClick={() => setUserCount(count)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                    userCount === count
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {count} {count === 1 ? "User" : "Users"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 mb-4">
-            <span
-              className={`text-sm font-medium transition-colors ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}
-            >
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <span className={`text-sm font-medium transition-colors ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}>
               Monthly
             </span>
-            <Switch checked={isYearly} onCheckedChange={setIsYearly} className="data-[state=checked]:bg-green-500" />
-            <span
-              className={`text-sm font-medium transition-colors ${isYearly ? "text-foreground" : "text-muted-foreground"}`}
-            >
+            <Switch 
+              checked={isYearly} 
+              onCheckedChange={setIsYearly} 
+              className="data-[state=checked]:bg-cta"
+            />
+            <span className={`text-sm font-medium transition-colors ${isYearly ? "text-foreground" : "text-muted-foreground"}`}>
               Yearly
             </span>
             {isYearly && (
-              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs font-medium">
-                Save €192/yr
+              <Badge className="bg-cta/10 text-cta border-cta/20 text-xs font-medium">
+                Save up to 20%
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Pricing Cards - New Design */}
+        {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
           {/* Professional Card */}
-          <Card className="relative overflow-hidden bg-background shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col">
+          <Card className="relative overflow-hidden bg-background border-2 border-border hover:border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
             {/* Most Popular Badge */}
-            <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-10">
-              <Badge className="bg-blue-600 text-white text-xs px-4 py-1.5 rounded-b-lg rounded-t-none shadow-md">
-                <FileCheck className="h-3 w-3 mr-1.5" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2">
+              <Badge className="bg-primary text-primary-foreground text-xs px-4 py-1.5 rounded-b-lg rounded-t-none shadow-md">
                 Most Popular
               </Badge>
             </div>
             
-            {/* Blue Header */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-10 pb-6 px-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-blue-400/30 flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-7 w-7 text-white" strokeWidth={1.5} />
+            {/* Header */}
+            <div className="pt-12 pb-6 px-6 text-center border-b border-border">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-7 w-7 text-primary" strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-1">Professional</h3>
-            </div>
-
-            {/* Price Section */}
-            <div className="bg-background px-6 py-6 text-center border-b border-border">
+              <h3 className="text-2xl font-bold text-foreground mb-2">Professional</h3>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-4xl font-bold text-blue-600">€{getPrice(plans[0])}</span>
-                <span className="text-muted-foreground">/user/mo</span>
+                <span className="text-4xl font-bold text-primary transition-all duration-300">€{getMonthlyTotal(plans[0])}</span>
+                <span className="text-muted-foreground">/mo</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">excl. VAT</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {userCount > 1 ? `for ${userCount} users · ` : ""}excl. VAT
+              </p>
               {isYearly && (
-                <p className="text-sm text-green-600 font-medium mt-1">Save €{getYearlySavings(plans[0])}/year</p>
+                <>
+                  <p className="text-xs text-muted-foreground mt-2">Billed annually: €{getYearlyTotal(plans[0])}/year</p>
+                  <p className="text-sm text-cta font-medium mt-1">Save €{getYearlySavings(plans[0])}/year</p>
+                </>
               )}
-              {!isYearly && <div className="h-5 mt-1" />}
             </div>
 
             {/* Features */}
@@ -223,7 +227,7 @@ export const PricingSection = () => {
               <div className="space-y-3">
                 {plans[0].highlights.map((highlight, idx) => (
                   <div key={idx} className="flex items-start gap-3 text-sm">
-                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="h-5 w-5 text-cta flex-shrink-0 mt-0.5" />
                     <span className="text-foreground">{highlight}</span>
                   </div>
                 ))}
@@ -235,7 +239,7 @@ export const PricingSection = () => {
               <Button
                 asChild
                 size="lg"
-                className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base font-medium rounded-lg shadow-md"
+                className="w-full bg-cta hover:bg-cta/90 text-white h-12 text-base font-medium shadow-md"
               >
                 <Link href="/signup/pro?plan=professional">
                   <Shield className="h-4 w-4 mr-2" />
@@ -247,26 +251,26 @@ export const PricingSection = () => {
           </Card>
 
           {/* Legal Card */}
-          <Card className="relative overflow-hidden bg-background shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col">
-            {/* Amber/Orange Header */}
-            <div className="bg-gradient-to-br from-amber-500 to-amber-600 pt-10 pb-6 px-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-amber-400/30 flex items-center justify-center mx-auto mb-4">
-                <Scale className="h-7 w-7 text-white" strokeWidth={1.5} />
+          <Card className="relative overflow-hidden bg-background border-2 border-amber-300 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+            {/* Header */}
+            <div className="pt-10 pb-6 px-6 text-center border-b border-border bg-gradient-to-b from-amber-50/50 to-transparent">
+              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                <Fingerprint className="h-7 w-7 text-amber-600" strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-1">Legal</h3>
-            </div>
-
-            {/* Price Section */}
-            <div className="bg-background px-6 py-6 text-center border-b border-border">
+              <h3 className="text-2xl font-bold text-foreground mb-2">Legal</h3>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-4xl font-bold text-amber-600">€{getPrice(plans[1])}</span>
-                <span className="text-muted-foreground">/user/mo</span>
+                <span className="text-4xl font-bold text-amber-600 transition-all duration-300">€{getMonthlyTotal(plans[1])}</span>
+                <span className="text-muted-foreground">/mo</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">excl. VAT</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {userCount > 1 ? `for ${userCount} users · ` : ""}excl. VAT
+              </p>
               {isYearly && (
-                <p className="text-sm text-green-600 font-medium mt-1">Save €{getYearlySavings(plans[1])}/year</p>
+                <>
+                  <p className="text-xs text-muted-foreground mt-2">Billed annually: €{getYearlyTotal(plans[1])}/year</p>
+                  <p className="text-sm text-cta font-medium mt-1">Save €{getYearlySavings(plans[1])}/year</p>
+                </>
               )}
-              {!isYearly && <div className="h-5 mt-1" />}
             </div>
 
             {/* Features */}
@@ -275,9 +279,9 @@ export const PricingSection = () => {
                 {plans[1].highlights.map((highlight, idx) => (
                   <div key={idx} className={`flex items-start gap-3 text-sm ${idx === 0 ? "pb-2 mb-1 border-b border-amber-200" : ""}`}>
                     {idx === 0 ? (
-                      <Shield className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                     ) : (
-                      <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <Check className="h-5 w-5 text-cta flex-shrink-0 mt-0.5" />
                     )}
                     <span className={`${idx === 0 ? "font-medium text-amber-700" : "text-foreground"}`}>{highlight}</span>
                   </div>
@@ -290,10 +294,10 @@ export const PricingSection = () => {
               <Button
                 asChild
                 size="lg"
-                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white h-12 text-base font-medium rounded-lg shadow-md"
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white h-12 text-base font-medium shadow-md"
               >
                 <Link href="/signup/legal">
-                  <Scale className="h-4 w-4 mr-2" />
+                  <Fingerprint className="h-4 w-4 mr-2" />
                   Subscribe Now
                 </Link>
               </Button>
@@ -321,60 +325,49 @@ export const PricingSection = () => {
           </CollapsibleTrigger>
 
           <CollapsibleContent className="mt-6">
-            {/* Desktop: Table-based comparison */}
+            {/* Desktop comparison table */}
             <div className="hidden sm:block">
-              {/* Header row with plan names */}
-              <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-0">
+              <div className="grid grid-cols-3 gap-4 mb-0">
                 <div className="col-span-1" />
                 {plans.map((plan) => (
                   <div
                     key={plan.name}
-                    className={`p-4 text-center rounded-t-lg ${
+                    className={`p-4 text-center rounded-t-xl ${
                       plan.name === "Professional"
-                        ? "bg-blue-50 border-x border-t border-blue-200"
-                        : plan.name === "Legal"
-                          ? "bg-amber-50 border-x border-t border-amber-200"
-                          : "bg-muted/50 border-x border-t border-border"
+                        ? "bg-primary/5 border-x border-t border-primary/20"
+                        : "bg-amber-50 border-x border-t border-amber-200"
                     }`}
                   >
                     <h4 className="font-semibold">{plan.name}</h4>
-                    <p className="text-sm text-muted-foreground">€{getPrice(plan)}/user/mo</p>
+                    <p className="text-sm text-muted-foreground">€{getMonthlyTotal(plan)}/mo</p>
                   </div>
                 ))}
               </div>
 
-              {/* Feature comparison table */}
               <div className="bg-background rounded-b-xl border border-border overflow-hidden">
                 {features.map((feature, index) => {
-                  // Category row
                   if (feature.isCategory) {
                     return (
-                      <div
-                        key={feature.name}
-                        className="grid grid-cols-3 gap-3 lg:gap-4 px-3 lg:px-6 py-2 lg:py-3 bg-muted/50 border-b border-border"
-                      >
-                        <div className="text-xs lg:text-sm font-bold text-foreground">{feature.name}</div>
+                      <div key={feature.name} className="grid grid-cols-3 gap-4 px-6 py-3 bg-muted/50 border-b border-border">
+                        <div className="text-sm font-bold text-foreground">{feature.name}</div>
                         <div />
                         <div className="text-center">
                           {feature.legal && typeof feature.legal === "string" && (
-                            <span className="text-xs lg:text-sm italic text-muted-foreground">{feature.legal}</span>
+                            <span className="text-sm italic text-muted-foreground">{feature.legal}</span>
                           )}
                         </div>
                       </div>
                     );
                   }
 
-                  // Regular feature row
                   return (
                     <div
                       key={feature.name}
-                      className={`grid grid-cols-3 gap-3 lg:gap-4 px-3 lg:px-6 py-3 lg:py-4 hover:bg-muted/30 transition-colors ${
+                      className={`grid grid-cols-3 gap-4 px-6 py-4 hover:bg-muted/30 transition-colors ${
                         index !== features.length - 1 ? "border-b border-border" : ""
-                      } ${feature.legalOnly ? "bg-amber-50/50" : ""}`}
+                      } ${feature.legalOnly ? "bg-amber-50/30" : ""}`}
                     >
-                      <div className="text-xs lg:text-sm font-medium flex items-center gap-1 lg:gap-2">
-                        <span className="line-clamp-2">{feature.name}</span>
-                      </div>
+                      <div className="text-sm font-medium">{feature.name}</div>
                       <div className="text-center">
                         <FeatureValue value={feature.pro} subtext={feature.subtext?.pro} />
                       </div>
@@ -387,53 +380,37 @@ export const PricingSection = () => {
               </div>
             </div>
 
-            {/* Mobile: Stacked comparison */}
+            {/* Mobile comparison */}
             <div className="sm:hidden space-y-6">
               {plans.map((plan) => (
                 <Card
                   key={plan.name}
-                  className={`p-4 ${
-                    plan.name === "Professional"
-                      ? "border-blue-300"
-                      : plan.name === "Legal"
-                        ? "border-amber-300"
-                        : ""
-                  }`}
+                  className={`p-4 ${plan.name === "Professional" ? "border-primary/30" : "border-amber-300"}`}
                 >
                   <h4 className="font-semibold text-lg mb-3">{plan.name}</h4>
                   <div className="space-y-2">
-                    {features
-                      .filter((f) => !f.isCategory)
-                      .map((feature) => {
-                        const value =
-                          plan.name === "Professional"
-                            ? feature.pro
-                            : feature.legal;
-                        return (
-                          <div key={feature.name} className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0">
-                            <span className="text-muted-foreground">{feature.name}</span>
-                            <span className="font-medium">
-                              {value === true ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : value === false ? (
-                                <Minus className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                value || "—"
-                              )}
-                            </span>
-                          </div>
-                        );
-                      })}
+                    {features.filter((f) => !f.isCategory).map((feature) => {
+                      const value = plan.name === "Professional" ? feature.pro : feature.legal;
+                      return (
+                        <div key={feature.name} className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0">
+                          <span className="text-muted-foreground">{feature.name}</span>
+                          <span className="font-medium">
+                            {value === true ? <Check className="h-4 w-4 text-cta" /> : value === false ? "—" : value}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </Card>
               ))}
             </div>
           </CollapsibleContent>
         </Collapsible>
-
-        {/* Burden of Proof Section */}
-        <BurdenOfProofSection compact showCTA={false} />
       </div>
+
+      {/* Trusted Partners & Burden of Proof sections */}
+      <TrustedPartnersSection />
+      <BurdenOfProofSection />
     </section>
   );
 };

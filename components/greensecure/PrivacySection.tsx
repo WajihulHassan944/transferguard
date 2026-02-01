@@ -1,14 +1,17 @@
-'use client'
-import { Shield, Server, Lock, EyeOff, Database, Globe } from "lucide-react";
+import { Shield, Lock, EyeOff, Database, Globe } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useRef } from "react";
 import { useScrollProgress } from "@/hooks/useParallax";
+import sovereignEuCloudLogo from "@/assets/sovereign-eu-cloud-logo.png";
+import iso27001Logo from "@/assets/iso27001-logo.png";
+import gdprLogo from "@/assets/gdpr-logo.png";
+import euFlagBackground from "@/assets/eu-flag-background.png";
 
 const privacyFeatures = [
   {
-    icon: Server,
-    title: "100% EU Data",
-    description: "Data stays exclusively in EU data centers. No Cloud Act exposure.",
+    icon: Globe,
+    title: "Sovereign EU Infrastructure",
+    description: "Built on an independent, EU-owned and operated core. Your data stays exclusively within EU data centers, ensuring full GDPR compliance and zero exposure to the US CLOUD Act.",
   },
   {
     icon: Lock,
@@ -22,87 +25,70 @@ const privacyFeatures = [
   },
   {
     icon: Database,
-    title: "No Data Mining",
-    description: "Your files are not used for AI or advertising.",
-  },
-  {
-    icon: Globe,
-    title: "EU Infrastructure",
-    description: "No US cloud providers. GDPR-compliant by design.",
+    title: "No Commercial Data Mining",
+    description: "Your files are never used for AI training or advertising.",
   },
 ];
 
 const certifications = [
-  { name: "eIDAS", image: "/assets/eidas-logo.png" },
-  { name: "GDPR", image: "/assets/gdpr-logo.png" },
-  { name: "ISO 27001", image: "/assets/iso27001-logo.png" },
+  { name: "Sovereign EU Cloud", image: "/assets/sovereign-eu-cloud-logo.png", subtitle: "Independent, secure infrastructure" },
+  { name: "GDPR", image: "/assets/gdpr-logo.png", subtitle: "Compliant" },
+  { name: "ISO 27001", image: "/assets/iso27001-logo.png", subtitle: "Certified Infrastructure" },
 ];
 
 export const PrivacySection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { isVisible } = useScrollProgress( sectionRef as React.RefObject<HTMLElement>);
-
+  
   return (
-    <section className="py-16 px-4 bg-gradient-to-b from-background to-muted/30" ref={sectionRef}>
-      <div className="container max-w-5xl mx-auto">
+    <section className="py-24 lg:py-32 px-4 relative overflow-hidden" ref={sectionRef}>
+      {/* EU Flag Background */}
+      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(/assets/eu-flag-background.png)` }} />
+      <div className="absolute inset-0 bg-background/70" />
+
+      <div className="container max-w-6xl mx-auto relative z-10">
         {/* Header */}
-        <div 
-          className="text-center mb-10 transition-all duration-700" 
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: `translateY(${isVisible ? 0 : 30}px)`
-          }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 mb-4">
-            <Shield className="h-4 w-4 text-green-500" />
-            <span className="text-green-600 dark:text-green-400 font-medium text-sm">Privacy First</span>
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="text-primary font-semibold text-sm">EU Privacy First</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">
-            Your Privacy, <span className="text-green-500">Our Priority</span>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+            Your Privacy, <span className="text-primary">Our Priority</span>
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            No surveillance, no data mining, no compromises. Built from the ground up to protect your data.
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            No surveillance, no commercial data mining, no compromises. Built from the ground up to protect your data.
           </p>
         </div>
 
-        {/* Feature Cards - Horizontal scroll on mobile, grid on desktop */}
-        <div 
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: `translateY(${isVisible ? 0 : 30}px)`,
-            transitionDelay: '200ms',
-            transition: 'all 0.7s ease'
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto mb-14">
           {privacyFeatures.map((feature) => (
-            <Card 
-              key={feature.title} 
-              className="p-4 bg-background/80 border border-green-500/10 hover:border-green-500/30 transition-all duration-300 hover:-translate-y-1"
+            <Card
+              key={feature.title}
+              className="p-6 bg-background/90 backdrop-blur-sm border border-border hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg text-center"
             >
-              <div className="p-2 rounded-lg w-fit mb-3 bg-green-500/10">
-                <feature.icon className="h-5 w-5 text-green-500" />
+              <div className="flex justify-center mb-4">
+                <div className="p-3 rounded-xl bg-primary/10">
+                  <feature.icon className="h-6 w-6 text-primary" />
+                </div>
               </div>
-              <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
-              <p className="text-muted-foreground text-xs">{feature.description}</p>
+              <h3 className="font-semibold text-base mb-2">{feature.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
             </Card>
           ))}
         </div>
 
-        {/* Certifications - inline row */}
-        <div 
-          className="flex items-center justify-center gap-8 flex-wrap"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: `translateY(${isVisible ? 0 : 20}px)`,
-            transitionDelay: '400ms',
-            transition: 'all 0.7s ease'
-          }}
-        >
-        {certifications.map((cert) => (
-            <div key={cert.name} className="flex items-center gap-3 px-4 py-2 rounded-lg bg-muted/50 border border-border/50">
+        {/* Certifications */}
+        <div className="flex items-center justify-center gap-6 flex-wrap">
+          {certifications.map((cert) => (
+            <div
+              key={cert.name}
+              className="flex items-center gap-3 px-5 py-3 rounded-xl bg-background/80 backdrop-blur-sm border border-border hover:border-primary/30 transition-colors"
+            >
               <img src={cert.image} alt={cert.name} className="h-10 w-10 object-contain" />
-              <span className="text-sm font-semibold text-foreground">{cert.name}</span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground">{cert.name}</span>
+                <span className="text-xs text-muted-foreground">{cert.subtitle}</span>
+              </div>
             </div>
           ))}
         </div>

@@ -8,9 +8,9 @@ export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur-xl">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+   <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <div className="container flex h-20 items-center justify-between px-4 max-w-6xl mx-auto">
+         <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
           <img src='/assets/transferguard-logo-transparent.png' alt="Transfer Guard" className="h-16" />
         </Link>
 

@@ -3,7 +3,6 @@ import type { Config } from "tailwindcss";
 const config: Config = {
  darkMode: ["class", ".dark"],
  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
- 
  theme: {
     container: {
       center: true,
@@ -14,8 +13,8 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        poppins: ["Poppins", "sans-serif"],
-        inter: ["Inter", "sans-serif"],
+        'jakarta': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'inter': ['Inter', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,6 +50,18 @@ const config: Config = {
           foreground: "hsl(var(--cta-foreground))",
           glow: "hsl(var(--cta-glow))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          light: "hsl(var(--success-light))",
+          border: "hsl(var(--success-border))",
+        },
+        legal: {
+          DEFAULT: "hsl(var(--legal))",
+          foreground: "hsl(var(--legal-foreground))",
+          light: "hsl(var(--legal-light))",
+          border: "hsl(var(--legal-border))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -74,6 +85,9 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
       },
       keyframes: {
         "accordion-down": {
@@ -112,7 +126,7 @@ const config: Config = {
           from: { opacity: "0", transform: "scale(0.95)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
-        float: {
+        "float": {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
         },
@@ -120,7 +134,7 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
         },
-        glow: {
+        "glow": {
           "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary-glow) / 0.3)" },
           "50%": { boxShadow: "0 0 40px hsl(var(--primary-glow) / 0.6)" },
         },
@@ -135,9 +149,9 @@ const config: Config = {
         "slide-in-left": "slide-in-left 0.5s ease-out forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
         "scale-in": "scale-in 0.4s ease-out forwards",
-        float: "float 6s ease-in-out infinite",
+        "float": "float 6s ease-in-out infinite",
         "pulse-soft": "pulse-soft 3s ease-in-out infinite",
-        glow: "glow 3s ease-in-out infinite",
+        "glow": "glow 3s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-artistic": "var(--gradient-artistic)",
@@ -145,8 +159,8 @@ const config: Config = {
         "gradient-background": "var(--gradient-background)",
       },
       boxShadow: {
-        artistic: "var(--shadow-artistic)",
-        glow: "var(--shadow-glow)",
+        "artistic": "var(--shadow-artistic)",
+        "glow": "var(--shadow-glow)",
       },
     },
   },
