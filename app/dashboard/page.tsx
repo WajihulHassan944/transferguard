@@ -288,7 +288,7 @@ const router = useRouter();
       case "branding":
         return <BrandingPanel userId={user.id} isPro={isPaidUser} />;
       case "profile":
-        return <ProfilePanel userId={user.id} />;
+        return <ProfilePanel />;
       case "security":
         return <SecurityPanel userId={user.id} />;
       default:

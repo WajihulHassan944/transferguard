@@ -1,34 +1,55 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+/* ==============================
+   Initial State (MATCH BACKEND)
+============================== */
 const initialState = {
-  // Identity
+  /* ---------- Identity ---------- */
   id: null,
   firstName: null,
   lastName: null,
   email: null,
   profileUrl: null,
 
-  // Account
+  /* ---------- Business ---------- */
+  companyName: null,
+  phone: null,
+  address: null,
+  postalCode: null,
+  city: null,
+  country: null,
+
+  /* ---------- Account ---------- */
   role: null,
   status: null,
   verified: false,
+  newsletterOptIn: false,
+  stripeAccountId: null,
+
+  /* ---------- Security ---------- */
   twoFAEnabled: false,
 
-  // Meta
-  country: null,
+  /* ---------- Meta ---------- */
   createdAt: null,
   lastLogin: [],
+  workerStatus: null,
+  workerUpdatedAt: null,
 
-  // App state
+  /* ---------- App state ---------- */
   isLoggedIn: false,
   isAuthenticated: false,
   isHydrated: false,
 };
 
+/* ==============================
+   Slice
+============================== */
 const userSlice = createSlice({
   name: "user",
   initialState,
+
   reducers: {
+    /* ---------- Login ---------- */
     loginUser: (state, action) => {
       return {
         ...state,
@@ -39,6 +60,7 @@ const userSlice = createSlice({
       };
     },
 
+    /* ---------- Logout ---------- */
     logoutUser: () => {
       return {
         ...initialState,
@@ -46,14 +68,15 @@ const userSlice = createSlice({
       };
     },
 
+    /* ---------- Profile update ---------- */
     updateProfile: (state, action) => {
       return {
         ...state,
         ...action.payload,
-        isHydrated: true,
       };
     },
 
+    /* ---------- Small updates ---------- */
     setVerified: (state, action) => {
       state.verified = action.payload;
     },

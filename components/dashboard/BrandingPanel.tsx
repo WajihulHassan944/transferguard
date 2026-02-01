@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Upload, Trash2, Image, Palette, Crown } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
 
 interface BrandingPanelProps {
   userId: string;
@@ -28,26 +27,10 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
     brand_color: "#10B981",
     enabled: false,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingWallpaper, setUploadingWallpaper] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "wallpaper") => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB");
-        return;
-      }
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Only image files are allowed");
-        return;
-      }
-    }
-  };
 
   const removeImage = (type: "logo" | "wallpaper") => {
     setSettings((prev) => ({
@@ -56,35 +39,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
     }));
   };
 
-  if (!isPro) {
-    return (
-      <Card className="bg-card/50 backdrop-blur-sm border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-yellow-500" />
-            Custom Branding
-          </CardTitle>
-          <CardDescription>
-            Upgrade to Professional to customize your transfer pages with your own logo and wallpaper
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <Palette className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Personalize Your Brand</h3>
-            <p className="text-muted-foreground text-sm mb-4 max-w-md">
-              Add your company logo, custom background wallpaper, and brand colors to make your file transfers look professional.
-            </p>
-            <Button asChild>
-              <Link href="/signup/pro?plan=professional">Upgrade to Professional</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // All users can access branding (trial, pro, legal, etc.)
 
   if (loading) {
     return (
@@ -121,7 +76,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
           <Switch
             id="enable-branding"
             checked={settings.enabled}
-            // onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, enabled: checked }))}
+            onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, enabled: checked }))}
           />
         </div>
 
@@ -155,7 +110,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleFileChange(e, "logo")}
+                // onChange={(e) => handleFileChange(e, "logo")}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 disabled={uploadingLogo}
               />
@@ -203,7 +158,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleFileChange(e, "wallpaper")}
+                // onChange={(e) => handleFileChange(e, "wallpaper")}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 disabled={uploadingWallpaper}
               />
@@ -279,6 +234,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
 
         {/* Save Button */}
         <Button 
+          // onClick={saveSettings} 
           disabled={saving}
           className="w-full"
         >
