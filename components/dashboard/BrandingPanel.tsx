@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Upload, Trash2, Image, Palette, Crown } from "lucide-react";
+import { Upload, Trash2, Image, Palette } from "lucide-react";
 import { toast } from "sonner";
+import { baseUrl } from "@/const";
 
 interface BrandingPanelProps {
   userId: string;
@@ -27,19 +28,126 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
     brand_color: "#10B981",
     enabled: false,
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingWallpaper, setUploadingWallpaper] = useState(false);
 
+  const logoFileRef = useRef<File | null>(null);
+  const wallpaperFileRef = useRef<File | null>(null);
+
+  /* ---------------------------------- */
+  // Load current branding on mount
+  /* ---------------------------------- */
+  useEffect(() => {
+    const fetchBranding = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/branding/my`, { credentials: "include" });
+        const data = await res.json();
+        if (data.success && data.branding) {
+          setSettings({
+            id: data.branding.id,
+            logo_url: data.branding.logoUrl,
+            wallpaper_url: data.branding.wallpaperUrl,
+            brand_color: data.branding.brandColor || "#10B981",
+            enabled: data.branding.brandingEnabled || false,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load branding");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBranding();
+  }, []);
+
+  /* ---------------------------------- */
+  // Remove selected image (UI only)
+  /* ---------------------------------- */
   const removeImage = (type: "logo" | "wallpaper") => {
+    if (type === "logo") logoFileRef.current = null;
+    if (type === "wallpaper") wallpaperFileRef.current = null;
+
     setSettings((prev) => ({
       ...prev,
       [type === "logo" ? "logo_url" : "wallpaper_url"]: null,
     }));
   };
 
-  // All users can access branding (trial, pro, legal, etc.)
+  /* ---------------------------------- */
+  // Handle file selection
+  /* ---------------------------------- */
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "wallpaper") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Unsupported file type");
+      return;
+    }
+
+    if (type === "logo") {
+      logoFileRef.current = file;
+      setUploadingLogo(true);
+    } else {
+      wallpaperFileRef.current = file;
+      setUploadingWallpaper(true);
+    }
+
+    // Show preview immediately
+    setSettings((prev) => ({
+      ...prev,
+      [type === "logo" ? "logo_url" : "wallpaper_url"]: URL.createObjectURL(file),
+    }));
+  };
+
+  /* ---------------------------------- */
+  // Save all branding settings
+  /* ---------------------------------- */
+  const saveSettings = async () => {
+    setSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("brandingEnabled", settings.enabled.toString());
+      formData.append("brandColor", settings.brand_color);
+
+      if (logoFileRef.current) formData.append("logo", logoFileRef.current);
+      if (wallpaperFileRef.current) formData.append("wallpaper", wallpaperFileRef.current);
+
+      const res = await fetch(`${baseUrl}/branding/update`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.branding) {
+        setSettings({
+          id: data.branding.id,
+          logo_url: data.branding.logoUrl,
+          wallpaper_url: data.branding.wallpaperUrl,
+          brand_color: data.branding.brandColor || "#10B981",
+          enabled: data.branding.brandingEnabled || false,
+        });
+        toast.success("Branding saved successfully");
+        logoFileRef.current = null;
+        wallpaperFileRef.current = null;
+      } else {
+        toast.error(data.message || "Failed to save branding");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save branding");
+    } finally {
+      setSaving(false);
+      setUploadingLogo(false);
+      setUploadingWallpaper(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -65,7 +173,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Enable Branding Toggle */}
+        {/* Enable Branding */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
           <div>
             <Label htmlFor="enable-branding" className="font-medium">Enable Custom Branding</Label>
@@ -80,21 +188,16 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
           />
         </div>
 
-        {/* Logo Upload */}
+        {/* Logo */}
         <div className="space-y-3">
           <Label className="font-medium">Company Logo</Label>
           <p className="text-sm text-muted-foreground">
             Recommended size: 200x60px, PNG or SVG with transparent background
           </p>
-          
           {settings.logo_url ? (
             <div className="relative inline-block">
               <div className="p-4 border border-border rounded-lg bg-muted/30">
-                <img 
-                  src={settings.logo_url} 
-                  alt="Company logo" 
-                  className="max-h-16 max-w-[200px] object-contain"
-                />
+                <img src={settings.logo_url} alt="Company logo" className="max-h-16 max-w-[200px] object-contain" />
               </div>
               <Button
                 variant="destructive"
@@ -110,7 +213,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
               <input
                 type="file"
                 accept="image/*"
-                // onChange={(e) => handleFileChange(e, "logo")}
+                onChange={(e) => handleFileChange(e, "logo")}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 disabled={uploadingLogo}
               />
@@ -128,21 +231,16 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
           )}
         </div>
 
-        {/* Wallpaper Upload */}
+        {/* Wallpaper */}
         <div className="space-y-3">
           <Label className="font-medium">Background Wallpaper</Label>
           <p className="text-sm text-muted-foreground">
             Recommended size: 1920x1080px or larger, JPG or PNG
           </p>
-          
           {settings.wallpaper_url ? (
             <div className="relative">
               <div className="aspect-video max-w-md rounded-lg overflow-hidden border border-border">
-                <img 
-                  src={settings.wallpaper_url} 
-                  alt="Background wallpaper" 
-                  className="w-full h-full object-cover"
-                />
+                <img src={settings.wallpaper_url} alt="Background wallpaper" className="w-full h-full object-cover" />
               </div>
               <Button
                 variant="destructive"
@@ -158,7 +256,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
               <input
                 type="file"
                 accept="image/*"
-                // onChange={(e) => handleFileChange(e, "wallpaper")}
+                onChange={(e) => handleFileChange(e, "wallpaper")}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 disabled={uploadingWallpaper}
               />
@@ -179,9 +277,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
         {/* Brand Color */}
         <div className="space-y-3">
           <Label htmlFor="brand-color" className="font-medium">Brand Color</Label>
-          <p className="text-sm text-muted-foreground">
-            Used for buttons and accents on your branded pages
-          </p>
+          <p className="text-sm text-muted-foreground">Used for buttons and accents on your branded pages</p>
           <div className="flex items-center gap-3">
             <input
               type="color"
@@ -206,25 +302,16 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
             <div 
               className="relative aspect-video rounded-lg overflow-hidden border border-border"
               style={{
-                backgroundImage: settings.wallpaper_url 
-                  ? `url(${settings.wallpaper_url})` 
-                  : 'linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--background)))',
+                backgroundImage: settings.wallpaper_url ? `url(${settings.wallpaper_url})` : 'linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--background)))',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
             >
               <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center">
                 {settings.logo_url && (
-                  <img 
-                    src={settings.logo_url} 
-                    alt="Logo preview" 
-                    className="max-h-12 max-w-[160px] object-contain mb-4"
-                  />
+                  <img src={settings.logo_url} alt="Logo preview" className="max-h-12 max-w-[160px] object-contain mb-4" />
                 )}
-                <div 
-                  className="px-6 py-2 rounded-lg text-white text-sm font-medium"
-                  style={{ backgroundColor: settings.brand_color }}
-                >
+                <div className="px-6 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: settings.brand_color }}>
                   Download Files
                 </div>
               </div>
@@ -233,11 +320,7 @@ export const BrandingPanel = ({ userId, isPro }: BrandingPanelProps) => {
         )}
 
         {/* Save Button */}
-        <Button 
-          // onClick={saveSettings} 
-          disabled={saving}
-          className="w-full"
-        >
+        <Button onClick={saveSettings} disabled={saving} className="w-full">
           {saving ? "Saving..." : "Save Branding Settings"}
         </Button>
       </CardContent>
