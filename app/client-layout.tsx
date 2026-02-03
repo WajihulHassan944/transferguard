@@ -50,6 +50,7 @@ console.log(role);
   const hideHeader =
     pathname === "/admin/login" ||
     pathname === "/coming-soon" ||
+    pathname.startsWith("/download") ||
     pathname === "/signup/pro" ||
     pathname.startsWith("/auth") ||
     pathname === "/reset-password" ||
@@ -59,6 +60,7 @@ console.log(role);
   const hideFooter =
     pathname === "/admin/login" ||
     pathname === "/coming-soon" ||
+        pathname.startsWith("/download") ||
     pathname === "/dashboard" ||
     role !== "admin";
 
