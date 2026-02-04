@@ -157,25 +157,28 @@ const handleFiles = useCallback((newFiles: FileList | File[]) => {
 
      
   const isValid = recipientEmail && files.length > 0;
-  
 
-  const encryptFileWithPGP = async (file: File) => {
+const encryptFileWithPGP = async (file: File) => {
   const arrayBuffer = await file.arrayBuffer();
+
+  const encryptionPass = crypto.randomUUID(); 
 
   const message = await openpgp.createMessage({
     binary: new Uint8Array(arrayBuffer),
   });
 
-  // simple symmetric encryption (no keys required)
   const encrypted = await openpgp.encrypt({
     message,
-    passwords: [crypto.randomUUID()], // random one-time password
+    passwords: [encryptionPass],
     format: "binary",
   });
 
-  return new Blob([encrypted], {
-    type: "application/octet-stream",
-  });
+  return {
+    blob: new Blob([encrypted], {
+      type: "application/octet-stream",
+    }),
+    encryptionPass, // ✅ return it
+  };
 };
 
 
@@ -195,7 +198,9 @@ const handleSubmit = async () => {
     /* ---------------------------------- */
     /* 🔐 STEP 0: encrypt file FIRST       */
     /* ---------------------------------- */
-    const encryptedBlob = await encryptFileWithPGP(file);
+   const { blob: encryptedBlob, encryptionPass } =
+  await encryptFileWithPGP(file);
+
 
     /* ---------------------------------- */
     /* STEP 1: get signed upload URL       */
@@ -250,24 +255,27 @@ const handleSubmit = async () => {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipientEmail,
-        message,
-        dossierNumber,
-        securityLevel: "standard",
-        expiresAt,
+     body: JSON.stringify({
+  recipientEmail,
+  message,
+  dossierNumber,
+  securityLevel: "professional",
+  expiresAt,
 
-        file: {
-          name: file.name, // keep original name
-          size: encryptedBlob.size, // encrypted size
-          type: "application/octet-stream",
-        },
+  file: {
+    name: file.name,
+    size: encryptedBlob.size,
+    type: "application/octet-stream",
+  },
 
-        key,
-        bucket,
-        totalSizeBytes: encryptedBlob.size,
-        encryption: "pgp",
-      }),
+  key,
+  bucket,
+  totalSizeBytes: encryptedBlob.size,
+  encryption: "pgp",
+
+  encryptionPassword: encryptionPass, // ✅ NEW LINE
+}),
+
     });
 
     const metaData = await metaRes.json();

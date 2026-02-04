@@ -11,13 +11,13 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import React, { useState } from "react"
-
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-
+import { baseUrl } from "@/const"
 const defaultBrandColor = "hsl(217, 91%, 50%)"
 
 const activeBrandColor = defaultBrandColor
@@ -28,6 +28,45 @@ const lightBrandColor = activeBrandColor.replace(
 
 const page = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const router = useRouter()
+const { token } = useParams()
+
+const [otpCode, setOtpCode] = useState("")
+const [loading, setLoading] = useState(false)
+const [error, setError] = useState("")
+
+
+const handleVerify = async () => {
+  if (otpCode.length !== 6 || !termsAccepted) return
+
+  try {
+    setLoading(true)
+    setError("")
+
+    const res = await fetch(
+      `${baseUrl}/transfers/verify`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          otp: otpCode,
+        }),
+      }
+    )
+
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.message)
+
+    router.push(data.redirectUrl)
+  } catch (err: any) {
+    setError(err.message || "Verification failed")
+  } finally {
+    setLoading(false)
+  }
+}
+
     return (
     <div
       className="min-h-screen flex flex-col"
@@ -152,8 +191,8 @@ const page = () => {
                   <div className="flex justify-center pt-2">
                           <InputOTP 
                             maxLength={6} 
-                            // value={otpCode} 
-                            // onChange={setOtpCode}
+                           value={otpCode}
+                           onChange={setOtpCode}
                             className="gap-2"
                           >
                             <InputOTPGroup className="gap-2">
@@ -166,6 +205,9 @@ const page = () => {
                             </InputOTPGroup>
                           </InputOTP>
                         </div>
+{error && (
+  <p className="text-sm text-red-500 font-medium">{error}</p>
+)}
 
                   {/* checkbox */}
                  <div className={`flex items-start gap-4 text-left rounded-xl p-5 max-w-sm mx-auto border-2 transition-all cursor-pointer ${
@@ -193,16 +235,21 @@ const page = () => {
                               </label>
                             </div>
                   {/* button */}
-                  <Button 
-                  disabled
-                          className="mb-10 w-full max-w-sm h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            <>
-                              <ShieldCheck className="mr-2 h-5 w-5" />
-                              Verify & Unlock Files
-                            </>
-                        
-                        </Button>
+                  <Button
+  onClick={handleVerify}
+  disabled={!termsAccepted || otpCode.length !== 6 || loading}
+  className="mb-10 w-full max-w-sm h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
+>
+  {loading ? (
+    "Verifying..."
+  ) : (
+    <>
+      <ShieldCheck className="mr-2 h-5 w-5" />
+      Verify & Unlock Files
+    </>
+  )}
+</Button>
+
                 </div>
             </Card>
           </div>

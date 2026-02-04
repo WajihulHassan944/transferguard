@@ -16,6 +16,10 @@ import {
   ShieldCheck,
   DownloadIcon,
 } from "lucide-react"
+import { baseUrl } from "@/const"
+import { useEffect } from "react"
+import * as openpgp from "openpgp"
+import { useParams } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -30,8 +34,97 @@ const lightBrandColor = activeBrandColor.replace(
 )
 
 const page = () => {
+const params = useParams();
+const decryptionToken = params?.token as string;
 
+const [isDownloading, setIsDownloading] = useState(false);
   const [receiptAccepted, setReceiptAccepted] = useState(false);
+const [transferInfo, setTransferInfo] = useState<{
+  senderName: string
+  senderEmail: string
+  recipientEmail: string
+  caseRef: string
+  files: any
+  totalSizeBytes: number
+} | null>(null);
+
+  const decryptFileWithPGP = async (
+  encryptedBuffer: ArrayBuffer,
+  password: string
+) => {
+  const message = await openpgp.readMessage({
+    binaryMessage: new Uint8Array(encryptedBuffer),
+  });
+
+  const { data } = await openpgp.decrypt({
+    message,
+    passwords: [password],
+    format: "binary",
+  });
+
+  return new Blob([data]);
+};
+const handleDownload = async () => {
+  if (!receiptAccepted || !decryptionToken) return;
+
+  try {
+    setIsDownloading(true);
+
+    /* 1️⃣ resolve download */
+    const res = await fetch(`${baseUrl}/transfers/resolve-download`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decryptionToken }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to resolve download");
+
+    const { fileName, downloadUrl, encryptionPassword, senderName, senderEmail, recipientEmail, caseRef, files, totalSizeBytes } = data;
+
+    // store transfer info for later confirmation email
+    setTransferInfo({ senderName, senderEmail, recipientEmail, caseRef, files, totalSizeBytes });
+
+    /* 2️⃣ fetch encrypted file */
+    const fileRes = await fetch(downloadUrl);
+    const encryptedBuffer = await fileRes.arrayBuffer();
+
+    /* 3️⃣ decrypt */
+    const decryptedBlob = await decryptFileWithPGP(
+      encryptedBuffer,
+      encryptionPassword
+    );
+
+    /* 4️⃣ download */
+    const url = URL.createObjectURL(decryptedBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    /* 5️⃣ trigger confirmation email */
+    if (senderEmail && recipientEmail && caseRef) {
+      await fetch(`${baseUrl}/transfers/confirm-download`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender_name: senderName,
+          sender_email: senderEmail,
+          recipient_email: recipientEmail,
+          case_ref: caseRef,
+        }),
+      });
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Download failed");
+  } finally {
+    setIsDownloading(false);
+  }
+};
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -235,16 +328,16 @@ const page = () => {
 
                 {/* button */}
               <div className="px-6">
-                  <Button 
-                        className=" w-full h-14 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                        size="lg"
-                      >
-                          <>
-                            <DownloadIcon className="mr-2 h-5 w-5" />
-                            {receiptAccepted ? 'Download All Files' : 'Accept Receipt to Download'}
-                          </>
-                      
-                      </Button>
+                 <Button
+  onClick={handleDownload}
+  disabled={!receiptAccepted || isDownloading}
+  className="w-full h-14 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+  size="lg"
+>
+  <DownloadIcon className="mr-2 h-5 w-5" />
+  {isDownloading ? "Decrypting..." : receiptAccepted ? "Download All Files" : "Accept Receipt to Download"}
+</Button>
+
               </div>
             </Card>
           </div>
