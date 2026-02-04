@@ -4,6 +4,7 @@ import {
     AlertCircle,
   CheckCircle2,
   KeyRound,
+  Loader2,
   Lock,
   Shield,
   ShieldCheck,
@@ -30,10 +31,31 @@ const page = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const router = useRouter()
 const { token } = useParams()
+const [transfer, setTransfer] = useState<any>(null)
 
 const [otpCode, setOtpCode] = useState("")
 const [loading, setLoading] = useState(false)
+const [loadingUI, setLoadingUI] = useState(true)
 const [error, setError] = useState("")
+
+React.useEffect(() => {
+  const loadTransfer = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/transfers/public/${token}`)
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.message)
+
+      setTransfer(data)
+    } catch (err: any) {
+      setError(err.message || "Invalid link")
+    } finally {
+      setLoadingUI(false)
+    }
+  }
+
+  loadTransfer()
+}, [token])
 
 
 const handleVerify = async () => {
@@ -65,6 +87,34 @@ const handleVerify = async () => {
   } finally {
     setLoading(false)
   }
+}
+
+
+ if (loadingUI) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Establishing secure connection...</p>
+        </div>
+      </div>
+    );
+  }
+
+if (!loadingUI && error && !transfer) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <Card className="p-10 text-center max-w-md shadow-soft">
+        <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
+        <h2 className="text-lg font-semibold mb-2">Invalid or Expired Link</h2>
+        <p className="text-sm text-muted-foreground mb-6">{error}</p>
+
+        <Button onClick={() => router.push("/")} className="w-full">
+          Go Home
+        </Button>
+      </Card>
+    </div>
+  )
 }
 
     return (
@@ -117,10 +167,11 @@ const handleVerify = async () => {
                   <div>
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Secure transfer from</p>
                       <p className="font-semibold text-foreground truncate text-lg">
-                      legal@hendriksen-partners.nl
+                      {transfer?.senderEmail}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Sent about 2 hours ago
+                     Sent {transfer?.createdAt ? new Date(transfer.createdAt).toLocaleString() : ""}
+
                     </p>
                   </div>
                 </CardContent>
@@ -164,10 +215,12 @@ const handleVerify = async () => {
                   </div>
 
                   <div>
-                    <p className="font-semibold">3 Encrypted Files</p>
-                    <p className="text-sm text-muted-foreground">
-                      Total size: 4.34 MB
-                    </p>
+                     <p className="font-semibold">
+      {transfer?.fileLabel || "Encrypted Files"}
+    </p>
+    <p className="text-sm text-muted-foreground">
+      {transfer?.sizeLabel || ""}
+    </p>
                   </div>
                 </div>
 
@@ -184,7 +237,8 @@ const handleVerify = async () => {
                     <p className="text-muted-foreground text-sm mt-1">
                       Enter the security code sent to
                     </p>
-                    <p className="font-medium">jan.de.vries@klant.nl</p>
+<p className="font-medium">{transfer?.recipientEmail}</p>
+
                   </div>
 
                   {/* OTP inputs */}
@@ -237,7 +291,7 @@ const handleVerify = async () => {
                   {/* button */}
                   <Button
   onClick={handleVerify}
-  disabled={!termsAccepted || otpCode.length !== 6 || loading}
+  disabled={!termsAccepted || otpCode.length !== 6 || loading || !transfer}
   className="mb-10 w-full max-w-sm h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
 >
   {loading ? (

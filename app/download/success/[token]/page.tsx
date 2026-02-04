@@ -2,6 +2,8 @@
 
 import React, { useState } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+
 import {
   CheckCircle2,
   Lock,
@@ -15,6 +17,13 @@ import {
   AlertCircle,
   ShieldCheck,
   DownloadIcon,
+  Loader2,
+  File,
+  Image,
+  Video,
+  Music,
+  FileArchive,
+  Presentation,
 } from "lucide-react"
 import { baseUrl } from "@/const"
 import { useEffect } from "react"
@@ -36,9 +45,16 @@ const lightBrandColor = activeBrandColor.replace(
 const page = () => {
 const params = useParams();
 const decryptionToken = params?.token as string;
-
+const router = useRouter();
 const [isDownloading, setIsDownloading] = useState(false);
   const [receiptAccepted, setReceiptAccepted] = useState(false);
+  const searchParams = useSearchParams()
+const downloadToken = searchParams.get("downloadToken")
+
+const [transfer, setTransfer] = useState<any>(null)
+const [loadingUI, setLoadingUI] = useState(true)
+const [error, setError] = useState("")
+
 const [transferInfo, setTransferInfo] = useState<{
   senderName: string
   senderEmail: string
@@ -47,6 +63,88 @@ const [transferInfo, setTransferInfo] = useState<{
   files: any
   totalSizeBytes: number
 } | null>(null);
+
+useEffect(() => {
+  const loadTransfer = async () => {
+    try {
+      if (!downloadToken) throw new Error("Invalid link")
+
+      const res = await fetch(`${baseUrl}/transfers/public/${downloadToken}`)
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.message)
+
+      setTransfer(data)
+    } catch (err: any) {
+      setError(err.message || "Invalid link")
+    } finally {
+      setLoadingUI(false)
+    }
+  }
+
+  loadTransfer()
+}, [downloadToken])
+
+/* ---------- helpers ---------- */
+
+const formatBytes = (bytes: number = 0) => {
+  if (!bytes) return "0 KB";
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+};
+
+const getDaysLeft = (expiresAt?: string) => {
+  if (!expiresAt) return 0;
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+};
+
+
+ if (loadingUI) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Establishing secure connection...</p>
+        </div>
+      </div>
+    );
+  }
+
+
+  
+  if (!loadingUI && error && !transfer) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="p-10 text-center max-w-md shadow-soft">
+          <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mb-2">Invalid Link</h2>
+          <p className="text-sm text-muted-foreground mb-6">{error}</p>
+  
+          <Button onClick={() => router.push("/")} className="w-full">
+            Go Home
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+  
+  
+const getFileIcon = (mimeType: string | null): React.ReactNode => {
+  const iconClass = "h-5 w-5";
+  if (!mimeType) return <File className={`${iconClass} text-muted-foreground`} />;
+  if (mimeType.startsWith("image/")) return <Image className={`${iconClass} text-primary`} />;
+  if (mimeType.startsWith("video/")) return <Video className={`${iconClass} text-purple-500`} />;
+  if (mimeType.startsWith("audio/")) return <Music className={`${iconClass} text-pink-500`} />;
+  if (mimeType.includes("pdf")) return <FileText className={`${iconClass} text-destructive`} />;
+  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return <FileArchive className={`${iconClass} text-legal`} />;
+  if (mimeType.includes("word") || mimeType.includes("document")) return <FileText className={`${iconClass} text-primary`} />;
+  if (mimeType.includes("sheet") || mimeType.includes("excel")) return <FileSpreadsheet className={`${iconClass} text-success`} />;
+  if (mimeType.includes("presentation") || mimeType.includes("powerpoint")) return <Presentation className={`${iconClass} text-legal`} />;
+  return <File className={`${iconClass} text-muted-foreground`} />;
+};
+
 
   const decryptFileWithPGP = async (
   encryptedBuffer: ArrayBuffer,
@@ -113,7 +211,7 @@ const handleDownload = async () => {
           sender_name: senderName,
           sender_email: senderEmail,
           recipient_email: recipientEmail,
-          case_ref: caseRef,
+          transfer_id: caseRef,
         }),
       });
     }
@@ -188,10 +286,10 @@ const handleDownload = async () => {
                               <div>
                                   <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Secure transfer from</p>
                                   <p className="font-semibold text-foreground truncate text-lg">
-                                  legal@hendriksen-partners.nl
+                                 {transfer?.senderEmail}
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                  Sent about 2 hours ago
+                                 Sent {new Date(transfer?.createdAt).toLocaleString()}
                                 </p>
                               </div>
                             </CardContent>
@@ -207,13 +305,7 @@ const handleDownload = async () => {
                   </div>
 
                   <div className="rounded-xl border bg-muted/20 p-4 text-sm whitespace-pre-line leading-relaxed">
-                    Beste Jan,
-
-                    {"\n\n"}Hierbij de contractdocumenten voor het nieuwe project. Graag voor
-                    vrijdag ondertekend retour.
-
-                    {"\n\n"}Met vriendelijke groet,
-                    {"\n"}Mr. Hendriksen
+                  {transfer?.message || "No message provided"}
                   </div>
                 </CardContent>
               </Card>
@@ -257,35 +349,27 @@ const handleDownload = async () => {
                                                <div className="flex items-center gap-2">
                                                  <CheckCircle2 className="h-5 w-5 text-success" />
                                                  <h2 className="font-semibold text-foreground">
-                                                   2 Files Ready
+                                                  {transfer?.fileCount || 0} File{transfer?.fileCount > 1 ? "s" : ""} Ready
                                                  </h2>
                                                </div>
                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-background px-3 py-1.5 rounded-lg border border-border">
                                                  <Clock className="h-3.5 w-3.5" />
-                                                 <span>Expires in 7</span>
+                                                <span>Expires in {getDaysLeft(transfer?.expiresAt)} day{getDaysLeft(transfer?.expiresAt) !== 1 ? "s" : ""}</span>
                                                </div>
                                              </div>
                                            </div>
 
                 {/* files */}
                 <div className="divide-y">
-                  <FileRow
-                    icon={<FileText className="h-5 w-5 text-red-500" />}
-                    name="Contract_Draft_V3.pdf"
-                    size="2.38 MB"
-                  />
+                  {transfer?.files?.map((file: any) => (
+  <FileRow
+    key={file.key}
+    icon={getFileIcon(file.type)}
+    name={file.name}
+    size={formatBytes(file.size)}
+  />
+))}
 
-                  <FileRow
-                    icon={<FileText className="h-5 w-5 text-red-500" />}
-                    name="NDA_Agreement_2025.pdf"
-                    size="1.14 MB"
-                  />
-
-                  <FileRow
-                    icon={<FileSpreadsheet className="h-5 w-5 text-blue-600" />}
-                    name="Financial_Overview.xlsx"
-                    size="830.08 KB"
-                  />
                 </div>
 
                 {/* receipt confirm */}
@@ -323,7 +407,7 @@ const handleDownload = async () => {
                 {/* total */}
                   <div className="flex items-center justify-between mx-6 mb-6">
                       <span className="text-sm text-muted-foreground">Total download size</span>
-                      <span className="font-semibold text-foreground">4.34 Mb</span>
+                      <span className="font-semibold text-foreground">{formatBytes(transfer?.totalSizeBytes)} MB</span>
                     </div>
 
                 {/* button */}
@@ -364,21 +448,6 @@ const handleDownload = async () => {
 }
 
 /* ================= COMPONENTS ================= */
-
-function SecurityItem({
-  icon,
-  text,
-}: {
-  icon: React.ReactNode
-  text: string
-}) {
-  return (
-    <div className="flex items-center gap-2 text-muted-foreground">
-      {icon}
-      {text}
-    </div>
-  )
-}
 
 function FileRow({
   icon,
