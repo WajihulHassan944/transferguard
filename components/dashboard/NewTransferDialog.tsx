@@ -99,6 +99,8 @@ export function NewTransferDialog({
 const progressRef = useRef<HTMLInputElement>(null);
 const [progress, setProgress] = useState(0);
 const [uploadKey, setUploadKey] = useState<string | null>(null);
+const [chunkProgress, setChunkProgress] = useState<Record<number, number>>({});
+const [uploadMessage, setUploadMessage] = useState<string>("");
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
   const showPublicWarning = recipientEmail && isPublicDomain(recipientEmail);
@@ -153,10 +155,36 @@ const handleFiles = useCallback((newFiles: FileList | File[]) => {
     setDossierNumber("");
     setExpiryDays("7");
     setSecurityLevel("professional");
+    setChunkProgress({});
+setUploadMessage("");
+
   };
 
      
   const isValid = recipientEmail && files.length > 0;
+
+const CHUNK_SIZE = 10 * 1024 * 1024;
+const PARALLEL_UPLOADS = 2; // sweet spot (3–5 recommended)
+
+const splitIntoChunks = (blob: Blob) => {
+  const chunks: Blob[] = [];
+  for (let i = 0; i < blob.size; i += CHUNK_SIZE) {
+    chunks.push(blob.slice(i, i + CHUNK_SIZE));
+  }
+  return chunks;
+};
+
+const getSessionKey = (fileKey: string) => `upload_${fileKey}`;
+
+const saveProgress = (key: string, data: any) =>
+  localStorage.setItem(getSessionKey(key), JSON.stringify(data));
+
+const loadProgress = (key: string) =>
+  JSON.parse(localStorage.getItem(getSessionKey(key)) || "{}");
+
+const clearProgress = (key: string) =>
+  localStorage.removeItem(getSessionKey(key));
+
 
 const encryptFileWithPGP = async (file: File) => {
   const arrayBuffer = await file.arrayBuffer();
@@ -181,7 +209,6 @@ const encryptFileWithPGP = async (file: File) => {
   };
 };
 
-
 const handleSubmit = async () => {
   if (!files[0]) return;
 
@@ -196,91 +223,208 @@ const handleSubmit = async () => {
     ).toISOString();
 
     /* ---------------------------------- */
-    /* 🔐 STEP 0: encrypt file FIRST       */
+    /* 🔐 STEP 0: ENCRYPT FIRST            */
     /* ---------------------------------- */
-   const { blob: encryptedBlob, encryptionPass } =
-  await encryptFileWithPGP(file);
+    const { blob: encryptedBlob, encryptionPass } =
+      await encryptFileWithPGP(file);
+
+    let key: string;
+    let bucket: string;
+
+    /* ================================================= */
+    /* 🚀 SMALL FILE → SINGLE PUT (fastest)               */
+    /* ================================================= */
+    if (encryptedBlob.size <= CHUNK_SIZE) {
+      const uploadRes = await fetch(`${baseUrl}/transfers/upload-url`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: "application/octet-stream",
+          fileSize: encryptedBlob.size,
+        }),
+      });
+
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.message);
+
+      key = uploadData.key;
+      bucket = uploadData.bucket;
+
+      setUploadKey(key);
+
+      /* classic PUT */
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.open("PUT", uploadData.uploadUrl, true);
+        xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        };
+
+        xhr.onload = () =>
+          xhr.status >= 200 && xhr.status < 300
+            ? resolve()
+            : reject(new Error("Upload failed"));
+
+        xhr.onerror = () => reject(new Error("Upload failed"));
+
+        xhr.send(encryptedBlob);
+      });
+    }
+
+    /* ================================================= */
+    /* 🚀 LARGE FILE → MULTIPART + PARALLEL + RESUME     */
+    /* ================================================= */
+    else {
+      const startRes = await fetch(`${baseUrl}/transfers/multipart/start`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: "application/octet-stream",
+        }),
+      });
+
+      const startData = await startRes.json();
+      if (!startRes.ok) throw new Error(startData.message);
+
+      const { uploadId } = startData;
+      key = startData.key;
+      bucket = startData.bucket;
+
+      setUploadKey(key);
+
+      const chunks = splitIntoChunks(encryptedBlob);
+
+      let progressData = loadProgress(key);
+
+      if (!progressData.uploadId) {
+        progressData = { uploadId, parts: [] };
+        saveProgress(key, progressData);
+      }
+
+      const uploadedParts: any[] = progressData.parts || [];
+      let completedCount = uploadedParts.length;
+
+      const missingParts = chunks
+        .map((_, i) => i + 1)
+        .filter((n) => !uploadedParts.find((p) => p.PartNumber === n));
+
+const uploadPart = async (partNumber: number) => {
+  const chunk = chunks[partNumber - 1];
+  setUploadMessage(`Uploading part ${partNumber} of ${chunks.length}...`);
+
+  // get signed URL
+  const urlRes = await fetch(`${baseUrl}/transfers/multipart/urls`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uploadId, key, parts: [partNumber] }),
+  });
+  const [{ url }] = await urlRes.json();
+
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url, true);
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+    // per-chunk progress
+    xhr.upload.onprogress = (e) => {
+      if (!e.lengthComputable) return;
+      const percent = Math.round((e.loaded / e.total) * 100);
+
+      setChunkProgress((prev) => {
+        const next = { ...prev, [partNumber]: percent };
+        const totalPercent =
+          Object.values(next).reduce((sum, p) => sum + p, 0) / chunks.length;
+        setProgress(Math.round(totalPercent));
+        return next;
+      });
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const rawEtag = xhr.getResponseHeader("ETag");
+        if (!rawEtag) return reject(new Error("Missing ETag from S3"));
+
+        const cleanEtag = rawEtag.replace(/"/g, "");
+        console.log("Part uploaded:", partNumber, cleanEtag);
+
+        uploadedParts.push({ PartNumber: partNumber, ETag: cleanEtag });
+        saveProgress(key, { uploadId, parts: uploadedParts });
+
+        resolve();
+      } else {
+        reject(new Error("Chunk upload failed"));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Chunk upload failed"));
+
+    xhr.send(chunk);
+  });
+};
 
 
-    /* ---------------------------------- */
-    /* STEP 1: get signed upload URL       */
-    /* ---------------------------------- */
-    const uploadRes = await fetch(`${baseUrl}/transfers/upload-url`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileName: file.name,
-        contentType: "application/octet-stream", // encrypted
-        fileSize: encryptedBlob.size, // encrypted size
-      }),
-    });
 
-    const uploadData = await uploadRes.json();
-    if (!uploadRes.ok) throw new Error(uploadData.message);
+      for (let i = 0; i < missingParts.length; i += PARALLEL_UPLOADS) {
+        const batch = missingParts.slice(i, i + PARALLEL_UPLOADS);
+        await Promise.all(batch.map(uploadPart));
+      }
 
-    const { uploadUrl, key, bucket } = uploadData;
-    setUploadKey(key);
+      await fetch(`${baseUrl}/transfers/multipart/complete`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uploadId,
+          key,
+          parts: uploadedParts.sort((a, b) => a.PartNumber - b.PartNumber),
+        }),
+      });
 
-    /* ---------------------------------- */
-    /* STEP 2: PUT encrypted file to S3    */
-    /* ---------------------------------- */
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", uploadUrl, true);
+      clearProgress(key);
+      setChunkProgress({});
+setUploadMessage("");
 
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    }
 
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          setProgress(Math.round((e.loaded / e.total) * 100));
-        }
-      };
-
-      xhr.onload = () =>
-        xhr.status >= 200 && xhr.status < 300
-          ? resolve()
-          : reject(new Error("Upload failed"));
-
-      xhr.onerror = () => reject(new Error("Upload failed"));
-
-      // ✅ send encrypted blob (NOT raw file)
-      xhr.send(encryptedBlob);
-    });
-
-    /* ---------------------------------- */
-    /* STEP 3: save metadata in DB         */
-    /* ---------------------------------- */
+    /* ================================================= */
+    /* STEP 4: SAVE METADATA                             */
+    /* ================================================= */
     const metaRes = await fetch(`${baseUrl}/transfers/create`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-     body: JSON.stringify({
-  recipientEmail,
-  message,
-  dossierNumber,
-  securityLevel: "professional",
-  expiresAt,
-
-  file: {
-    name: file.name,
-    size: encryptedBlob.size,
-    type: "application/octet-stream",
-  },
-
-  key,
-  bucket,
-  totalSizeBytes: encryptedBlob.size,
-  encryption: "pgp",
-
-  encryptionPassword: encryptionPass, // ✅ NEW LINE
-}),
-
+      body: JSON.stringify({
+        recipientEmail,
+        message,
+        dossierNumber,
+        securityLevel: "professional",
+        expiresAt,
+        file: {
+          name: file.name,
+          size: encryptedBlob.size,
+          type: "application/octet-stream",
+        },
+        key,
+        bucket,
+        totalSizeBytes: encryptedBlob.size,
+        encryption: "pgp",
+        encryptionPassword: encryptionPass,
+      }),
     });
 
     const metaData = await metaRes.json();
     if (!metaRes.ok) throw new Error(metaData.message);
-console.log(metaData);
+
     toast.success("Secure transfer created successfully");
 
     resetForm();
@@ -447,20 +591,48 @@ console.log(metaData);
           </div>
         </div>
 
-
 {isUploading && (
-  <div className="upload-progress-container-new" ref={progressRef}>
-    <div 
-      className="upload-progress-bar-new"
-      style={{
-        width: `${progress}%`,
-        borderRadius: progress === 100 
-          ? "10px"          // fully rounded if 100%
-          : "10px 0 0 10px" // only left rounded while loading
-      }}
-    >
-      <span className="upload-progress-thumb">{progress}%</span>
+  <div className="space-y-4">
+
+    {/* overall progress */}
+    <div className="upload-progress-container-new" ref={progressRef}>
+      <div
+        className="upload-progress-bar-new"
+        style={{
+          width: `${progress}%`,
+          borderRadius: progress === 100 ? "10px" : "10px 0 0 10px",
+        }}
+      >
+        <span className="upload-progress-thumb">{progress}%</span>
+      </div>
     </div>
+
+    {/* message */}
+    {uploadMessage && (
+      <p className="text-xs text-muted-foreground text-center">
+        {uploadMessage}
+      </p>
+    )}
+
+    {/* per-chunk progress (parallel uploads) */}
+    {Object.keys(chunkProgress).length > 0 && (
+      <div className="space-y-2 max-h-40 overflow-y-auto">
+        {Object.entries(chunkProgress).map(([part, pct]) => (
+          <div key={part} className="space-y-1">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Part {part}</span>
+              <span>{pct}%</span>
+            </div>
+            <div className="h-2 w-full bg-muted rounded">
+              <div
+                className="h-2 bg-primary rounded transition-all"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
 )}
 
