@@ -160,9 +160,9 @@ export default function Download() {
   
   // Support both /download/demo and /demo/download routes
   // Check if current path is a demo route
-  const pathname = window.location.pathname;
+  const pathname = "/download";
   const isNoTokenDemo = !token && pathname.includes('/download');
-  const isDemoLegalPath = pathname === '/demo/download-legal';
+  const isDemoLegalPath = false;
   
   const isDemo = token === "demo" || (isNoTokenDemo && !isDemoLegalPath);
 //   const isDemoLegal = token === "demo-legal" || isDemoLegalPath;
