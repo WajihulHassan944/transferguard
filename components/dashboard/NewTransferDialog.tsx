@@ -311,8 +311,13 @@ const handleSubmit = async () => {
           };
 
           xhr.onerror = reject;
+const normalized = new Uint8Array(encrypted);
 
-          xhr.send(encrypted);
+xhr.send(
+  new Blob([normalized], { type: "application/octet-stream" })
+);
+
+
         });
       }
     };
