@@ -12,6 +12,7 @@ import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 import UserInitializer from "./UserInitializer";
 import { useAppSelector } from "@/redux/hooks";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export default function ClientLayout({
   children,
@@ -22,11 +23,13 @@ export default function ClientLayout({
 
   return (
     <Provider store={store}>
+      <LanguageProvider>
       <UserInitializer />
 
       <Toaster position="bottom-right" />
 
       <LayoutContent pathname={pathname}>{children}</LayoutContent>
+      </LanguageProvider>
     </Provider>
   );
 }

@@ -42,7 +42,7 @@ const role =
 
   // Admin-only content
   return (
-      <main className="min-h-screen">
+     <main className="min-h-screen">
       <Hero />
       <ScrollReveal>
         <ComparisonSection />
@@ -79,7 +79,7 @@ const role =
         <FinalCTA />
       </ScrollReveal>
     </main>
-  
+    
     );
 };
 

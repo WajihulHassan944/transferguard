@@ -7,10 +7,11 @@ import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BurdenOfProofSection } from "./BurdenOfProofSection";
 import { TrustedPartnersSection } from "./TrustedPartnersSection";
+import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 
 interface Feature {
-  name: string;
+  name: { en: string; nl: string };
   pro: boolean | string;
   legal: boolean | string;
   proOnly?: boolean;
@@ -19,74 +20,126 @@ interface Feature {
   subtext?: { pro?: string; legal?: string };
 }
 
-const features: Feature[] = [
-  { name: "Essentials", pro: "", legal: "", isCategory: true },
-  { name: "Storage / Max file size", pro: "2 TB / 50 GB", legal: "3 TB / 100 GB" },
-  { name: "Secure Transfer (2FA)", pro: "Unlimited", legal: "Unlimited" },
-  { name: "Security Features", pro: "", legal: "Includes everything in Pro, plus:", isCategory: true },
-  { name: "Audit Trail Type", pro: "Adobe Certified PDF", legal: "included" },
-  { name: "IP & Access Logging", pro: "Sealed in Report", legal: "included" },
-  { name: "Anti-Tamper Seal", pro: "Incl. Timestamp", legal: "included" },
-  { name: "The Upgrades (Unique to Legal)", pro: "", legal: "", isCategory: true },
-  { name: "Identity Verification", pro: false, legal: "Biometric ID Check", legalOnly: true },
-  { name: "ID Verification Credits", pro: false, legal: "✨ 10 Credits /mo", legalOnly: true, subtext: { legal: "(Extra: €5 each)" } },
-  { name: "Legal Standing", pro: "", legal: "", isCategory: true },
-  { name: "Evidence Strength", pro: "Proof of Delivery", legal: "Identity-Verified Proof", subtext: { pro: "(File is 100% unaltered)", legal: "(Identity + Content verified)" } },
-  { name: "Comparable to", pro: "Registered Mail", legal: "Signed Receipt" },
-  { name: "Extras", pro: "", legal: "", isCategory: true },
-  { name: "Custom Branding", pro: true, legal: true },
-  { name: "Priority Support", pro: true, legal: true, proOnly: true },
+const getFeatures = (): Feature[] => [
+  { name: { en: "Essentials", nl: "Basis" }, pro: "", legal: "", isCategory: true },
+  { name: { en: "Storage / Max file size", nl: "Opslag / Max bestandsgrootte" }, pro: "2 TB / 50 GB", legal: "3 TB / 100 GB" },
+  { name: { en: "Secure Transfer (2FA)", nl: "Beveiligde Overdracht (2FA)" }, pro: "Onbeperkt", legal: "Onbeperkt" },
+  { name: { en: "Security Features", nl: "Beveiligingsfuncties" }, pro: "", legal: "Alles van Pro, plus:", isCategory: true },
+  { name: { en: "Audit Trail Type", nl: "Audit Trail Type" }, pro: "Adobe Gecertificeerde PDF", legal: "inbegrepen" },
+  { name: { en: "IP & Access Logging", nl: "IP & Toegangslogging" }, pro: "Verzegeld in Rapport", legal: "inbegrepen" },
+  { name: { en: "Anti-Tamper Seal", nl: "Anti-Manipulatie Zegel" }, pro: "Incl. Tijdstempel", legal: "inbegrepen" },
+  { name: { en: "The Upgrades (Unique to Legal)", nl: "De Upgrades (Uniek voor Legal)" }, pro: "", legal: "", isCategory: true },
+  { name: { en: "Identity Verification", nl: "Identiteitsverificatie" }, pro: false, legal: "Biometrische ID Check", legalOnly: true },
+  { name: { en: "ID Verification Credits", nl: "ID Verificatie Credits" }, pro: false, legal: "✨ 10 Credits /mnd", legalOnly: true, subtext: { legal: "(Extra: €5 per stuk)" } },
+  { name: { en: "Legal Standing", nl: "Juridische Positie" }, pro: "", legal: "", isCategory: true },
+  { name: { en: "Evidence Strength", nl: "Bewijskracht" }, pro: "Leveringsbewijs", legal: "Identiteitsgeverifieerd Bewijs", subtext: { pro: "(Bestand 100% ongewijzigd)", legal: "(Identiteit + Inhoud geverifieerd)" } },
+  { name: { en: "Comparable to", nl: "Vergelijkbaar met" }, pro: "Aangetekende Post", legal: "Ondertekend Ontvangstbewijs" },
+  { name: { en: "Extras", nl: "Extra's" }, pro: "", legal: "", isCategory: true },
+  { name: { en: "Custom Branding", nl: "Eigen Huisstijl" }, pro: true, legal: true },
+  { name: { en: "Priority Support", nl: "Prioriteit Support" }, pro: true, legal: true, proOnly: true },
 ];
 
-const plans = [
-  {
-    name: "Professional",
-    monthlyPrice: 47,
-    yearlyPrice: 39,
-    extraSeatMonthlyPrice: 19,
-    extraSeatYearlyPrice: 15,
-    subtitle: "Verified file delivery sealed PDF",
-    description: "Adobe Certified PDF for proof of integrity",
-    cta: "Start 14-Day Trial",
-    ctaSubtext: "Try Risk-Free",
-    highlights: [
-      "2 TB storage, 50 GB max file size",
-      "Unlimited PDF proof reports",
-      "Adobe Certified & timestamped",
-      "Anti-tamper sealed delivery",
-      "Priority support included",
-      "Real-time tracking & logging",
-    ],
-  },
-  {
-    name: "Legal",
-    monthlyPrice: 95,
-    yearlyPrice: 79,
-    extraSeatMonthlyPrice: 39,
-    extraSeatYearlyPrice: 31,
-    subtitle: "Identity-Verified Delivery",
-    description: "Everything in Professional + ID Verification",
-    cta: "Subscribe Now",
-    ctaSubtext: "Full Legal Protection",
-    highlights: [
-      "Everything in Professional, plus:",
-      "3 TB storage, 100 GB max file size",
-      "10 ID verifications included (extra: €5 each)",
-      "Biometric NFC identity verification",
-      "Government ID document check",
-      "Complete non-repudiation package",
-    ],
-  },
-];
+const getPlans = (language: string) => {
+  const isNl = language === 'nl';
+  return [
+    {
+      name: "Professional",
+      monthlyPrice: 47,
+      yearlyPrice: 39,
+      extraSeatMonthlyPrice: 19,
+      extraSeatYearlyPrice: 15,
+      subtitle: isNl ? "Geverifieerde bestandslevering verzegelde PDF" : "Verified file delivery sealed PDF",
+      description: isNl ? "Adobe Gecertificeerde PDF voor integriteits bewijs" : "Adobe Certified PDF for proof of integrity",
+      cta: isNl ? "Start 14-Dagen Proef" : "Start 14-Day Trial",
+      ctaSubtext: isNl ? "Probeer Risicovrij" : "Try Risk-Free",
+      highlights: isNl ? [
+        "2 TB opslag, 50 GB max bestandsgrootte",
+        "Onbeperkte PDF bewijsrapporten",
+        "Adobe Gecertificeerd & getijdstempeld",
+        "Anti-manipulatie verzegelde levering",
+        "Prioriteit support inbegrepen",
+        "Realtime tracking & logging",
+      ] : [
+        "2 TB storage, 50 GB max file size",
+        "Unlimited PDF proof reports",
+        "Adobe Certified & timestamped",
+        "Anti-tamper sealed delivery",
+        "Priority support included",
+        "Real-time tracking & logging",
+      ],
+    },
+    {
+      name: "Legal",
+      monthlyPrice: 95,
+      yearlyPrice: 79,
+      extraSeatMonthlyPrice: 39,
+      extraSeatYearlyPrice: 31,
+      subtitle: isNl ? "Identiteitsgeverifieerde Levering" : "Identity-Verified Delivery",
+      description: isNl ? "Alles van Professional + ID Verificatie" : "Everything in Professional + ID Verification",
+      cta: isNl ? "Abonneer Nu" : "Subscribe Now",
+      ctaSubtext: isNl ? "Volledige Juridische Bescherming" : "Full Legal Protection",
+      highlights: isNl ? [
+        "Alles van Professional, plus:",
+        "3 TB opslag, 100 GB max bestandsgrootte",
+        "10 ID verificaties inbegrepen (extra: €5 per stuk)",
+        "Biometrische NFC identiteitsverificatie",
+        "Officieel identiteitsbewijs controle",
+        "Compleet onweerlegbaarheidspakket",
+      ] : [
+        "Everything in Professional, plus:",
+        "3 TB storage, 100 GB max file size",
+        "10 ID verifications included (extra: €5 each)",
+        "Biometric NFC identity verification",
+        "Government ID document check",
+        "Complete non-repudiation package",
+      ],
+    },
+  ];
+};
 
-const FeatureValue = ({ value, subtext }: { value: boolean | string; subtext?: string }) => {
-  if (value === "included") {
+const getContent = (language: string) => ({
+  header: {
+    label: language === 'nl' ? "Prijzen" : "Pricing",
+    title1: language === 'nl' ? "Beveiligde overdrachten met" : "Secure transfers with",
+    titleHighlight: language === 'nl' ? "juridisch bewijs" : "legal-grade evidence",
+    subtitle: language === 'nl' 
+      ? "Maak van elke bestandsoverdracht een forensisch verzegeld bewijsstuk. Van audit-ready logs tot identiteitsgeverifieerde levering."
+      : "Turn every file transfer into a forensically sealed piece of evidence. From audit-ready logs to identity-verified delivery.",
+  },
+  userCount: {
+    label: language === 'nl' ? "Aantal Gebruikers" : "Number of Users",
+    user: language === 'nl' ? "Gebruiker" : "User",
+    users: language === 'nl' ? "Gebruikers" : "Users",
+  },
+  billing: {
+    monthly: language === 'nl' ? "Maandelijks" : "Monthly",
+    yearly: language === 'nl' ? "Jaarlijks" : "Yearly",
+    saveUpTo: language === 'nl' ? "Bespaar tot 20%" : "Save up to 20%",
+    billedAnnually: language === 'nl' ? "Jaarlijks gefactureerd:" : "Billed annually:",
+    save: language === 'nl' ? "Bespaar" : "Save",
+    year: language === 'nl' ? "/jaar" : "/year",
+    forUsers: language === 'nl' ? "voor" : "for",
+    usersLabel: language === 'nl' ? "gebruikers" : "users",
+    exclVat: language === 'nl' ? "excl. BTW" : "excl. VAT",
+  },
+  badges: {
+    mostPopular: language === 'nl' ? "Meest Populair" : "Most Popular",
+    included: language === 'nl' ? "Inbegrepen" : "Included",
+  },
+  comparison: {
+    show: language === 'nl' ? "Vergelijk alle functies" : "Compare all features",
+    hide: language === 'nl' ? "Verberg volledige vergelijking" : "Hide full comparison",
+  },
+});
+
+const FeatureValue = ({ value, subtext, includedText }: { value: boolean | string; subtext?: string; includedText: string }) => {
+  if (value === "included" || value === "inbegrepen") {
     return (
       <div className="flex items-center justify-center gap-1.5">
         <div className="w-5 h-5 rounded-full bg-cta flex items-center justify-center">
           <Check className="h-3 w-3 text-white" />
         </div>
-        <span className="text-sm font-medium text-cta">Included</span>
+        <span className="text-sm font-medium text-cta">{includedText}</span>
       </div>
     );
   }
@@ -111,9 +164,15 @@ const FeatureValue = ({ value, subtext }: { value: boolean | string; subtext?: s
 };
 
 export const PricingSection = () => {
+  const { language } = useLanguage();
   const [isYearly, setIsYearly] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
   const [userCount, setUserCount] = useState(1);
+
+  const content = getContent(language);
+  const plans = getPlans(language);
+  const features = getFeatures();
+  const lang = language as 'en' | 'nl';
 
   const userOptions = [1, 3, 5, 10];
 
@@ -140,18 +199,18 @@ export const PricingSection = () => {
       <div className="container max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <p className="text-primary font-semibold text-sm tracking-wide uppercase mb-4">Pricing</p>
+          <p className="text-primary font-semibold text-sm tracking-wide uppercase mb-4">{content.header.label}</p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Secure transfers with{" "}
-            <span className="text-primary">legal-grade evidence</span>
+            {content.header.title1}{" "}
+            <span className="text-primary">{content.header.titleHighlight}</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Turn every file transfer into a forensically sealed piece of evidence. From audit-ready logs to identity-verified delivery.
+            {content.header.subtitle}
           </p>
 
           {/* User Count Toggle */}
           <div className="flex flex-col items-center gap-4 mb-6">
-            <span className="text-sm font-medium text-muted-foreground">Number of Users</span>
+            <span className="text-sm font-medium text-muted-foreground">{content.userCount.label}</span>
             <div className="inline-flex rounded-lg border border-border bg-muted/30 p-1">
               {userOptions.map((count) => (
                 <button
@@ -163,7 +222,7 @@ export const PricingSection = () => {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
-                  {count} {count === 1 ? "User" : "Users"}
+                  {count} {count === 1 ? content.userCount.user : content.userCount.users}
                 </button>
               ))}
             </div>
@@ -172,7 +231,7 @@ export const PricingSection = () => {
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4 mb-4">
             <span className={`text-sm font-medium transition-colors ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}>
-              Monthly
+              {content.billing.monthly}
             </span>
             <Switch 
               checked={isYearly} 
@@ -180,11 +239,11 @@ export const PricingSection = () => {
               className="data-[state=checked]:bg-cta"
             />
             <span className={`text-sm font-medium transition-colors ${isYearly ? "text-foreground" : "text-muted-foreground"}`}>
-              Yearly
+              {content.billing.yearly}
             </span>
             {isYearly && (
               <Badge className="bg-cta/10 text-cta border-cta/20 text-xs font-medium">
-                Save up to 20%
+                {content.billing.saveUpTo}
               </Badge>
             )}
           </div>
@@ -197,7 +256,7 @@ export const PricingSection = () => {
             {/* Most Popular Badge */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2">
               <Badge className="bg-primary text-primary-foreground text-xs px-4 py-1.5 rounded-b-lg rounded-t-none shadow-md">
-                Most Popular
+                {content.badges.mostPopular}
               </Badge>
             </div>
             
@@ -212,12 +271,12 @@ export const PricingSection = () => {
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {userCount > 1 ? `for ${userCount} users · ` : ""}excl. VAT
+                {userCount > 1 ? `${content.billing.forUsers} ${userCount} ${content.billing.usersLabel} · ` : ""}{content.billing.exclVat}
               </p>
               {isYearly && (
                 <>
-                  <p className="text-xs text-muted-foreground mt-2">Billed annually: €{getYearlyTotal(plans[0])}/year</p>
-                  <p className="text-sm text-cta font-medium mt-1">Save €{getYearlySavings(plans[0])}/year</p>
+                  <p className="text-xs text-muted-foreground mt-2">{content.billing.billedAnnually} €{getYearlyTotal(plans[0])}{content.billing.year}</p>
+                  <p className="text-sm text-cta font-medium mt-1">{content.billing.save} €{getYearlySavings(plans[0])}{content.billing.year}</p>
                 </>
               )}
             </div>
@@ -243,10 +302,10 @@ export const PricingSection = () => {
               >
                 <Link href="/signup/pro?plan=professional">
                   <Shield className="h-4 w-4 mr-2" />
-                  Start 14-Day Trial
+                  {plans[0].cta}
                 </Link>
               </Button>
-              <p className="text-xs text-muted-foreground text-center mt-3">Try Risk-Free</p>
+              <p className="text-xs text-muted-foreground text-center mt-3">{plans[0].ctaSubtext}</p>
             </div>
           </Card>
 
@@ -263,12 +322,12 @@ export const PricingSection = () => {
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {userCount > 1 ? `for ${userCount} users · ` : ""}excl. VAT
+                {userCount > 1 ? `${content.billing.forUsers} ${userCount} ${content.billing.usersLabel} · ` : ""}{content.billing.exclVat}
               </p>
               {isYearly && (
                 <>
-                  <p className="text-xs text-muted-foreground mt-2">Billed annually: €{getYearlyTotal(plans[1])}/year</p>
-                  <p className="text-sm text-cta font-medium mt-1">Save €{getYearlySavings(plans[1])}/year</p>
+                  <p className="text-xs text-muted-foreground mt-2">{content.billing.billedAnnually} €{getYearlyTotal(plans[1])}{content.billing.year}</p>
+                  <p className="text-sm text-cta font-medium mt-1">{content.billing.save} €{getYearlySavings(plans[1])}{content.billing.year}</p>
                 </>
               )}
             </div>
@@ -298,10 +357,10 @@ export const PricingSection = () => {
               >
                 <Link href="/signup/legal">
                   <Fingerprint className="h-4 w-4 mr-2" />
-                  Subscribe Now
+                  {plans[1].cta}
                 </Link>
               </Button>
-              <p className="text-xs text-muted-foreground text-center mt-3">Full Legal Protection</p>
+              <p className="text-xs text-muted-foreground text-center mt-3">{plans[1].ctaSubtext}</p>
             </div>
           </Card>
         </div>
@@ -313,12 +372,12 @@ export const PricingSection = () => {
               {showComparison ? (
                 <>
                   <ChevronUp className="h-4 w-4" />
-                  Hide full comparison
+                  {content.comparison.hide}
                 </>
               ) : (
                 <>
                   <ChevronDown className="h-4 w-4" />
-                  Compare all features
+                  {content.comparison.show}
                 </>
               )}
             </Button>
@@ -348,8 +407,8 @@ export const PricingSection = () => {
                 {features.map((feature, index) => {
                   if (feature.isCategory) {
                     return (
-                      <div key={feature.name} className="grid grid-cols-3 gap-4 px-6 py-3 bg-muted/50 border-b border-border">
-                        <div className="text-sm font-bold text-foreground">{feature.name}</div>
+                      <div key={feature.name[lang]} className="grid grid-cols-3 gap-4 px-6 py-3 bg-muted/50 border-b border-border">
+                        <div className="text-sm font-bold text-foreground">{feature.name[lang]}</div>
                         <div />
                         <div className="text-center">
                           {feature.legal && typeof feature.legal === "string" && (
@@ -362,17 +421,17 @@ export const PricingSection = () => {
 
                   return (
                     <div
-                      key={feature.name}
+                      key={feature.name[lang]}
                       className={`grid grid-cols-3 gap-4 px-6 py-4 hover:bg-muted/30 transition-colors ${
                         index !== features.length - 1 ? "border-b border-border" : ""
                       } ${feature.legalOnly ? "bg-amber-50/30" : ""}`}
                     >
-                      <div className="text-sm font-medium">{feature.name}</div>
+                      <div className="text-sm font-medium">{feature.name[lang]}</div>
                       <div className="text-center">
-                        <FeatureValue value={feature.pro} subtext={feature.subtext?.pro} />
+                        <FeatureValue value={feature.pro} subtext={feature.subtext?.pro} includedText={content.badges.included} />
                       </div>
                       <div className="text-center">
-                        <FeatureValue value={feature.legal} subtext={feature.subtext?.legal} />
+                        <FeatureValue value={feature.legal} subtext={feature.subtext?.legal} includedText={content.badges.included} />
                       </div>
                     </div>
                   );
@@ -392,11 +451,9 @@ export const PricingSection = () => {
                     {features.filter((f) => !f.isCategory).map((feature) => {
                       const value = plan.name === "Professional" ? feature.pro : feature.legal;
                       return (
-                        <div key={feature.name} className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0">
-                          <span className="text-muted-foreground">{feature.name}</span>
-                          <span className="font-medium">
-                            {value === true ? <Check className="h-4 w-4 text-cta" /> : value === false ? "—" : value}
-                          </span>
+                        <div key={feature.name[lang]} className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0">
+                          <span className="text-muted-foreground">{feature.name[lang]}</span>
+                          <FeatureValue value={value} includedText={content.badges.included} />
                         </div>
                       );
                     })}
@@ -408,9 +465,11 @@ export const PricingSection = () => {
         </Collapsible>
       </div>
 
-      {/* Trusted Partners & Burden of Proof sections */}
+      {/* Burden of Proof Section */}
+      <BurdenOfProofSection compact />
+
+      {/* Trusted Partners */}
       <TrustedPartnersSection />
-      <BurdenOfProofSection />
     </section>
   );
 };
