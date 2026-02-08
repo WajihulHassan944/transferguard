@@ -13,7 +13,7 @@ const isActive = (path: string) => pathname === path;
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src='/assets/transferguard-logo-transparent.png' alt="Transfer Guard" className="h-16" />
+            <img src='/assets/transferguard-logo-new.png' alt="Transfer Guard" className="h-16" />
           </Link>
           
           <nav className="hidden md:flex items-center gap-10">

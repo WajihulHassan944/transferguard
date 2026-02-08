@@ -234,7 +234,7 @@ const handleDownload = async () => {
       <header className="border-b border-border sticky top-0 z-50 bg-white">
         <div className="container flex h-20 items-center justify-between px-4 lg:px-8 max-w-7xl mx-auto">
           <img
-            src="/assets/transferguard-logo-transparent.png"
+            src="/assets/transferguard-logo-new.png"
             alt="TransferGuard"
             className="h-14 object-contain"
           />
@@ -407,7 +407,7 @@ const handleDownload = async () => {
                 {/* total */}
                   <div className="flex items-center justify-between mx-6 mb-6">
                       <span className="text-sm text-muted-foreground">Total download size</span>
-                      <span className="font-semibold text-foreground">{formatBytes(transfer?.totalSizeBytes)} MB</span>
+                      <span className="font-semibold text-foreground">{formatBytes(transfer?.totalSizeBytes)}</span>
                     </div>
 
                 {/* button */}

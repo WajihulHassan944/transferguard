@@ -7,7 +7,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="inline-block mb-4 hover:opacity-80 transition-opacity">
-              <img src='/assets/transferguard-logo-transparent.png' alt="Share Compliant" className="h-16" />
+              <img src='/assets/transferguard-logo-new.png' alt="Share Compliant" className="h-16" />
             </Link>
             <p className="text-muted-foreground text-sm max-w-md">
               Secure, compliant file sharing for professionals. EU data residency, zero-knowledge encryption, and legal delivery certificates.

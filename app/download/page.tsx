@@ -316,7 +316,7 @@ export default function Download() {
         <header className="border-b border-border bg-card">
           <div className="container flex h-16 items-center px-4">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/assets/transferguard-logo-transparent.png" alt="TransferGuard" className="h-8 object-contain" />
+              <img src="/assets/transferguard-logo-new.png" alt="TransferGuard" className="h-8 object-contain" />
             </Link>
           </div>
         </header>
@@ -346,7 +346,7 @@ export default function Download() {
         <header className="border-b border-border bg-card">
           <div className="container flex h-16 items-center px-4">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/assets/transferguard-logo-transparent.png" alt="TransferGuard" className="h-8 object-contain" />
+              <img src="/assets/transferguard-logo-new.png" alt="TransferGuard" className="h-8 object-contain" />
             </Link>
           </div>
         </header>
@@ -407,7 +407,7 @@ export default function Download() {
             {branding?.logo_url ? (
               <img src={branding.logo_url} alt="Company logo" className="h-14 max-w-[220px] object-contain" />
             ) : (
-              <img src="/assets/transferguard-logo-transparent.png" alt="TransferGuard" className="h-14 object-contain" />
+              <img src="/assets/transferguard-logo-new.png" alt="TransferGuard" className="h-14 object-contain" />
             )}
           </div>
           <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary">

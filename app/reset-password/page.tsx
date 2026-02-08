@@ -38,7 +38,7 @@ export default function ResetPassword() {
             Back to login
           </Link>
           <div className="flex items-center justify-center mb-4">
-            <img src='/assets/transferguard-logo-transparent.png' alt="Transfer Guard" className="h-32" />
+            <img src='/assets/transferguard-logo-new.png' alt="Transfer Guard" className="h-32" />
           </div>
           <p className="text-muted-foreground">Choose a new password</p>
         </div>

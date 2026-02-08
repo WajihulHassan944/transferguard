@@ -128,7 +128,7 @@ if (!loadingUI && error && !transfer) {
       <header className="border-b border-border sticky top-0 z-50 bg-white">
         <div className="container flex h-20 items-center justify-between px-4 lg:px-8 max-w-7xl mx-auto">
           <img
-            src="/assets/transferguard-logo-transparent.png"
+            src="/assets/transferguard-logo-new.png"
             alt="TransferGuard"
             className="h-14 object-contain"
           />

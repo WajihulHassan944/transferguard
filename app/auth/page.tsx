@@ -178,7 +178,7 @@ const handleLogin = async (e: React.FormEvent) => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <img src='/assets/transferguard-logo-transparent.png' alt="Transfer Guard" className="h-32" />
+              <img src='/assets/transferguard-logo-new.png' alt="Transfer Guard" className="h-32" />
             </div>
           </div>
           {authStep === "mfa_verify" && tempToken && (
@@ -203,7 +203,7 @@ const handleLogin = async (e: React.FormEvent) => {
             Back to home
           </Link>
           <div className="flex items-center justify-center mb-4">
-            <img src='/assets/transferguard-logo-transparent.png' alt="Transfer Guard" className="h-32" />
+            <img src='/assets/transferguard-logo-new.png' alt="Transfer Guard" className="h-32" />
           </div>
           <p className="text-muted-foreground">
             Secure document transfer for professionals

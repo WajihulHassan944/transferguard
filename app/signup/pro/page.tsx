@@ -103,7 +103,7 @@ export default function SignupPro() {
       <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-28 items-center justify-between px-4">
           <Link href="/" className="flex items-center">
-            <img src="/assets/transferguard-logo-transparent.png" alt="Transfer Guard" className="h-24" />
+            <img src="/assets/transferguard-logo-new.png" alt="Transfer Guard" className="h-24" />
           </Link>
           <Link 
             href="/" 
