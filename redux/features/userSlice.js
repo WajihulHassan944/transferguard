@@ -10,6 +10,7 @@ const initialState = {
   lastName: null,
   email: null,
   profileUrl: null,
+  
 
   /* ---------- Business ---------- */
   companyName: null,
@@ -20,6 +21,7 @@ const initialState = {
   country: null,
 
   /* ---------- Account ---------- */
+  plan:null,
   role: null,
   status: null,
   verified: false,

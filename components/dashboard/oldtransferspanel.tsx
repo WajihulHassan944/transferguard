@@ -349,79 +349,55 @@ const handleRevoke = async () => {
     );
   }
 
- return (
-  <>
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Recent Transfers
-        </h1>
-
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-72 pl-10 h-11 rounded-xl"
-            />
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Recent Transfers</h1>
           </div>
-
-          {/* <label className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-            <Checkbox
-              checked={bulkMode}
-              onCheckedChange={(checked) => {
-                setBulkMode(!!checked);
-                if (!checked) setSelectedIds(new Set());
-              }}
-            />
-            Bulk
-          </label> */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full sm:w-64 pl-9 bg-background"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+              <Checkbox 
+                checked={bulkMode} 
+                onCheckedChange={(checked) => {
+                  setBulkMode(!!checked);
+                  if (!checked) setSelectedIds(new Set());
+                }} 
+              />
+              Bulk Actions
+            </label>
+          </div>
         </div>
-      </div>
 
-      {/* Transfers */}
-      {filteredTransfers.length === 0 ? (
-        <Card className="border-dashed rounded-2xl">
-          <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center mb-5">
-              <Send className="h-10 w-10 text-muted-foreground/40" />
-            </div>
-            <h3 className="font-semibold text-lg mb-1">No transfers yet</h3>
-            <p className="text-sm text-muted-foreground">
-              Send your first secure document to get started
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
+        {/* Transfers List */}
+        {filteredTransfers.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                <Send className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <h3 className="font-medium mb-1">No transfers yet</h3>
+              <p className="text-sm text-muted-foreground">Send your first secure document to get started</p>
+            </CardContent>
+          </Card>
+        ) : (
         <TooltipProvider delayDuration={150}>
-          <div className="space-y-3">
-            {/* Desktop Headers */}
-            <div className="hidden lg:flex items-center gap-8 px-6 py-3 bg-muted/50 rounded-xl border border-border/50">
-              <div className="w-12" />
-              <div className="w-[220px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                File & Recipient
-              </div>
-              <div className="w-[140px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Reference
-              </div>
-              <div className="w-[140px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Security
-              </div>
-              <div className="w-[120px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Status
-              </div>
-              <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Actions
-              </div>
-            </div>
-
+        <div className="space-y-3">
             {filteredTransfers.map((transfer) => {
               const status = getStatus(transfer as Transfer & { security_level?: SecurityLevel });
               const securityInfo = getSecurityLevelInfo(
-                (transfer as Transfer & { security_level?: SecurityLevel }).security_level,
+                (transfer as Transfer & { security_level?: SecurityLevel }).security_level, 
                 !!transfer.recipient_phone
               );
               const mainFile = transfer.files?.[0];
@@ -429,176 +405,226 @@ const handleRevoke = async () => {
               const isDownloaded = !!transfer.downloaded_at;
               const isRevoked = !!transfer.revoked_at;
               const SecurityIcon = securityInfo.icon;
-
+              
               return (
-                <Card
-                  key={transfer.id}
+                <Card 
+                  key={transfer.id} 
                   className={cn(
-                    "rounded-2xl border-border/80 transition-all hover:shadow-md",
-                    isRevoked && "opacity-50"
+                    "overflow-hidden transition-all border-border/60 hover:shadow-md",
+                    isRevoked && "opacity-60"
                   )}
                 >
-                  <div className="p-4 sm:p-5 lg:p-6">
-                    {/* Desktop */}
-                    <div className="hidden lg:flex items-center gap-8">
-                      {bulkMode && (
-                        <Checkbox
-                          checked={selectedIds.has(transfer.id)}
-                          onCheckedChange={() => toggleSelect(transfer.id)}
-                        />
-                      )}
-
-                      <div
-                        className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center",
-                          fileStyle?.bg || "bg-primary/10"
-                        )}
-                      >
-                        <FileText className={cn("h-5 w-5", fileStyle?.text || "text-primary")} />
-                      </div>
-
-                      <div className="w-[220px] min-w-0">
-                        <h3 className="font-semibold text-sm truncate">
-                          {mainFile?.file_name || "No file"}
-                        </h3>
-                        <p className="text-xs text-muted-foreground truncate mt-1">
-                          {transfer.recipient_email}
-                        </p>
-                      </div>
-
-                      <div className="w-[140px] text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 p-5">
+                    {/* Bulk Select */}
+                    {bulkMode && (
+                      <Checkbox 
+                        checked={selectedIds.has(transfer.id)}
+                        onCheckedChange={() => toggleSelect(transfer.id)}
+                        className="flex-shrink-0"
+                      />
+                    )}
+                    
+                    {/* File Icon */}
+                    <div className={cn(
+                      "hidden sm:flex w-14 h-16 rounded-lg items-center justify-center flex-shrink-0",
+                      fileStyle?.bg || 'bg-muted'
+                    )}>
+                      <FileText className={cn("h-7 w-7", fileStyle?.text || 'text-muted-foreground')} />
+                    </div>
+                    
+                    {/* Main Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Filename */}
+                      <h3 className="font-semibold text-base truncate mb-1" title={mainFile?.file_name}>
+                        {mainFile?.file_name || 'No file'}
+                      </h3>
+                      {/* Meta info */}
+                      <div className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+                        <span className="truncate max-w-[180px]">{transfer.recipient_email}</span>
                         {transfer.dossier_number && (
-                          <span className="block font-medium text-foreground/70">
-                            {transfer.dossier_number}
-                          </span>
+                          <>
+                            <span className="text-border">|</span>
+                            <span>Ref: {transfer.dossier_number}</span>
+                          </>
                         )}
-                        {format(new Date(transfer.created_at), "d MMM yyyy", { locale: nl })}
-                      </div>
-
-                      <div className="w-[140px]">
-                        <div
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border",
-                            securityInfo.badgeBg,
-                            securityInfo.badgeBorder,
-                            securityInfo.badgeText
-                          )}
-                        >
-                          <SecurityIcon className="h-3.5 w-3.5" />
-                          {securityInfo.label}
-                        </div>
-                      </div>
-
-                      <div className="w-[120px]">
-                        <div
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border",
-                            status.bgColor,
-                            status.textColor,
-                            status.borderColor
-                          )}
-                        >
-                          <status.icon className="h-3.5 w-3.5" />
-                          {status.label.split(" ")[0]}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 flex items-center gap-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openReshare(transfer)}
-                          className="h-9 text-xs rounded-lg px-4"
-                        >
-                          <Send className="h-3.5 w-3.5 mr-1.5" />
-                          Clone
-                        </Button>
-
-                        <div className="ml-auto flex items-center gap-3">
-                          {canRevoke(transfer) && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openRevokeDialog(transfer)}
-                              className="text-destructive hover:bg-destructive/10 h-9 text-xs px-4"
-                            >
-                              Revoke
-                            </Button>
-                          )}
-
-                          {isDownloaded && (
-                            <Button
-                              size="sm"
-                              className="bg-cta hover:bg-cta/90 text-cta-foreground h-9 text-xs px-4"
-                            >
-                              <Download className="h-3.5 w-3.5 mr-1.5" />
-                              Certificate
-                            </Button>
-                          )}
-                        </div>
+                        <span className="text-border">|</span>
+                        <span>{format(new Date(transfer.created_at), "d MMM. yyyy", { locale: nl })}</span>
                       </div>
                     </div>
-
-                    {/* Mobile */}
-                    <div className="lg:hidden space-y-4">
-                      <div className="flex items-start gap-3">
-                        {bulkMode && (
-                          <Checkbox
-                            checked={selectedIds.has(transfer.id)}
-                            onCheckedChange={() => toggleSelect(transfer.id)}
-                          />
-                        )}
-
-                        <div
-                          className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center",
-                            fileStyle?.bg || "bg-primary/10"
-                          )}
+                    
+                    {/* Security Level Badge */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2 flex-shrink-0 w-[130px]">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                            securityInfo.bgColor
+                          )}>
+                            <SecurityIcon className="h-4 w-4 text-white" />
+                          </div>
+                          <span className={cn("text-sm font-medium", securityInfo.badgeText)}>
+                            {securityInfo.label}
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p className="font-medium">Security Level {securityInfo.level}</p>
+                        <p className="text-xs text-muted-foreground">{securityInfo.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Download Certificate - for downloaded transfers */}
+                      {isDownloaded && (
+                        <Button
+                          size="sm"
+                          className="bg-cta hover:bg-cta/90 text-cta-foreground"
+                          onClick={() => toast.success("Certificate download started")}
                         >
-                          <FileText className={cn("h-4 w-4", fileStyle?.text || "text-primary")} />
-                        </div>
+                          <Download className="h-4 w-4 mr-1.5" />
+                          Download Certificate
+                        </Button>
+                      )}
+                      
+                      
+                  {/* Clone & Send - hide when revoked */}
+{!isRevoked && (
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={() => openReshare(transfer)}
+    className="hidden sm:flex"
+  >
+    <Send className="h-4 w-4 mr-1.5" />
+    Clone & Send
+  </Button>
+)}
 
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm truncate">
-                            {mainFile?.file_name || "No file"}
-                          </h3>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {transfer.recipient_email}
-                          </p>
-                        </div>
+                      
+                      {/* Revoke Button */}
+                      {canRevoke(transfer) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openRevokeDialog(transfer)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          Revoke Access
+                        </Button>
+                      )}
+                      
+                      {/* Status Badge */}
+                      <div className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium border flex-shrink-0",
+                        status.bgColor, 
+                        status.textColor, 
+                        status.borderColor
+                      )}>
+                        {status.label}
                       </div>
+                      
+                      {/* More Actions */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => copyLink(transfer.download_token)}>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Copy download link
+                          </DropdownMenuItem>
+                         {!isRevoked && (
+  <DropdownMenuItem onClick={() => openReshare(transfer)} className="sm:hidden">
+    <Send className="h-4 w-4 mr-2" />
+    Clone & Send New
+  </DropdownMenuItem>
+)}
 
-                      <div className="flex flex-wrap gap-2">
-                        <span className={cn(
-                          "px-2.5 py-1 rounded-full text-xs font-semibold border",
-                          securityInfo.badgeBg,
-                          securityInfo.badgeBorder,
-                          securityInfo.badgeText
-                        )}>
-                          {securityInfo.label}
-                        </span>
-
-                        <span className={cn(
-                          "px-2.5 py-1 rounded-full text-xs font-semibold border",
-                          status.bgColor,
-                          status.textColor,
-                          status.borderColor
-                        )}>
-                          {status.label.split(" ")[0]}
-                        </span>
-                      </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </Card>
               );
             })}
+          </div> </TooltipProvider>
+        )}
+      </div>
+
+      {/* Reshare Dialog */}
+      <Dialog open={reshareOpen} onOpenChange={setReshareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reshare Document</DialogTitle>
+            <DialogDescription>
+              Send this document to a new recipient with Email 2FA verification.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {selectedTransfer?.dossier_number && (
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">Dossier: {selectedTransfer.dossier_number}</span>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label>Recipient Email</Label>
+              <Input
+                type="email"
+                placeholder="recipient@example.com"
+                value={newRecipientEmail}
+                onChange={(e) => setNewRecipientEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Mail className="h-3 w-3 text-primary" />
+                Recipient will verify via Email 2FA before downloading
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Message (optional)</Label>
+              <Textarea
+                placeholder="Add a message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Available for</Label>
+              <Select value={newExpiryDays} onValueChange={setNewExpiryDays}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 days</SelectItem>
+                  <SelectItem value="30">30 days</SelectItem>
+                  <SelectItem value="90">90 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </TooltipProvider>
-      )}
-    </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReshareOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleReshare} disabled={isResharing || !newRecipientEmail}>
+              {isResharing ? "Resharing..." : "Reshare"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-
-          {/* Revoke Dialog */}
+      {/* Revoke Dialog */}
       <AlertDialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -625,7 +651,6 @@ const handleRevoke = async () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-  </>
-);
-
+    </>
+  );
 }

@@ -1,3 +1,4 @@
+'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export type Language = 'en' | 'nl';
@@ -510,24 +511,34 @@ const translations: Record<Language, Record<string, string>> = {
     'billing.createTeam': 'Team Aanmaken',
   },
 };
-
 interface LanguageProviderProps {
   children: ReactNode;
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    // Check localStorage first
-    const saved = localStorage.getItem('language');
-    if (saved === 'en' || saved === 'nl') return saved;
-    
-    // Check browser language
-    const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith('nl')) return 'nl';
-    return 'en';
-  });
+  // ✅ Safe default for SSR
+  const [language, setLanguageState] = useState<Language>('en');
 
+  // ✅ Run ONLY on client
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const saved = localStorage.getItem('language');
+    if (saved === 'en' || saved === 'nl') {
+      setLanguageState(saved);
+      return;
+    }
+
+    const browserLang = navigator.language.toLowerCase();
+    if (browserLang.startsWith('nl')) {
+      setLanguageState('nl');
+    }
+  }, []);
+
+  // Persist language
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     localStorage.setItem('language', language);
     document.documentElement.lang = language;
   }, [language]);
@@ -555,5 +566,4 @@ export const useLanguage = (): LanguageContextType => {
   return context;
 };
 
-// Export translations for AI translation sync
 export { translations };

@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import {  DashboardViewSidebar } from "@/components/dashboard/DashboardSidebar";
 import { TransfersPanel } from "@/components/dashboard/TransfersPanel";
 import { CertificatesPanel } from "@/components/dashboard/CertificatesPanel";
 import { ContactsPanel } from "@/components/dashboard/ContactsPanel";
@@ -29,8 +28,12 @@ import {
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { useAppSelector } from "@/redux/hooks";
+import { ClientWorkspacesPanel } from "@/components/dashboard/ClientWorkspacesPanel";
+import { SubscriptionPanel } from "@/components/dashboard/SubscriptionPanel";
+import { BillingPanel } from "@/components/dashboard/BillingPanel";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 
-export type DashboardView = "transfers" | "certificates" | "contacts" | "teams" | "profile" | "branding" | "security" | "portals";
+export type DashboardView = "transfers" | "certificates" | "contacts" | "teams" | "profile" | "branding" | "security" | "portals" | "workspaces" | "subscription" | "billing";
 
 const proFeatures = [
   {
@@ -281,6 +284,8 @@ const router = useRouter();
         return <CertificatesPanel userId={user.id} />;
       case "portals":
         return <ClientPortalsPanel userId={user.id} />;
+      case "workspaces":
+        return <ClientWorkspacesPanel userId={user.id} userEmail={user.email || ""} />;
       case "contacts":
         return <ContactsPanel userId={user.id} />;
       case "teams":
@@ -291,25 +296,29 @@ const router = useRouter();
         return <ProfilePanel />;
       case "security":
         return <SecurityPanel userId={user.id} />;
+      case "subscription":
+        return <SubscriptionPanel userId={user.id} />;
+      case "billing":
+        return <BillingPanel userId={user.id} />;
       default:
         return <TransfersPanel key={transfersKey} userId={user.id} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-muted/30">
       <DashboardHeader />
       <div className="flex">
-        <DashboardViewSidebar 
+        <DashboardSidebar 
           activeView={activeView} 
           onViewChange={setActiveView} 
           userId={user.id}
           userEmail={user.email || ""}
           onTransferCreated={handleTransferCreated}
         />
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
-            {renderContent()}
+      <main className="flex-1 p-4 md:p-8 overflow-auto">
+          <div className="max-w-6xl mx-auto">
+              {renderContent()}
           </div>
         </main>
       </div>

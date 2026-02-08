@@ -1,6 +1,7 @@
-import { Shield, Lock, Heart, Users, Eye, Server, Globe, ArrowRight, CircleDollarSign, Bot, ShieldOff, BookOpen } from "lucide-react";
+import { Shield, Lock, Users, Eye, Server, Globe, ArrowRight, CircleDollarSign, Bot, ShieldOff, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 
 const dataPromises = [
@@ -67,12 +68,6 @@ const coreValues = [
   }
 ];
 
-const stats = [
-  { value: "100%", label: "EU Data Storage" },
-  { value: "eIDAS", label: "QERDS Compliant" },
-  { value: "ISO 27001", label: "Certified Infra" },
-  { value: "AES-256", label: "Encryption" }
-];
 
 export default function About() {
   return (
@@ -95,14 +90,36 @@ export default function About() {
             proof of delivery. We combine enterprise-grade security with EU-compliant infrastructure.
           </p>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            {stats.map((stat) => (
-              <Card key={stat.label} className="p-4 text-center bg-background border border-border hover:border-primary/30 transition-colors">
-                <p className="text-2xl md:text-3xl font-bold text-primary">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-              </Card>
-            ))}
+          {/* Trust badges - Same style as homepage */}
+          <div className="grid grid-cols-3 gap-3 mt-12 max-w-xl mx-auto opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+            {/* GDPR Badge */}
+            <div className="flex flex-col items-center gap-2 px-4 py-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors">
+              <img src="/assets/gdpr-logo.png" alt="GDPR" className="h-8 w-auto" />
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-semibold text-foreground">GDPR</span>
+                <span className="text-xs text-muted-foreground">Compliant</span>
+              </div>
+            </div>
+
+            {/* ISO 27001 Badge */}
+            <div className="flex flex-col items-center gap-2 px-4 py-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors">
+              <img src="/assets/iso27001-logo.png" alt="ISO 27001" className="h-8 w-auto" />
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-semibold text-foreground">ISO 27001</span>
+                <span className="text-xs text-muted-foreground">Certified</span>
+              </div>
+            </div>
+
+            {/* AES-256 Badge */}
+            <div className="flex flex-col items-center gap-2 px-4 py-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Lock className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-semibold text-foreground">AES-256</span>
+                <span className="text-xs text-muted-foreground">Encryption</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -125,8 +142,9 @@ export default function About() {
             
             <p>
               We combine secure file transfer with legally binding delivery certificates. Every transfer 
-              is tracked, timestamped, and documented. For our Legal plan, we provide eIDAS-compliant 
-              QERDS (Qualified Electronic Registered Delivery Service) certificates that hold up in court.
+              is tracked, timestamped, and documented. For our Legal plan, we provide biometric identity 
+              verification combined with cryptographic proof, creating strong circumstantial evidence 
+              that holds up in civil proceedings.
             </p>
             
             <p>
@@ -235,7 +253,7 @@ export default function About() {
             Start your 14-day free trial today. No credit card needed.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="text-lg px-8 py-6 h-auto group bg-green-600 hover:bg-green-700 text-white">
+            <Button size="lg" asChild className="text-lg px-8 py-6 h-auto group bg-cta hover:bg-cta/90 text-white">
               <Link href="/signup/pro">
                 Start Free Registered File Transfer
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />

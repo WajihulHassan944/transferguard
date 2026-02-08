@@ -1,9 +1,7 @@
-'use client';
-
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Search, Bell, Settings, ChevronDown } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { LogOut, ChevronDown, Crown, Shield, Scale, Menu } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -12,15 +10,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import useLogout from "@/hooks/useLogout";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
+import useLogout from "@/hooks/useLogout";
+interface DashboardHeaderProps {
+  onMobileMenuToggle?: () => void;
+}
+const getPlanInfo = (plan?: string | null) => {
+  switch (plan?.toLowerCase()) {
+    case "premium":
+    case "legal":
+      return {
+        label: "Legal",
+        icon: Scale,
+        className: "bg-legal-light text-legal-foreground border-legal-border",
+      };
 
-export function DashboardHeader() {
-  const router = useRouter();
+    case "professional":
+    case "pro":
+      return {
+        label: "Professional",
+        icon: Shield,
+        className: "bg-primary/10 text-primary border-primary/20",
+      };
+
+    case "trial":
+      return {
+        label: "Trial",
+        icon: Crown,
+        className: "bg-success-light text-success border-success-border",
+      };
+
+    default:
+      return {
+        label: "Free",
+        icon: Shield,
+        className: "bg-muted text-muted-foreground border-border",
+      };
+  }
+};
+
+
+export function DashboardHeader({ onMobileMenuToggle }: DashboardHeaderProps) {
+    const router = useRouter();
 const logout = useLogout();
   const user = useAppSelector((state) => state.user);
+const email = typeof user?.email === "string" ? user.email : "";
 
   const handleLogout = async () => {
     logout();
@@ -28,94 +66,75 @@ const logout = useLogout();
     router.push("/");
   };
 
-  const getInitials = () => {
-    if (!user?.firstName && !user?.lastName) return "U";
-    return `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
-  };
+  const { t } = useLanguage();
+  
+const getInitials = (email?: string | null) => {
+  if (!email) return "";
+  return email.slice(0, 2).toUpperCase();
+};
+
+  const planInfo = getPlanInfo(user?.plan);
+  const PlanIcon = planInfo.icon;
 
   return (
-    <header className="h-[52px] border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-      <div className="h-full px-4 flex items-center justify-between">
-
-        {/* Left - Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <img
-            src="/assets/transferguard-logo-transparent.png"
-            alt="Transfer Guard"
-            className="h-10"
-          />
-        </Link>
-
-        {/* Center - Search */}
-        <div className="hidden lg:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search files..."
-              className="w-full h-9 pl-9 pr-4 rounded-lg bg-muted/50 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-            />
-          </div>
+    <header className="h-20 border-b border-border bg-background sticky top-0 z-50">
+      <div className="h-full px-6 flex items-center justify-between">
+        {/* Left - Mobile Menu Button + Logo */}
+        <div className="flex items-center gap-2">
+          {/* Mobile Menu Toggle */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden h-10 w-10"
+            onClick={onMobileMenuToggle}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Menu</span>
+          </Button>
+          
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/assets/transferguard-logo-new.png" alt="Transfer Guard" className="h-10 sm:h-14" />
+          </Link>
         </div>
 
         {/* Right - Actions & User */}
         <div className="flex items-center gap-2">
-
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </Button>
+          {/* Plan Badge */}
+          <Badge variant="outline" className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 font-medium rounded-full ${planInfo.className}`}>
+            <PlanIcon className="h-3.5 w-3.5" />
+            {planInfo.label}
+          </Badge>
 
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-9 gap-2 px-2 rounded-lg hover:bg-accent/50"
-              >
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={user?.profileUrl || ""} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {getInitials()}
-                  </AvatarFallback>
+              <Button variant="ghost" className="h-10 gap-2.5 px-2 rounded-full hover:bg-muted/50">
+                <Avatar className="h-8 w-8">
+                   <AvatarImage src={user?.profileUrl || ""} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+  {getInitials(email)}
+</AvatarFallback>
+
                 </Avatar>
-
-                <span className="hidden sm:block text-sm font-medium max-w-[120px] truncate">
-                  {user?.firstName}
+                <span className="hidden sm:block text-sm font-medium max-w-[140px] truncate">
+                 {email.split("@")[0]}
                 </span>
-
-                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user?.email}
-                </p>
+            <DropdownMenuContent align="end" className="w-56 rounded-xl">
+              <div className="px-3 py-2">
+                <p className="text-sm font-medium">{email.split("@")[0]}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                <Badge variant="outline" className={`mt-2 text-xs rounded-full ${planInfo.className}`}>
+                  <PlanIcon className="h-3 w-3 mr-1" />
+                  {planInfo.label} {t('dashboard.plan')}
+                </Badge>
               </div>
-
               <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                onClick={() => router.push("/dashboard")}
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="gap-2 text-destructive focus:text-destructive"
-              >
+              <DropdownMenuItem onClick={handleLogout} className="gap-2 text-destructive focus:text-destructive rounded-lg mx-1">
                 <LogOut className="h-4 w-4" />
-                Log out
+                {t('dashboard.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
