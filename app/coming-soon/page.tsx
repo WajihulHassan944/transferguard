@@ -37,7 +37,7 @@ const ComingSoon = () => {
         {/* Logo */}
         <div className="flex justify-center">
           <img 
-            src="/assets/transferguard-logo-full.png" 
+            src="/assets/transferguard-logo-new.png" 
             alt="TransferGuard" 
             className="h-24 sm:h-28 w-auto"
           />
