@@ -176,6 +176,12 @@ const BUFFER_SIZE = 12;               // ✅ keep uploads fed
 const UPLOAD_CONCURRENCY = 8;         // ✅ 8 parallel PUT streams
 const URL_BATCH_SIZE = 20;            // ✅ backend limit
 
+const isSafari =
+  typeof navigator !== "undefined" &&
+  /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+const SAFE_UPLOAD_CONCURRENCY = isSafari ? 4 : UPLOAD_CONCURRENCY;
+
 
 const splitIntoChunks = (blob: Blob) => {
   const chunks: Blob[] = [];
@@ -301,66 +307,76 @@ const handleSubmit = async () => {
     /* CONSUMER (UPLOAD)                                  */
     /* -------------------------------------------------- */
 
-    const consumer = async () => {
-      while (nextChunkToUpload < chunks.length) {
-        if (!buffer.length) {
-          await new Promise((r) => setTimeout(r, 10));
-          continue;
+   const consumer = async () => {
+  while (nextChunkToUpload < chunks.length) {
+    if (!buffer.length) {
+      await new Promise((r) => setTimeout(r, 10));
+      continue;
+    }
+
+    // ✅ remove and immediately break reference
+    const item = buffer.shift()!;
+    buffer[0] = undefined as any; // break hidden reference for GC
+
+    const { partNumber, encrypted } = item;
+    nextChunkToUpload++;
+
+    const partNum = partNumber + 1;
+
+    /* fetch URL batch if needed */
+    if (!urlCache.has(partNum)) {
+      await fetchUrlBatch(partNum);
+    }
+
+    const url = urlCache.get(partNum)!;
+    urlCache.delete(partNum);
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url, true);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return;
+
+        chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
+
+        const now = Date.now();
+        const timeDiff = (now - speedRef.current.lastTime) / 1000;
+        const bytesDiff = e.loaded - speedRef.current.lastLoaded;
+
+        if (timeDiff > 0.5) {
+          const speedBps = bytesDiff / timeDiff;
+          const speedMbps = (speedBps * 8) / (1024 * 1024);
+          setUploadSpeed(`${speedMbps.toFixed(2)} Mbps`);
+          speedRef.current.lastTime = now;
+          speedRef.current.lastLoaded = e.loaded;
         }
 
-        const { partNumber, encrypted } = buffer.shift()!;
-        nextChunkToUpload++;
+        updateOverallProgress();
+      };
 
-        const partNum = partNumber + 1;
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const etag = xhr.getResponseHeader("ETag")!.replace(/"/g, "");
+          uploadedParts.push({ PartNumber: partNum, ETag: etag });
 
-        /* ✅ fetch URL batch only when needed */
-        if (!urlCache.has(partNum)) {
-          await fetchUrlBatch(partNum);
-        }
+          // ✅ null out memory immediately after upload
+          encrypted.fill(0);
+          // @ts-ignore
+          // normalized is created below, so can also free it
+          resolve();
+        } else reject(new Error("Chunk upload failed"));
+      };
 
-        const url = urlCache.get(partNum)!;
-        urlCache.delete(partNum);
+      xhr.onerror = reject;
 
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-
-          xhr.open("PUT", url, true);
-          xhr.setRequestHeader("Content-Type", "application/octet-stream");
-
-          xhr.upload.onprogress = (e) => {
-            if (!e.lengthComputable) return;
-
-            chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
-
-            const now = Date.now();
-            const timeDiff = (now - speedRef.current.lastTime) / 1000;
-            const bytesDiff = e.loaded - speedRef.current.lastLoaded;
-
-            if (timeDiff > 0.5) {
-              const speedBps = bytesDiff / timeDiff;
-              const speedMbps = (speedBps * 8) / (1024 * 1024);
-              setUploadSpeed(`${speedMbps.toFixed(2)} Mbps`);
-              speedRef.current.lastTime = now;
-              speedRef.current.lastLoaded = e.loaded;
-            }
-
-            updateOverallProgress();
-          };
-
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              const etag = xhr.getResponseHeader("ETag")!.replace(/"/g, "");
-              uploadedParts.push({ PartNumber: partNum, ETag: etag });
-              resolve();
-            } else reject(new Error("Chunk upload failed"));
-          };
-
-          xhr.onerror = reject;
-
-         const normalized = new Uint8Array(encrypted); xhr.send( new Blob([normalized], { type: "application/octet-stream" }) );
-        });
-      }
-    };
+      // ✅ keep normalized copy for TS only
+      const normalized = new Uint8Array(encrypted);
+      xhr.send(new Blob([normalized]));
+    });
+  }
+};
 
     /* -------------------------------------------------- */
     /* RUN PIPELINE                                       */
@@ -369,7 +385,7 @@ const handleSubmit = async () => {
     const producerPromise = producer();
 
     const consumers = Array.from(
-      { length: UPLOAD_CONCURRENCY },
+      { length: SAFE_UPLOAD_CONCURRENCY },
       () => consumer()
     );
 
