@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { baseUrl } from "@/const";
-import * as openpgp from "openpgp";
+import { handleMultipartSubmit } from "./encrypt/multipartUpload";
+
 
 import {
   Dialog,
@@ -170,285 +171,29 @@ setUploadMessage("");
      
   const isValid = recipientEmail && files.length > 0;
 
-const CHUNK_SIZE = 50 * 1024 * 1024;   // ✅ 50MB parts
-const WORKERS = 8;                    // ✅ match CPU/encryption throughput
-const BUFFER_SIZE = 12;               // ✅ keep uploads fed
-const UPLOAD_CONCURRENCY = 8;         // ✅ 8 parallel PUT streams
-const URL_BATCH_SIZE = 20;            // ✅ backend limit
-
-const isSafari =
-  typeof navigator !== "undefined" &&
-  /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-const SAFE_UPLOAD_CONCURRENCY = isSafari ? 4 : UPLOAD_CONCURRENCY;
-
-
-const splitIntoChunks = (blob: Blob) => {
-  const chunks: Blob[] = [];
-  for (let i = 0; i < blob.size; i += CHUNK_SIZE) {
-    chunks.push(blob.slice(i, i + CHUNK_SIZE));
-  }
-  return chunks;
-};
 const handleSubmit = async () => {
-  if (!files[0]) return;
+  await handleMultipartSubmit({
+    files,
+    baseUrl,
+    expiryDays,
+    recipientEmail,
+    message,
+    dossierNumber,
 
-  try {
-    setIsUploading(true);
-    setProgress(0);
-    setUploadSpeed("");
-    speedRef.current = { lastTime: Date.now(), lastLoaded: 0 };
+    setIsUploading,
+    setProgress,
+    setUploadSpeed,
+    setUploadKey,
 
-    const file = files[0];
-    const encryptionPass = crypto.randomUUID();
+    resetForm,
+    onTransferCreated,
+    onOpenChange,
 
-    const expiresAt = new Date(
-      Date.now() + Number(expiryDays) * 24 * 60 * 60 * 1000
-    ).toISOString();
-
-    /* -------------------------------------------------- */
-    /* START MULTIPART                                    */
-    /* -------------------------------------------------- */
-
-    const startRes = await fetch(`${baseUrl}/transfers/multipart/start`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileName: file.name,
-        contentType: "application/octet-stream",
-      }),
-    });
-
-    const startData = await startRes.json();
-    if (!startRes.ok) throw new Error(startData.message);
-
-    const { uploadId, key, bucket } = startData;
-    setUploadKey(key);
-
-    const chunks = splitIntoChunks(file);
-
-    const pool = new WorkerPool(WORKERS);
-    const uploadedParts: any[] = [];
-
-    /* -------------------------------------------------- */
-    /* ✅ URL BATCH CACHE (NEW)                           */
-    /* -------------------------------------------------- */
-
-    const urlCache = new Map<number, string>();
-
-    const fetchUrlBatch = async (startPart: number) => {
-      const batch: number[] = [];
-
-      for (
-        let p = startPart;
-        p <= chunks.length && batch.length < URL_BATCH_SIZE;
-        p++
-      ) {
-        if (!urlCache.has(p)) batch.push(p);
-      }
-
-      if (!batch.length) return;
-
-      const res = await fetch(`${baseUrl}/transfers/multipart/urls`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uploadId, key, parts: batch }),
-      });
-
-      const data = await res.json();
-
-      for (const { partNumber, url } of data) {
-        urlCache.set(partNumber, url);
-      }
-    };
-
-    /* -------------------------------------------------- */
-    /* BUFFER + PROGRESS                                  */
-    /* -------------------------------------------------- */
-
-    const buffer: { partNumber: number; encrypted: Uint8Array }[] = [];
-    let nextChunkToEncrypt = 0;
-    let nextChunkToUpload = 0;
-
-    const chunkProgress: Record<number, number> = {};
-
-    const updateOverallProgress = () => {
-      const total =
-        Object.values(chunkProgress).reduce((s, v) => s + v, 0) / chunks.length;
-      setProgress(Math.round(total));
-    };
-
-    /* -------------------------------------------------- */
-    /* PRODUCER (ENCRYPT)                                 */
-    /* -------------------------------------------------- */
-
-    const producer = async () => {
-      while (nextChunkToEncrypt < chunks.length) {
-        if (buffer.length >= BUFFER_SIZE) {
-          await new Promise((r) => setTimeout(r, 10));
-          continue;
-        }
-
-        const partNumber = nextChunkToEncrypt++;
-
-        const encrypted = await pool.run({
-          chunk: await chunks[partNumber].arrayBuffer(),
-          pass: encryptionPass,
-          id: partNumber + 1,
-        });
-
-        buffer.push({ partNumber, encrypted });
-      }
-    };
-
-    /* -------------------------------------------------- */
-    /* CONSUMER (UPLOAD)                                  */
-    /* -------------------------------------------------- */
-
-   const consumer = async () => {
-  while (nextChunkToUpload < chunks.length) {
-    if (!buffer.length) {
-      await new Promise((r) => setTimeout(r, 10));
-      continue;
-    }
-
-    // ✅ remove and immediately break reference
-    const item = buffer.shift()!;
-    buffer[0] = undefined as any; // break hidden reference for GC
-
-    const { partNumber, encrypted } = item;
-    nextChunkToUpload++;
-
-    const partNum = partNumber + 1;
-
-    /* fetch URL batch if needed */
-    if (!urlCache.has(partNum)) {
-      await fetchUrlBatch(partNum);
-    }
-
-    const url = urlCache.get(partNum)!;
-    urlCache.delete(partNum);
-
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", url, true);
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
-
-      xhr.upload.onprogress = (e) => {
-        if (!e.lengthComputable) return;
-
-        chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
-
-        const now = Date.now();
-        const timeDiff = (now - speedRef.current.lastTime) / 1000;
-        const bytesDiff = e.loaded - speedRef.current.lastLoaded;
-
-        if (timeDiff > 0.5) {
-          const speedBps = bytesDiff / timeDiff;
-          const speedMbps = (speedBps * 8) / (1024 * 1024);
-          setUploadSpeed(`${speedMbps.toFixed(2)} Mbps`);
-          speedRef.current.lastTime = now;
-          speedRef.current.lastLoaded = e.loaded;
-        }
-
-        updateOverallProgress();
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const etag = xhr.getResponseHeader("ETag")!.replace(/"/g, "");
-          uploadedParts.push({ PartNumber: partNum, ETag: etag });
-
-          // ✅ null out memory immediately after upload
-          encrypted.fill(0);
-          // @ts-ignore
-          // normalized is created below, so can also free it
-          resolve();
-        } else reject(new Error("Chunk upload failed"));
-      };
-
-      xhr.onerror = reject;
-
-      // ✅ keep normalized copy for TS only
-      const normalized = new Uint8Array(encrypted);
-      xhr.send(new Blob([normalized]));
-    });
-  }
+    toast,
+    speedRef,
+    WorkerPool,
+  });
 };
-
-    /* -------------------------------------------------- */
-    /* RUN PIPELINE                                       */
-    /* -------------------------------------------------- */
-
-    const producerPromise = producer();
-
-    const consumers = Array.from(
-      { length: SAFE_UPLOAD_CONCURRENCY },
-      () => consumer()
-    );
-
-    await Promise.all([producerPromise, ...consumers]);
-
-    pool.terminate();
-
-    /* -------------------------------------------------- */
-    /* COMPLETE MULTIPART                                 */
-    /* -------------------------------------------------- */
-
-    await fetch(`${baseUrl}/transfers/multipart/complete`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        uploadId,
-        key,
-        parts: uploadedParts.sort((a, b) => a.PartNumber - b.PartNumber),
-      }),
-    });
-
-    /* -------------------------------------------------- */
-    /* SAVE METADATA                                      */
-    /* -------------------------------------------------- */
-
-    const metaRes = await fetch(`${baseUrl}/transfers/create`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipientEmail,
-        message,
-        dossierNumber,
-        securityLevel: "professional",
-        expiresAt,
-        file: {
-          name: file.name,
-          size: file.size,
-          type: "application/octet-stream",
-        },
-        key,
-        bucket,
-        totalSizeBytes: file.size,
-        encryption: "pgp",
-        encryptionPassword: encryptionPass,
-      }),
-    });
-
-    if (!metaRes.ok) throw new Error("Metadata save failed");
-
-    toast.success("Secure transfer created successfully");
-
-    resetForm();
-    onTransferCreated();
-    onOpenChange(false);
-  } catch (err: any) {
-    toast.error(err.message);
-  } finally {
-    setIsUploading(false);
-  }
-};
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -617,11 +362,11 @@ const handleSubmit = async () => {
     <span className="upload-progress-thumb">{progress}%</span>
   </div>
 
-  {/* {uploadSpeed && (
+  {uploadSpeed && (
     <span className="upload-progress-speed">
       {uploadSpeed}
     </span>
-  )} */}
+  )}
 </div>
 
 
