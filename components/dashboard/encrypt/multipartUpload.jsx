@@ -41,6 +41,7 @@ export const splitIntoChunks = (blob) => {
 
 /* -------------------- MAIN UPLOAD -------------------- */
 
+
 export const handleMultipartSubmit = async ({
   files,
   baseUrl,
@@ -48,6 +49,7 @@ export const handleMultipartSubmit = async ({
   recipientEmail,
   message,
   dossierNumber,
+  e2eeEnabled,
   setIsUploading,
   setProgress,
   setUploadSpeed,
@@ -58,8 +60,15 @@ export const handleMultipartSubmit = async ({
   toast,
   speedRef,
   WorkerPool,
+   abortSignal,
+  onMultipartInit,
 }) => {
   if (!files || !files[0]) return;
+const throwIfAborted = () => {
+  if (abortSignal?.aborted) {
+    throw new DOMException("Upload aborted", "AbortError");
+  }
+};
 
   try {
     setIsUploading(true);
@@ -68,7 +77,8 @@ export const handleMultipartSubmit = async ({
     speedRef.current = { lastTime: Date.now(), lastLoaded: 0 };
 
     const file = files[0];
-    const encryptionPass = crypto.randomUUID();
+  const encryptionPass = e2eeEnabled ? crypto.randomUUID() : null;
+
 
     const expiresAt = new Date(
       Date.now() + Number(expiryDays) * 24 * 60 * 60 * 1000
@@ -84,6 +94,7 @@ export const handleMultipartSubmit = async ({
         fileName: file.name,
         contentType: "application/octet-stream",
       }),
+      signal: abortSignal,
     });
 
     const startData = await startRes.json();
@@ -91,7 +102,7 @@ export const handleMultipartSubmit = async ({
 
     const { uploadId, key, bucket } = startData;
     setUploadKey(key);
-
+onMultipartInit?.({ uploadId, key });
     const chunks = splitIntoChunks(file);
     const pool = new WorkerPool(WORKERS);
     const uploadedParts = [];
@@ -118,6 +129,7 @@ export const handleMultipartSubmit = async ({
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uploadId, key, parts: batch }),
+        signal: abortSignal,
       });
 
       const data = await res.json();
@@ -143,15 +155,18 @@ export const handleMultipartSubmit = async ({
 
     /* ---------------- PRODUCER ---------------- */
 
-   const producer = async () => {
+ const producer = async () => {
   const inflight = new Set();
 
   const launch = async (partNumber) => {
     const ab = await chunks[partNumber].arrayBuffer();
-    const p = pool
-      .run({ chunk: ab, pass: encryptionPass, id: partNumber + 1 })
-      .then((encrypted) => {
-        buffer.push({ partNumber, encrypted });
+
+    const p = (e2eeEnabled
+      ? pool.run({ chunk: ab, pass: encryptionPass, id: partNumber + 1 })
+      : Promise.resolve(new Uint8Array(ab)) // ✅ RAW CHUNK
+    )
+      .then((data) => {
+        buffer.push({ partNumber, encrypted: data });
       })
       .finally(() => inflight.delete(p));
 
@@ -159,25 +174,31 @@ export const handleMultipartSubmit = async ({
   };
 
   while (nextChunkToEncrypt < chunks.length || inflight.size) {
-    while (
-      nextChunkToEncrypt < chunks.length &&
-      inflight.size < BUFFER_SIZE
-    ) {
-      const partNumber = nextChunkToEncrypt++;
-      await launch(partNumber);
-    }
+  throwIfAborted(); // ✅
 
-    if (inflight.size) {
-      await Promise.race(inflight);
-    }
+  while (
+    nextChunkToEncrypt < chunks.length &&
+    inflight.size < BUFFER_SIZE
+  ) {
+    throwIfAborted(); // ✅
+    const partNumber = nextChunkToEncrypt++;
+    await launch(partNumber);
   }
+
+  if (inflight.size) {
+    await Promise.race(inflight);
+  }
+}
+
 };
+
 
 
     /* ---------------- CONSUMER ---------------- */
 
     const consumer = async () => {
       while (nextChunkToUpload < chunks.length) {
+        throwIfAborted();
         if (!buffer.length) {
           await new Promise((r) => setTimeout(r, 10));
           continue;
@@ -196,69 +217,65 @@ export const handleMultipartSubmit = async ({
         const url = urlCache.get(partNum);
         urlCache.delete(partNum);
 
-        await new Promise((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
+     await new Promise((resolve, reject) => {
+  const xhr = new XMLHttpRequest();
 
-          xhr.open("PUT", url, true);
-          xhr.setRequestHeader(
-            "Content-Type",
-            "application/octet-stream"
-          );
+  // ✅ HARD ABORT
+  const onAbort = () => {
+    xhr.abort();
+    reject(new DOMException("Upload aborted", "AbortError"));
+  };
 
-        
-xhr.upload.onprogress = (e) => {
-  if (!e.lengthComputable) return;
+  abortSignal?.addEventListener("abort", onAbort, { once: true });
 
-  partLoaded[partNum] = e.loaded;
-  chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
+  xhr.open("PUT", url, true);
+  xhr.setRequestHeader("Content-Type", "application/octet-stream");
 
-  updateOverallProgress();
+  xhr.upload.onprogress = (e) => {
+    if (!e.lengthComputable) return;
 
-  const now = Date.now();
-  const dt = (now - speedRef.current.lastTime) / 1000;
+    partLoaded[partNum] = e.loaded;
+    chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
+    updateOverallProgress();
 
-  if (dt > 0.5) {
-    const bytesDiff =
-      Object.values(partLoaded).reduce((a, b) => a + b, 0) -
-      speedRef.current.lastLoaded;
+    const now = Date.now();
+    const dt = (now - speedRef.current.lastTime) / 1000;
 
-    const mbps = (bytesDiff * 8) / (1024 * 1024) / dt;
+    if (dt > 0.5) {
+      const bytesDiff =
+        Object.values(partLoaded).reduce((a, b) => a + b, 0) -
+        speedRef.current.lastLoaded;
 
-    setUploadSpeed(`${mbps.toFixed(2)} Mbps`);
+      const mbps = (bytesDiff * 8) / (1024 * 1024) / dt;
+      setUploadSpeed(`${mbps.toFixed(2)} Mbps`);
 
-    speedRef.current.lastTime = now;
-    speedRef.current.lastLoaded += bytesDiff;
-  }
-};
+      speedRef.current.lastTime = now;
+      speedRef.current.lastLoaded += bytesDiff;
+    }
+  };
 
+  xhr.onload = () => {
+    abortSignal?.removeEventListener("abort", onAbort);
 
+    if (xhr.status >= 200 && xhr.status < 300) {
+      const etag = xhr.getResponseHeader("ETag")?.replace(/"/g, "");
+      uploadedParts.push({ PartNumber: partNum, ETag: etag });
 
-          xhr.onload = () => {
-            partLoaded[partNum] = encrypted.length;
-chunkProgress[partNum] = 100;
-updateOverallProgress();
+      encrypted.fill(0);
+      resolve();
+    } else {
+      reject(new Error("Chunk upload failed"));
+    }
+  };
 
-            if (xhr.status >= 200 && xhr.status < 300) {
-              const etag = xhr
-                .getResponseHeader("ETag")
-                ?.replace(/"/g, "");
+  xhr.onerror = () => {
+    abortSignal?.removeEventListener("abort", onAbort);
+    reject(new Error("XHR failed"));
+  };
 
-              uploadedParts.push({
-                PartNumber: partNum,
-                ETag: etag,
-              });
+  xhr.send(new Blob([encrypted]));
+});
 
-              encrypted.fill(0);
-              resolve();
-            } else {
-              reject(new Error("Chunk upload failed"));
-            }
-          };
-
-          xhr.onerror = reject;
-
-          xhr.send(new Blob([encrypted]));
-        });
       }
     };
 
@@ -286,6 +303,7 @@ updateOverallProgress();
           (a, b) => a.PartNumber - b.PartNumber
         ),
       }),
+      signal: abortSignal,
     });
 
     /* ---------------- METADATA ---------------- */
@@ -308,9 +326,10 @@ updateOverallProgress();
         key,
         bucket,
         totalSizeBytes: file.size,
-        encryption: "pgp",
-        encryptionPassword: encryptionPass,
+encryption: e2eeEnabled ? "pgp" : "none",
+  encryptionPassword: e2eeEnabled ? encryptionPass : null,
       }),
+      signal: abortSignal,
     });
 
     if (!metaRes.ok) throw new Error("Metadata save failed");
@@ -321,6 +340,10 @@ updateOverallProgress();
     onTransferCreated();
     onOpenChange(false);
   } catch (err) {
+    if (err.name === "AbortError") {
+    toast.error("Upload cancelled by user");
+    return; // ❌ no toast
+  }
     toast.error(err.message || "Upload failed");
   } finally {
     setIsUploading(false);

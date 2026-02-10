@@ -32,6 +32,8 @@ const page = () => {
   const router = useRouter()
 const { token } = useParams()
 const [transfer, setTransfer] = useState<any>(null)
+const [resending, setResending] = useState(false)
+const [cooldown, setCooldown] = useState(0)
 
 const [otpCode, setOtpCode] = useState("")
 const [loading, setLoading] = useState(false)
@@ -56,6 +58,15 @@ React.useEffect(() => {
 
   loadTransfer()
 }, [token])
+React.useEffect(() => {
+  if (cooldown <= 0) return
+
+  const timer = setInterval(() => {
+    setCooldown((c) => c - 1)
+  }, 1000)
+
+  return () => clearInterval(timer)
+}, [cooldown])
 
 
 const handleVerify = async () => {
@@ -86,6 +97,31 @@ const handleVerify = async () => {
     setError(err.message || "Verification failed")
   } finally {
     setLoading(false)
+  }
+}
+
+const handleResendOtp = async () => {
+  if (resending || cooldown > 0) return
+
+  try {
+    setResending(true)
+    setError("")
+
+    const res = await fetch(`${baseUrl}/transfers/resend-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || "Failed to resend OTP")
+
+    // start 30s cooldown
+    setCooldown(30)
+  } catch (err: any) {
+    setError(err.message || "Failed to resend OTP")
+  } finally {
+    setResending(false)
   }
 }
 
@@ -259,6 +295,23 @@ if (!loadingUI && error && !transfer) {
                             </InputOTPGroup>
                           </InputOTP>
                         </div>
+
+                        <div className="flex justify-center">
+  <button
+    type="button"
+    onClick={handleResendOtp}
+    disabled={resending || cooldown > 0}
+    className="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {resending
+      ? "Resending OTP..."
+      : cooldown > 0
+      ? `Resend OTP in ${cooldown}s`
+      : "Didn’t receive the code? Resend OTP"}
+  </button>
+</div>
+
+
 {error && (
   <p className="text-sm text-red-500 font-medium">{error}</p>
 )}

@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import { toast } from "sonner";
 import {
   CheckCircle2,
   Lock,
@@ -44,12 +45,15 @@ const lightBrandColor = activeBrandColor.replace(
 
 const page = () => {
 const params = useParams();
-const decryptionToken = params?.token as string;
+const routeToken = params?.token as string;
+  const searchParams = useSearchParams()
+const downloadToken = searchParams.get("downloadToken")
+const activeToken = routeToken !== "null" ? routeToken : downloadToken;
+
 const router = useRouter();
 const [isDownloading, setIsDownloading] = useState(false);
   const [receiptAccepted, setReceiptAccepted] = useState(false);
-  const searchParams = useSearchParams()
-const downloadToken = searchParams.get("downloadToken")
+const [downloadComplete, setDownloadComplete] = useState(false);
 
 const [transfer, setTransfer] = useState<any>(null)
 const [loadingUI, setLoadingUI] = useState(true)
@@ -162,40 +166,71 @@ const getFileIcon = (mimeType: string | null): React.ReactNode => {
 
   return new Blob([data]);
 };
+
+
 const handleDownload = async () => {
-  if (!receiptAccepted || !decryptionToken) return;
+  if (!receiptAccepted) return;
+  if (!activeToken) {
+    toast.error("Invalid or expired download link");
+    return;
+  }
 
   try {
     setIsDownloading(true);
+    setDownloadComplete(false);
 
     /* 1️⃣ resolve download */
     const res = await fetch(`${baseUrl}/transfers/resolve-download`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ decryptionToken }),
+      body: JSON.stringify({
+        decryptionToken: routeToken !== "null" ? routeToken : null,
+        downloadToken,
+      }),
     });
 
     const data = await res.json();
 
-    if (!res.ok) throw new Error(data.message || "Failed to resolve download");
+    if (!res.ok) {
+      // ✅ check for link already used
+      if (res.status === 403 && data.message === "Link already used") {
+        toast.error("This download link has already been used.");
+        return;
+      }
+      throw new Error(data.message || "Failed to resolve download");
+    }
 
-    const { fileName, downloadUrl, encryptionPassword, senderName, senderEmail, recipientEmail, caseRef, files, totalSizeBytes } = data;
+    const {
+      fileName,
+      downloadUrl,
+      encryptionPassword,
+      encryption,
+      senderName,
+      senderEmail,
+      recipientEmail,
+      caseRef,
+      files,
+      totalSizeBytes,
+    } = data;
 
     // store transfer info for later confirmation email
     setTransferInfo({ senderName, senderEmail, recipientEmail, caseRef, files, totalSizeBytes });
 
-    /* 2️⃣ fetch encrypted file */
+    /* 2️⃣ fetch file */
     const fileRes = await fetch(downloadUrl);
-    const encryptedBuffer = await fileRes.arrayBuffer();
+    const buffer = await fileRes.arrayBuffer();
 
-    /* 3️⃣ decrypt */
-    const decryptedBlob = await decryptFileWithPGP(
-      encryptedBuffer,
-      encryptionPassword
-    );
+    let finalBlob: Blob;
+
+    /* 3️⃣ decrypt ONLY if encrypted */
+    if (encryption !== "none") {
+      finalBlob = await decryptFileWithPGP(buffer, encryptionPassword);
+    } else {
+      finalBlob = new Blob([buffer]);
+    }
 
     /* 4️⃣ download */
-    const url = URL.createObjectURL(decryptedBlob);
+    const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
     a.download = fileName;
@@ -216,13 +251,19 @@ const handleDownload = async () => {
       });
     }
 
-  } catch (err) {
+    setDownloadComplete(true);
+    toast.success("Download successful"); // 🎉 success toast
+
+  } catch (err: any) {
     console.error(err);
-    alert("Download failed");
+    toast.error(err.message || "Download failed");
   } finally {
     setIsDownloading(false);
   }
 };
+
+
+
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -404,25 +445,42 @@ const handleDownload = async () => {
                       </div>
                   </div>
 
-                {/* total */}
-                  <div className="flex items-center justify-between mx-6 mb-6">
-                      <span className="text-sm text-muted-foreground">Total download size</span>
-                      <span className="font-semibold text-foreground">{formatBytes(transfer?.totalSizeBytes)}</span>
-                    </div>
+              
 
                 {/* button */}
-              <div className="px-6">
-                 <Button
-  onClick={handleDownload}
-  disabled={!receiptAccepted || isDownloading}
-  className="w-full h-14 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-  size="lg"
->
-  <DownloadIcon className="mr-2 h-5 w-5" />
-  {isDownloading ? "Decrypting..." : receiptAccepted ? "Download All Files" : "Accept Receipt to Download"}
-</Button>
+             <div className="p-5 border-t border-border bg-muted/30 space-y-4">
+  <div className="flex items-center justify-between">
+    <span className="text-sm text-muted-foreground">Total download size</span>
+    <span className="font-semibold text-foreground">{formatBytes(transfer?.totalSizeBytes)}</span>
+  </div>
 
-              </div>
+  {downloadComplete ? (
+    <div className="flex items-center justify-center gap-2 text-success py-3 bg-success-light rounded-xl">
+      <CheckCircle2 className="h-5 w-5" />
+      <span className="font-medium">Download successful</span>
+    </div>
+  ) : (
+    <Button
+      onClick={handleDownload}
+      disabled={!receiptAccepted || isDownloading}
+      className="w-full h-14 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+      size="lg"
+    >
+      {isDownloading ? (
+        <>
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          {transfer?.encryption === "none" ? "Downloading..." : "Decrypting..."}
+        </>
+      ) : (
+        <>
+          <DownloadIcon className="mr-2 h-5 w-5" />
+          Download All Files
+        </>
+      )}
+    </Button>
+  )}
+</div>
+
             </Card>
           </div>
         </div>
