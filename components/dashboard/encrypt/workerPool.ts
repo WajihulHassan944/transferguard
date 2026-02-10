@@ -26,7 +26,12 @@ export class WorkerPool {
         if (e.data.error) {
           console.error(e.data.error);
         } else {
-          job.resolve(e.data.encrypted);
+         job.resolve(
+  e.data.encrypted instanceof Uint8Array
+    ? e.data.encrypted
+    : new Uint8Array(e.data.encrypted)
+);
+
         }
 
         this.next();

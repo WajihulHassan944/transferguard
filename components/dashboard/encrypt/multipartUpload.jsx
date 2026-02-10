@@ -4,17 +4,19 @@
 
 export const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB
 export const WORKERS = 5;
-export const BUFFER_SIZE = 10;              // ~2 per worker
 export const UPLOAD_CONCURRENCY = 5;
 export const URL_BATCH_SIZE = 50;           // fewer round-trips
+
+
 
 export const isSafari =
   typeof navigator !== "undefined" &&
   /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-export const SAFE_UPLOAD_CONCURRENCY = isSafari
-  ? 4
-  : UPLOAD_CONCURRENCY;
+
+
+  export const SAFE_UPLOAD_CONCURRENCY = isSafari ? 2 : UPLOAD_CONCURRENCY;
+export const BUFFER_SIZE = isSafari ? 4 : 10;
 
 /* -------------------- HELPERS -------------------- */
 
@@ -165,9 +167,13 @@ onMultipartInit?.({ uploadId, key });
       ? pool.run({ chunk: ab, pass: encryptionPass, id: partNumber + 1 })
       : Promise.resolve(new Uint8Array(ab)) // ✅ RAW CHUNK
     )
-      .then((data) => {
-        buffer.push({ partNumber, encrypted: data });
-      })
+    .then((data) => {
+  const encrypted =
+    data instanceof Uint8Array ? data : new Uint8Array(data);
+
+  buffer.push({ partNumber, encrypted });
+})
+
       .finally(() => inflight.delete(p));
 
     inflight.add(p);
@@ -205,7 +211,12 @@ onMultipartInit?.({ uploadId, key });
         }
 
         const item = buffer.shift();
-        const { partNumber, encrypted } = item;
+        const { partNumber } = item;
+const encrypted =
+  item.encrypted instanceof Uint8Array
+    ? item.encrypted
+    : new Uint8Array(item.encrypted);
+
         nextChunkToUpload++;
 
         const partNum = partNumber + 1;
