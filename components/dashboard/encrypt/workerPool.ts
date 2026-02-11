@@ -50,7 +50,12 @@ export class WorkerPool {
     const job = this.queue.shift()!;
     this.busy.set(idle, job);
 
-    idle.postMessage(job.data, [job.data.chunk]);
+idle.postMessage(
+  { ...job.data, chunk: job.data.chunk },
+  [job.data.chunk.buffer] // transfer ownership
+);
+job.data.chunk = null; // free reference in main thread
+
   }
 
   terminate() {

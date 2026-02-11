@@ -154,162 +154,130 @@ onMultipartInit?.({ uploadId, key });
       setProgress(Math.round(total));
     };
 
-    /* ---------------- PRODUCER ---------------- */
 
+/* ---------------- PRODUCER ---------------- */
 const producer = async () => {
   const inflight = new Set();
 
- const launch = (partNumber) => {
-  const task = (async () => {
-    throwIfAborted();
+  // dynamically reduce buffer size for huge files
+  const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024 * 1024; // 5GB
+  const dynamicBufferSize = file.size > LARGE_FILE_THRESHOLD ? 2 : BUFFER_SIZE;
 
-    const ab = await chunks[partNumber].arrayBuffer();
+  const launch = (partNumber) => {
+    const task = (async () => {
+      throwIfAborted();
 
-    console.log(`Chunk ${partNumber} size:`, ab.byteLength, "bytes"); // ⭐ log raw chunk size
+      const ab = await chunks[partNumber].arrayBuffer();
+      console.log("Chunk", partNumber, "size:", ab.byteLength, "bytes");
 
-    if (!e2eeEnabled) {
-      buffer.push({
-        partNumber,
-        encrypted: new Uint8Array(ab),
+      if (!e2eeEnabled) {
+        buffer.push({ partNumber, encrypted: new Uint8Array(ab) });
+        return;
+      }
+
+      const encrypted = await pool.run({
+        chunk: ab,
+        pass: encryptionPass,
+        id: partNumber + 1,
       });
-      return;
-    }
 
-    const encrypted = await pool.run({
-      chunk: ab,
-      pass: encryptionPass,
-      id: partNumber + 1,
-    });
+      const finalEncrypted = encrypted instanceof Uint8Array ? encrypted : new Uint8Array(encrypted);
+      console.log("Chunk", partNumber, "encrypted size:", finalEncrypted.byteLength);
 
-    console.log(`Chunk ${partNumber} encrypted size:`, encrypted.byteLength); // ⭐ log encrypted size
+      buffer.push({ partNumber, encrypted: finalEncrypted });
+    })();
 
-    buffer.push({
-      partNumber,
-      encrypted: encrypted instanceof Uint8Array
-        ? encrypted
-        : new Uint8Array(encrypted),
-    });
-  })();
-
-  inflight.add(task);
-  task.finally(() => inflight.delete(task));
-};
+    inflight.add(task);
+    task.finally(() => inflight.delete(task));
+  };
 
   while (nextChunkToEncrypt < chunks.length || inflight.size) {
     throwIfAborted();
 
-    // fill buffer
-    while (
-      nextChunkToEncrypt < chunks.length &&
-      inflight.size < BUFFER_SIZE
-    ) {
+    while (nextChunkToEncrypt < chunks.length && inflight.size < dynamicBufferSize) {
       launch(nextChunkToEncrypt++);
     }
 
-    // wait for any to finish
-    if (inflight.size) {
-      await Promise.race(inflight);
-    }
+    if (inflight.size) await Promise.race(inflight);
   }
 };
 
+/* ---------------- CONSUMER ---------------- */
+const consumer = async () => {
+  while (nextChunkToUpload < chunks.length) {
+    throwIfAborted();
 
-
-
-    /* ---------------- CONSUMER ---------------- */
-
-    const consumer = async () => {
-      while (nextChunkToUpload < chunks.length) {
-        throwIfAborted();
-        if (!buffer.length) {
-          await new Promise((r) => setTimeout(r, 10));
-          continue;
-        }
-
-      const item = buffer.shift();
-const { partNumber } = item;
-const encrypted =
-  item.encrypted instanceof Uint8Array
-    ? item.encrypted
-    : new Uint8Array(item.encrypted);
-
-console.log(`Uploading part ${partNumber + 1}, bytes:`, encrypted.byteLength); // ⭐ log upload size
-
-        nextChunkToUpload++;
-
-        const partNum = partNumber + 1;
-
-        if (!urlCache.has(partNum)) {
-          await fetchUrlBatch(partNum);
-        }
-
-        const url = urlCache.get(partNum);
-        urlCache.delete(partNum);
-
-     await new Promise((resolve, reject) => {
-  const xhr = new XMLHttpRequest();
-
-  // ✅ HARD ABORT
-  const onAbort = () => {
-    xhr.abort();
-    reject(new DOMException("Upload aborted", "AbortError"));
-  };
-
-  abortSignal?.addEventListener("abort", onAbort, { once: true });
-
-  xhr.open("PUT", url, true);
-  xhr.setRequestHeader("Content-Type", "application/octet-stream");
-console.log("Uploading part:", partNum);
-
-  xhr.upload.onprogress = (e) => {
-    if (!e.lengthComputable) return;
-
-    partLoaded[partNum] = e.loaded;
-    chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
-    updateOverallProgress();
-
-    const now = Date.now();
-    const dt = (now - speedRef.current.lastTime) / 1000;
-
-    if (dt > 0.5) {
-      const bytesDiff =
-        Object.values(partLoaded).reduce((a, b) => a + b, 0) -
-        speedRef.current.lastLoaded;
-
-     const mbps = bytesDiff / (1024 * 1024) / dt;
-setUploadSpeed(`${mbps.toFixed(2)} MB/s`);
-
-
-      speedRef.current.lastTime = now;
-      speedRef.current.lastLoaded += bytesDiff;
+    if (!buffer.length) {
+      await new Promise((r) => setTimeout(r, 10));
+      continue;
     }
-  };
 
-  xhr.onload = () => {
-    abortSignal?.removeEventListener("abort", onAbort);
+    const item = buffer.shift();
+    const partNumber = item.partNumber;
+    const encrypted = item.encrypted instanceof Uint8Array ? item.encrypted : new Uint8Array(item.encrypted);
 
-    if (xhr.status >= 200 && xhr.status < 300) {
-      const etag = xhr.getResponseHeader("ETag")?.replace(/"/g, "");
-      uploadedParts.push({ PartNumber: partNum, ETag: etag });
+    nextChunkToUpload++;
+    const partNum = partNumber + 1;
 
-      encrypted.fill(0);
-      resolve();
-    } else {
-      reject(new Error("Chunk upload failed"));
+    if (!urlCache.has(partNum)) {
+      await fetchUrlBatch(partNum);
     }
-  };
 
-  xhr.onerror = () => {
-    abortSignal?.removeEventListener("abort", onAbort);
-    reject(new Error("XHR failed"));
-  };
+    const url = urlCache.get(partNum);
+    urlCache.delete(partNum);
 
- xhr.send(encrypted);
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
 
-});
+      const onAbort = () => {
+        xhr.abort();
+        reject(new DOMException("Upload aborted", "AbortError"));
+      };
+      abortSignal?.addEventListener("abort", onAbort, { once: true });
 
-      }
-    };
+      xhr.open("PUT", url, true);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return;
+
+        partLoaded[partNum] = e.loaded;
+        chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
+        setProgress(Math.round(Object.values(chunkProgress).reduce((a, b) => a + b, 0) / chunks.length));
+
+        const now = Date.now();
+        const dt = (now - speedRef.current.lastTime) / 1000;
+        if (dt > 0.5) {
+          const bytesDiff = Object.values(partLoaded).reduce((a, b) => a + b, 0) - speedRef.current.lastLoaded;
+          const mbps = bytesDiff / (1024 * 1024) / dt;
+          setUploadSpeed(`${mbps.toFixed(2)} MB/s`);
+          speedRef.current.lastTime = now;
+          speedRef.current.lastLoaded += bytesDiff;
+        }
+      };
+
+      xhr.onload = () => {
+        abortSignal?.removeEventListener("abort", onAbort);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const etag = xhr.getResponseHeader("ETag")?.replace(/"/g, "");
+          uploadedParts.push({ PartNumber: partNum, ETag: etag });
+
+          // free memory
+          encrypted.fill(0);
+          item.encrypted = null;
+          resolve();
+        } else reject(new Error("Chunk upload failed"));
+      };
+
+      xhr.onerror = () => {
+        abortSignal?.removeEventListener("abort", onAbort);
+        reject(new Error("XHR failed"));
+      };
+
+      xhr.send(encrypted);
+    });
+  }
+};
 
     /* ---------------- RUN PIPELINE ---------------- */
 
