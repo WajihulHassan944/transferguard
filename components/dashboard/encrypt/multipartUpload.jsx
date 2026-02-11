@@ -2,10 +2,10 @@
 
 /* -------------------- CONFIG -------------------- */
 
-export const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB
-export const WORKERS = 5;
-export const UPLOAD_CONCURRENCY = 5;
-export const URL_BATCH_SIZE = 50;           // fewer round-trips
+export const WORKERS = 4;
+export const CHUNK_SIZE = 16 * 1024 * 1024;      // ⭐ BEST for S3
+export const UPLOAD_CONCURRENCY = 10;           // ⭐ parallelism
+export const URL_BATCH_SIZE = 20;               // keep backend rule
 
 
 
@@ -106,7 +106,7 @@ const throwIfAborted = () => {
     setUploadKey(key);
 onMultipartInit?.({ uploadId, key });
     const chunks = splitIntoChunks(file);
-    const pool = new WorkerPool(WORKERS);
+    const pool = e2eeEnabled ? new WorkerPool(WORKERS) : null;
     const uploadedParts = [];
 
     /* ---------------- URL CACHE ---------------- */
@@ -146,8 +146,7 @@ onMultipartInit?.({ uploadId, key });
     let nextChunkToEncrypt = 0;
     let nextChunkToUpload = 0;
 
-    const chunkProgress = {};
-
+  
     const updateOverallProgress = () => {
       const total =
         Object.values(chunkProgress).reduce((s, v) => s + v, 0) /
@@ -157,46 +156,63 @@ onMultipartInit?.({ uploadId, key });
 
     /* ---------------- PRODUCER ---------------- */
 
- const producer = async () => {
+const producer = async () => {
   const inflight = new Set();
 
-  const launch = async (partNumber) => {
+ const launch = (partNumber) => {
+  const task = (async () => {
+    throwIfAborted();
+
     const ab = await chunks[partNumber].arrayBuffer();
 
-    const p = (e2eeEnabled
-      ? pool.run({ chunk: ab, pass: encryptionPass, id: partNumber + 1 })
-      : Promise.resolve(new Uint8Array(ab)) // ✅ RAW CHUNK
-    )
-    .then((data) => {
-  const encrypted =
-    data instanceof Uint8Array ? data : new Uint8Array(data);
+    console.log(`Chunk ${partNumber} size:`, ab.byteLength, "bytes"); // ⭐ log raw chunk size
 
-  buffer.push({ partNumber, encrypted });
-})
+    if (!e2eeEnabled) {
+      buffer.push({
+        partNumber,
+        encrypted: new Uint8Array(ab),
+      });
+      return;
+    }
 
-      .finally(() => inflight.delete(p));
+    const encrypted = await pool.run({
+      chunk: ab,
+      pass: encryptionPass,
+      id: partNumber + 1,
+    });
 
-    inflight.add(p);
-  };
+    console.log(`Chunk ${partNumber} encrypted size:`, encrypted.byteLength); // ⭐ log encrypted size
+
+    buffer.push({
+      partNumber,
+      encrypted: encrypted instanceof Uint8Array
+        ? encrypted
+        : new Uint8Array(encrypted),
+    });
+  })();
+
+  inflight.add(task);
+  task.finally(() => inflight.delete(task));
+};
 
   while (nextChunkToEncrypt < chunks.length || inflight.size) {
-  throwIfAborted(); // ✅
+    throwIfAborted();
 
-  while (
-    nextChunkToEncrypt < chunks.length &&
-    inflight.size < BUFFER_SIZE
-  ) {
-    throwIfAborted(); // ✅
-    const partNumber = nextChunkToEncrypt++;
-    await launch(partNumber);
+    // fill buffer
+    while (
+      nextChunkToEncrypt < chunks.length &&
+      inflight.size < BUFFER_SIZE
+    ) {
+      launch(nextChunkToEncrypt++);
+    }
+
+    // wait for any to finish
+    if (inflight.size) {
+      await Promise.race(inflight);
+    }
   }
-
-  if (inflight.size) {
-    await Promise.race(inflight);
-  }
-}
-
 };
+
 
 
 
@@ -210,12 +226,14 @@ onMultipartInit?.({ uploadId, key });
           continue;
         }
 
-        const item = buffer.shift();
-        const { partNumber } = item;
+      const item = buffer.shift();
+const { partNumber } = item;
 const encrypted =
   item.encrypted instanceof Uint8Array
     ? item.encrypted
     : new Uint8Array(item.encrypted);
+
+console.log(`Uploading part ${partNumber + 1}, bytes:`, encrypted.byteLength); // ⭐ log upload size
 
         nextChunkToUpload++;
 
@@ -241,6 +259,7 @@ const encrypted =
 
   xhr.open("PUT", url, true);
   xhr.setRequestHeader("Content-Type", "application/octet-stream");
+console.log("Uploading part:", partNum);
 
   xhr.upload.onprogress = (e) => {
     if (!e.lengthComputable) return;
@@ -257,8 +276,9 @@ const encrypted =
         Object.values(partLoaded).reduce((a, b) => a + b, 0) -
         speedRef.current.lastLoaded;
 
-      const mbps = (bytesDiff * 8) / (1024 * 1024) / dt;
-      setUploadSpeed(`${mbps.toFixed(2)} Mbps`);
+     const mbps = bytesDiff / (1024 * 1024) / dt;
+setUploadSpeed(`${mbps.toFixed(2)} MB/s`);
+
 
       speedRef.current.lastTime = now;
       speedRef.current.lastLoaded += bytesDiff;
@@ -284,7 +304,8 @@ const encrypted =
     reject(new Error("XHR failed"));
   };
 
-  xhr.send(new Blob([encrypted]));
+ xhr.send(encrypted);
+
 });
 
       }
@@ -299,7 +320,7 @@ const encrypted =
     );
 
     await Promise.all([producerPromise, ...consumers]);
-    pool.terminate();
+    pool?.terminate();
 
     /* ---------------- COMPLETE ---------------- */
 
@@ -337,7 +358,7 @@ const encrypted =
         key,
         bucket,
         totalSizeBytes: file.size,
-encryption: e2eeEnabled ? "pgp" : "none",
+encryption: e2eeEnabled ? "aes-gcm" : "none",
   encryptionPassword: e2eeEnabled ? encryptionPass : null,
       }),
       signal: abortSignal,

@@ -28,7 +28,6 @@ import {
 } from "lucide-react"
 import { baseUrl } from "@/const"
 import { useEffect } from "react"
-import * as openpgp from "openpgp"
 import { useParams } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -150,21 +149,76 @@ const getFileIcon = (mimeType: string | null): React.ReactNode => {
 };
 
 
-  const decryptFileWithPGP = async (
+ /* ---------- AES-GCM decrypt (WebCrypto) ---------- */
+const decryptPassword = async (
+  encryptedHex: string,
+  token: string
+): Promise<string> => {
+  // hex → bytes
+  const bytes = new Uint8Array(
+    encryptedHex.match(/.{1,2}/g)!.map((b) => parseInt(b, 16))
+  );
+
+  // layout: [12B IV][ciphertext]
+  const iv = bytes.slice(0, 12);
+  const ciphertext = bytes.slice(12);
+
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  // derive key from token (same as backend)
+  const hash = await crypto.subtle.digest("SHA-256", enc.encode(token));
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    hash,
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"]
+  );
+
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext
+  );
+
+  return dec.decode(plain); // ← ORIGINAL UUID password
+};
+
+const decryptFileAES = async (
   encryptedBuffer: ArrayBuffer,
   password: string
 ) => {
-  const message = await openpgp.readMessage({
-    binaryMessage: new Uint8Array(encryptedBuffer),
-  });
+  const bytes = new Uint8Array(encryptedBuffer);
 
-  const { data } = await openpgp.decrypt({
-    message,
-    passwords: [password],
-    format: "binary",
-  });
+  // layout: [12B IV][ciphertext+tag]
+  const iv = bytes.slice(0, 12);
+  const ciphertext = bytes.slice(12);
 
-  return new Blob([data]);
+  const enc = new TextEncoder();
+
+  // derive key exactly same as upload worker
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    enc.encode(password)
+  );
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    hash,
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"]
+  );
+
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext
+  );
+
+  return new Blob([plain]);
 };
 
 
@@ -220,14 +274,17 @@ const handleDownload = async () => {
     const fileRes = await fetch(downloadUrl);
     const buffer = await fileRes.arrayBuffer();
 
-    let finalBlob: Blob;
+   let finalBlob: Blob;
 
-    /* 3️⃣ decrypt ONLY if encrypted */
-    if (encryption !== "none") {
-      finalBlob = await decryptFileWithPGP(buffer, encryptionPassword);
-    } else {
-      finalBlob = new Blob([buffer]);
-    }
+if (encryption === "aes-gcm") {
+
+  console.log("Decrypting file...");
+ finalBlob = await decryptFileAES(buffer, encryptionPassword);
+} else {
+  finalBlob = new Blob([buffer]);
+}
+
+
 
     /* 4️⃣ download */
     const url = URL.createObjectURL(finalBlob);
