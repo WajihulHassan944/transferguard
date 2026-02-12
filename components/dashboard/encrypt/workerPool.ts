@@ -26,7 +26,8 @@ export class WorkerPool {
         if (e.data.error) {
           console.error("Worker error:", e.data.error);
         } else {
-          job.resolve(e.data.encrypted);
+    job.resolve(new Uint8Array(e.data.encrypted));
+      
         }
 
         this.next();
@@ -43,20 +44,24 @@ export class WorkerPool {
     });
   }
 
-  private next() {
-    const idle = this.workers.find((w) => !this.busy.has(w));
-    if (!idle || !this.queue.length) return;
+private next() {
+  const idle = this.workers.find((w) => !this.busy.has(w));
+  if (!idle || !this.queue.length) return;
 
-    const job = this.queue.shift()!;
-    this.busy.set(idle, job);
+  const job = this.queue.shift()!;
+  this.busy.set(idle, job);
 
-idle.postMessage(
-  { ...job.data, chunk: job.data.chunk },
-  [job.data.chunk.buffer] // transfer ownership
-);
-job.data.chunk = null; // free reference in main thread
+  const { chunk, pass, id } = job.data;
 
-  }
+  // Ensure we are transferring a real ArrayBuffer
+  const transferable =
+    chunk instanceof ArrayBuffer ? chunk : chunk.buffer;
+
+  idle.postMessage(
+    { chunk, pass, id },
+    [transferable] // ✅ transfer ONLY the buffer
+  );
+}
 
   terminate() {
     console.log("🧵 WorkerPool terminated");

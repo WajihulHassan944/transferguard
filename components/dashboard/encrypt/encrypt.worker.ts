@@ -49,10 +49,11 @@ self.onmessage = async (e: MessageEvent) => {
     final.set(iv, 0);
     final.set(new Uint8Array(encrypted), iv.length);
 
-    (self as DedicatedWorkerGlobalScope).postMessage(
-      { id, encrypted: final },
-      [final.buffer]
-    );
+  (self as DedicatedWorkerGlobalScope).postMessage(
+  { id, encrypted: final.buffer },
+  [final.buffer]
+);
+
   } catch (err: any) {
     (self as DedicatedWorkerGlobalScope).postMessage({
       id,

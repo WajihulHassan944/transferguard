@@ -2,9 +2,9 @@
 
 /* -------------------- CONFIG -------------------- */
 
-export const WORKERS = 4;
-export const CHUNK_SIZE = 16 * 1024 * 1024;      // ⭐ BEST for S3
-export const UPLOAD_CONCURRENCY = 10;           // ⭐ parallelism
+export const WORKERS = 2;
+export const CHUNK_SIZE = 8 * 1024 * 1024;      // ⭐ BEST for S3
+export const UPLOAD_CONCURRENCY = 2;           // ⭐ parallelism
 export const URL_BATCH_SIZE = 20;               // keep backend rule
 
 
@@ -16,7 +16,7 @@ export const isSafari =
 
 
   export const SAFE_UPLOAD_CONCURRENCY = isSafari ? 2 : UPLOAD_CONCURRENCY;
-export const BUFFER_SIZE = isSafari ? 4 : 10;
+export const BUFFER_SIZE = isSafari ? 4 : 5;
 
 /* -------------------- HELPERS -------------------- */
 
@@ -175,16 +175,19 @@ const producer = async () => {
         return;
       }
 
-      const encrypted = await pool.run({
-        chunk: ab,
-        pass: encryptionPass,
-        id: partNumber + 1,
-      });
+ const encrypted = await pool.run({
+  chunk: ab.slice(0),
+  pass: encryptionPass,
+  id: partNumber + 1,
+});
+buffer.push({
+  partNumber,
+  encrypted: new Uint8Array(encrypted) // always wrap
+});
 
       const finalEncrypted = encrypted instanceof Uint8Array ? encrypted : new Uint8Array(encrypted);
       console.log("Chunk", partNumber, "encrypted size:", finalEncrypted.byteLength);
 
-      buffer.push({ partNumber, encrypted: finalEncrypted });
     })();
 
     inflight.add(task);
@@ -236,8 +239,7 @@ const consumer = async () => {
       abortSignal?.addEventListener("abort", onAbort, { once: true });
 
       xhr.open("PUT", url, true);
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
-
+    
       xhr.upload.onprogress = (e) => {
         if (!e.lengthComputable) return;
 
