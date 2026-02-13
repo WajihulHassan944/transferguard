@@ -2,9 +2,9 @@
 
 /* -------------------- CONFIG -------------------- */
 
-export const WORKERS = 2;
-export const CHUNK_SIZE = 5 * 1024 * 1024;      // ⭐ BEST for S3
-export const UPLOAD_CONCURRENCY = 2;           // ⭐ parallelism
+export const WORKERS = 4;
+export const CHUNK_SIZE = 8 * 1024 * 1024;      // ⭐ BEST for S3
+export const UPLOAD_CONCURRENCY = 4;           // ⭐ parallelism
 export const URL_BATCH_SIZE = 20;               // keep backend rule
 
 
