@@ -3,7 +3,7 @@
 /* -------------------- CONFIG -------------------- */
 
 export const WORKERS = 2;
-export const CHUNK_SIZE = 8 * 1024 * 1024;      // ⭐ BEST for S3
+export const CHUNK_SIZE = 5 * 1024 * 1024;      // ⭐ BEST for S3
 export const UPLOAD_CONCURRENCY = 2;           // ⭐ parallelism
 export const URL_BATCH_SIZE = 20;               // keep backend rule
 
@@ -170,10 +170,15 @@ const producer = async () => {
       const ab = await chunks[partNumber].arrayBuffer();
       console.log("Chunk", partNumber, "size:", ab.byteLength, "bytes");
 
-      if (!e2eeEnabled) {
-        buffer.push({ partNumber, encrypted: new Uint8Array(ab) });
-        return;
-      }
+  if (!e2eeEnabled) {
+  // Backpressure control
+  while (buffer.length >= BUFFER_SIZE) {
+    await new Promise(r => setTimeout(r, 20));
+  }
+
+  buffer.push({ partNumber, encrypted: new Uint8Array(ab) });
+  return;
+}
 
  const encrypted = await pool.run({
   chunk: ab.slice(0),
@@ -217,7 +222,10 @@ const consumer = async () => {
 
     const item = buffer.shift();
     const partNumber = item.partNumber;
-    const encrypted = item.encrypted instanceof Uint8Array ? item.encrypted : new Uint8Array(item.encrypted);
+    const encrypted =
+      item.encrypted instanceof Uint8Array
+        ? item.encrypted
+        : new Uint8Array(item.encrypted);
 
     nextChunkToUpload++;
     const partNum = partNumber + 1;
@@ -229,55 +237,108 @@ const consumer = async () => {
     const url = urlCache.get(partNum);
     urlCache.delete(partNum);
 
-    await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+    /* ---------------- RETRY LOGIC ---------------- */
 
-      const onAbort = () => {
-        xhr.abort();
-        reject(new DOMException("Upload aborted", "AbortError"));
-      };
-      abortSignal?.addEventListener("abort", onAbort, { once: true });
+    const maxRetries = 3;
 
-      xhr.open("PUT", url, true);
-    
-      xhr.upload.onprogress = (e) => {
-        if (!e.lengthComputable) return;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-        partLoaded[partNum] = e.loaded;
-        chunkProgress[partNum] = Math.round((e.loaded / e.total) * 100);
-        setProgress(Math.round(Object.values(chunkProgress).reduce((a, b) => a + b, 0) / chunks.length));
+          const onAbort = () => {
+            xhr.abort();
+            reject(new DOMException("Upload aborted", "AbortError"));
+          };
 
-        const now = Date.now();
-        const dt = (now - speedRef.current.lastTime) / 1000;
-        if (dt > 0.5) {
-          const bytesDiff = Object.values(partLoaded).reduce((a, b) => a + b, 0) - speedRef.current.lastLoaded;
-          const mbps = bytesDiff / (1024 * 1024) / dt;
-          setUploadSpeed(`${mbps.toFixed(2)} MB/s`);
-          speedRef.current.lastTime = now;
-          speedRef.current.lastLoaded += bytesDiff;
+          abortSignal?.addEventListener("abort", onAbort, { once: true });
+
+          xhr.open("PUT", url, true);
+
+          xhr.upload.onprogress = (e) => {
+            if (!e.lengthComputable) return;
+
+            partLoaded[partNum] = e.loaded;
+            chunkProgress[partNum] = Math.round(
+              (e.loaded / e.total) * 100
+            );
+
+            setProgress(
+              Math.round(
+                Object.values(chunkProgress).reduce((a, b) => a + b, 0) /
+                  chunks.length
+              )
+            );
+
+            const now = Date.now();
+            const dt = (now - speedRef.current.lastTime) / 1000;
+
+            if (dt > 0.5) {
+              const bytesDiff =
+                Object.values(partLoaded).reduce((a, b) => a + b, 0) -
+                speedRef.current.lastLoaded;
+
+              const mbps = bytesDiff / (1024 * 1024) / dt;
+
+              setUploadSpeed(`${mbps.toFixed(2)} MB/s`);
+
+              speedRef.current.lastTime = now;
+              speedRef.current.lastLoaded += bytesDiff;
+            }
+          };
+
+          xhr.onload = () => {
+            abortSignal?.removeEventListener("abort", onAbort);
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+              const etag = xhr
+                .getResponseHeader("ETag")
+                ?.replace(/"/g, "");
+
+              uploadedParts.push({
+                PartNumber: partNum,
+                ETag: etag,
+              });
+
+              resolve();
+            } else if (xhr.status >= 500) {
+              reject(new Error(`Server error ${xhr.status}`));
+            } else {
+              reject(new Error(`Upload failed ${xhr.status}`));
+            }
+          };
+
+          xhr.onerror = () => {
+            abortSignal?.removeEventListener("abort", onAbort);
+            reject(new Error("Network error"));
+          };
+
+          xhr.send(encrypted);
+        });
+
+        // SUCCESS → free memory
+        encrypted.fill(0);
+        item.encrypted = null;
+
+        break; // exit retry loop
+
+      } catch (err) {
+        if (err.name === "AbortError") throw err;
+
+        const retryable =
+          err.message.includes("Server error") ||
+          err.message.includes("Network error");
+
+        if (!retryable || attempt === maxRetries) {
+          throw err;
         }
-      };
 
-      xhr.onload = () => {
-        abortSignal?.removeEventListener("abort", onAbort);
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const etag = xhr.getResponseHeader("ETag")?.replace(/"/g, "");
-          uploadedParts.push({ PartNumber: partNum, ETag: etag });
-
-          // free memory
-          encrypted.fill(0);
-          item.encrypted = null;
-          resolve();
-        } else reject(new Error("Chunk upload failed"));
-      };
-
-      xhr.onerror = () => {
-        abortSignal?.removeEventListener("abort", onAbort);
-        reject(new Error("XHR failed"));
-      };
-
-      xhr.send(encrypted);
-    });
+        // exponential backoff
+        await new Promise((r) =>
+          setTimeout(r, 2000 * attempt)
+        );
+      }
+    }
   }
 };
 
