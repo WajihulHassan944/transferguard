@@ -1,10 +1,11 @@
 // multipartUpload.jsx
 
 /* -------------------- CONFIG -------------------- */
+import { deriveEncryptionKey } from "./deriveKey";
 
 export const WORKERS = 4;
-export const CHUNK_SIZE = 25 * 1024 * 1024;      // ⭐ BEST for S3
-export const UPLOAD_CONCURRENCY = 4;           // ⭐ parallelism
+export const CHUNK_SIZE = 5 * 1024 * 1024;      // ⭐ BEST for S3
+export const UPLOAD_CONCURRENCY = 8;           // ⭐ parallelism
 export const URL_BATCH_SIZE = 20;               // keep backend rule
 
 
@@ -80,6 +81,11 @@ const throwIfAborted = () => {
 
     const file = files[0];
   const encryptionPass = e2eeEnabled ? crypto.randomUUID() : null;
+let derivedKey = null;
+
+if (e2eeEnabled) {
+  derivedKey = await deriveEncryptionKey(encryptionPass);
+}
 
 
     const expiresAt = new Date(
@@ -107,6 +113,13 @@ const throwIfAborted = () => {
 onMultipartInit?.({ uploadId, key });
     const chunks = splitIntoChunks(file);
     const pool = e2eeEnabled ? new WorkerPool(WORKERS) : null;
+    if (e2eeEnabled && pool) {
+  await pool.broadcast({
+    type: "INIT",
+    key: derivedKey,
+  });
+}
+
     const uploadedParts = [];
 
     /* ---------------- URL CACHE ---------------- */
@@ -181,10 +194,11 @@ const producer = async () => {
 }
 
  const encrypted = await pool.run({
+  type: "ENCRYPT",
   chunk: ab.slice(0),
-  pass: encryptionPass,
   id: partNumber + 1,
 });
+
 buffer.push({
   partNumber,
   encrypted: new Uint8Array(encrypted) // always wrap

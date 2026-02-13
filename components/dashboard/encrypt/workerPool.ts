@@ -26,8 +26,7 @@ export class WorkerPool {
         if (e.data.error) {
           console.error("Worker error:", e.data.error);
         } else {
-    job.resolve(new Uint8Array(e.data.encrypted));
-      
+          job.resolve(new Uint8Array(e.data.encrypted));
         }
 
         this.next();
@@ -37,6 +36,27 @@ export class WorkerPool {
     }
   }
 
+  /* 🔹 NEW: initialize all workers */
+async broadcast(message: any) {
+  await Promise.all(
+    this.workers.map(
+      (worker) =>
+        new Promise<void>((resolve) => {
+          const handleReady = (e: MessageEvent) => {
+            if (e.data?.type === "READY") {
+              worker.removeEventListener("message", handleReady);
+              resolve();
+            }
+          };
+
+          worker.addEventListener("message", handleReady);
+          worker.postMessage({ ...message }); // no transfer
+        })
+    )
+  );
+}
+
+
   run(data: any) {
     return new Promise<Uint8Array>((resolve) => {
       this.queue.push({ data, resolve });
@@ -44,24 +64,25 @@ export class WorkerPool {
     });
   }
 
-private next() {
-  const idle = this.workers.find((w) => !this.busy.has(w));
-  if (!idle || !this.queue.length) return;
+  private next() {
+    const idle = this.workers.find((w) => !this.busy.has(w));
+    if (!idle || !this.queue.length) return;
 
-  const job = this.queue.shift()!;
-  this.busy.set(idle, job);
+    const job = this.queue.shift()!;
+    this.busy.set(idle, job);
 
-  const { chunk, pass, id } = job.data;
+    if (job.data.type === "ENCRYPT") {
+      const { chunk, id } = job.data;
 
-  // Ensure we are transferring a real ArrayBuffer
-  const transferable =
-    chunk instanceof ArrayBuffer ? chunk : chunk.buffer;
+      const transferable =
+        chunk instanceof ArrayBuffer ? chunk : chunk.buffer;
 
-  idle.postMessage(
-    { chunk, pass, id },
-    [transferable] // ✅ transfer ONLY the buffer
-  );
-}
+      idle.postMessage(
+        { type: "ENCRYPT", chunk, id },
+        [transferable]
+      );
+    }
+  }
 
   terminate() {
     console.log("🧵 WorkerPool terminated");
