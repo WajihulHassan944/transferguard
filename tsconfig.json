@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "components/dashboard/encrypt/multipartUpload.jsx", "components/dashboard/encrypt/multipartUpload.jsx", "components/dashboard/encrypt/deriveKey.js"  ],
+, "components/dashboard/encrypt/multipartUpload.tsx", "components/dashboard/encrypt/multipartUpload.tsx", "components/dashboard/encrypt/deriveKey.js"  ],
   "exclude": ["node_modules"]
 }

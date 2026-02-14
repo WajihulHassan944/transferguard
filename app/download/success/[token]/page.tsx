@@ -33,6 +33,8 @@ import { useParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
+import { deriveEncryptionKey } from "@/components/dashboard/encrypt/deriveKey";
+import { createDecryptWorker } from "@/components/dashboard/decrypt/decryptClient";
 
 const defaultBrandColor = "hsl(217, 91%, 50%)"
 
@@ -147,83 +149,80 @@ const getFileIcon = (mimeType: string | null): React.ReactNode => {
   if (mimeType.includes("presentation") || mimeType.includes("powerpoint")) return <Presentation className={`${iconClass} text-legal`} />;
   return <File className={`${iconClass} text-muted-foreground`} />;
 };
+ const CHUNK_SIZE = 5 * 1024 * 1024;
+const GCM_OVERHEAD = 12 + 16; // IV + tag
+const ENCRYPTED_PART_SIZE = CHUNK_SIZE + GCM_OVERHEAD;
 
+async function fetchRange(url: string, start: number, endInclusive: number) {
+  const res = await fetch(url, {
+    headers: {
+      Range: `bytes=${start}-${endInclusive}`,
+    },
+  });
 
- /* ---------- AES-GCM decrypt (WebCrypto) ---------- */
-const decryptPassword = async (
-  encryptedHex: string,
-  token: string
-): Promise<string> => {
-  // hex → bytes
-  const bytes = new Uint8Array(
-    encryptedHex.match(/.{1,2}/g)!.map((b) => parseInt(b, 16))
-  );
+  // S3 Range returns 206. Some proxies may return 200 if they ignore Range.
+  if (!(res.status === 206 || res.status === 200)) {
+    throw new Error(`Range download failed: HTTP ${res.status}`);
+  }
 
-  // layout: [12B IV][ciphertext]
-  const iv = bytes.slice(0, 12);
-  const ciphertext = bytes.slice(12);
+  return await res.arrayBuffer();
+}
 
-  const enc = new TextEncoder();
-  const dec = new TextDecoder();
+async function decryptMultipartObjectToBlob({
+  downloadUrl,
+  password,
+  originalSizeBytes, // totalSizeBytes from backend (plaintext size)
+  fileName,
+  onProgress,
+}: {
+  downloadUrl: string;
+  password: string;
+  originalSizeBytes: number;
+  fileName: string;
+  onProgress?: (pct: number) => void;
+}) {
+  // 1) derive same raw key as upload
+  const rawKey = await deriveEncryptionKey(password);
 
-  // derive key from token (same as backend)
-  const hash = await crypto.subtle.digest("SHA-256", enc.encode(token));
+  // 2) init decrypt worker
+  const dec = await createDecryptWorker(rawKey);
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    hash,
-    { name: "AES-GCM" },
-    false,
-    ["decrypt"]
-  );
+  try {
+    const totalParts = Math.ceil(originalSizeBytes / CHUNK_SIZE);
+    const decryptedChunks: ArrayBuffer[] = [];
+    let decryptedSoFar = 0;
 
-  const plain = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext
-  );
+    for (let partIndex = 0; partIndex < totalParts; partIndex++) {
+      // plaintext range
+      const plainStart = partIndex * CHUNK_SIZE;
+      const plainEndExclusive = Math.min(originalSizeBytes, plainStart + CHUNK_SIZE);
+      const plainLen = plainEndExclusive - plainStart;
 
-  return dec.decode(plain); // ← ORIGINAL UUID password
-};
+      // encrypted range is aligned by encrypted-part size (not plaintext size)
+      const encStart = partIndex * ENCRYPTED_PART_SIZE;
+      const encEndInclusive = encStart + (plainLen + GCM_OVERHEAD) - 1;
 
-const decryptFileAES = async (
-  encryptedBuffer: ArrayBuffer,
-  password: string
-) => {
-  const bytes = new Uint8Array(encryptedBuffer);
+      const encBuf = await fetchRange(downloadUrl, encStart, encEndInclusive);
 
-  // layout: [12B IV][ciphertext+tag]
-  const iv = bytes.slice(0, 12);
-  const ciphertext = bytes.slice(12);
+      // decrypt this part (expects [IV|ciphertext+tag])
+      const plainBuf = await dec.decrypt(encBuf, partIndex + 1);
 
-  const enc = new TextEncoder();
+      decryptedChunks.push(plainBuf);
+      decryptedSoFar += plainLen;
 
-  // derive key exactly same as upload worker
-  const hash = await crypto.subtle.digest(
-    "SHA-256",
-    enc.encode(password)
-  );
+      if (onProgress) {
+        onProgress(Math.round((decryptedSoFar / originalSizeBytes) * 100));
+      }
+    }
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    hash,
-    { name: "AES-GCM" },
-    false,
-    ["decrypt"]
-  );
-
-  const plain = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext
-  );
-
-  return new Blob([plain]);
-};
-
-
+    return new Blob(decryptedChunks, { type: "application/octet-stream" });
+  } finally {
+    dec.terminate();
+  }
+}
 const handleDownload = async () => {
   if (!receiptAccepted) return;
+
   if (!activeToken) {
     toast.error("Invalid or expired download link");
     return;
@@ -233,7 +232,7 @@ const handleDownload = async () => {
     setIsDownloading(true);
     setDownloadComplete(false);
 
-    /* 1️⃣ resolve download */
+    // 1) resolve download
     const res = await fetch(`${baseUrl}/transfers/resolve-download`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -246,7 +245,6 @@ const handleDownload = async () => {
     const data = await res.json();
 
     if (!res.ok) {
-      // ✅ check for link already used
       if (res.status === 403 && data.message === "Link already used") {
         toast.error("This download link has already been used.");
         return;
@@ -264,29 +262,40 @@ const handleDownload = async () => {
       recipientEmail,
       caseRef,
       files,
-      totalSizeBytes,
+      totalSizeBytes, // plaintext total
     } = data;
 
-    // store transfer info for later confirmation email
-    setTransferInfo({ senderName, senderEmail, recipientEmail, caseRef, files, totalSizeBytes });
+    setTransferInfo({
+      senderName,
+      senderEmail,
+      recipientEmail,
+      caseRef,
+      files,
+      totalSizeBytes,
+    });
 
-    /* 2️⃣ fetch file */
-    const fileRes = await fetch(downloadUrl);
-    const buffer = await fileRes.arrayBuffer();
+    let finalBlob: Blob;
 
-   let finalBlob: Blob;
+    if (encryption === "aes-gcm") {
+      if (!encryptionPassword) throw new Error("Missing encryption password");
+      if (!totalSizeBytes) throw new Error("Missing totalSizeBytes (required for chunk boundaries)");
 
-if (encryption === "aes-gcm") {
+      // Decrypt using range-based per-part fetch
+      finalBlob = await decryptMultipartObjectToBlob({
+        downloadUrl,
+        password: encryptionPassword,
+        originalSizeBytes: Number(totalSizeBytes),
+        fileName,
+        // onProgress: (pct) => setProgress?.(pct), // if you have a download progress state
+      });
+    } else {
+      // non-encrypted: normal download
+      const fileRes = await fetch(downloadUrl);
+      const buffer = await fileRes.arrayBuffer();
+      finalBlob = new Blob([buffer], { type: "application/octet-stream" });
+    }
 
-  console.log("Decrypting file...");
- finalBlob = await decryptFileAES(buffer, encryptionPassword);
-} else {
-  finalBlob = new Blob([buffer]);
-}
-
-
-
-    /* 4️⃣ download */
+    // download
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
@@ -294,7 +303,7 @@ if (encryption === "aes-gcm") {
     a.click();
     URL.revokeObjectURL(url);
 
-    /* 5️⃣ trigger confirmation email */
+    // confirmation email
     if (senderEmail && recipientEmail && caseRef) {
       await fetch(`${baseUrl}/transfers/confirm-download`, {
         method: "POST",
@@ -309,8 +318,7 @@ if (encryption === "aes-gcm") {
     }
 
     setDownloadComplete(true);
-    toast.success("Download successful"); // 🎉 success toast
-
+    toast.success("Download successful");
   } catch (err: any) {
     console.error(err);
     toast.error(err.message || "Download failed");

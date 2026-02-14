@@ -58,6 +58,37 @@ React.useEffect(() => {
 
   loadTransfer()
 }, [token])
+// Send OTP automatically if not already sent
+React.useEffect(() => {
+  const sendOtpIfNull = async () => {
+    if (!transfer || transfer.otpCode) return; // only if transfer exists and otp_code is null
+
+    try {
+      setResending(true); // show loading for OTP send
+      const res = await fetch(`${baseUrl}/transfers/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+
+      console.log("📨 OTP sent automatically:", data.message);
+
+      // start 30s cooldown after automatic send
+      setCooldown(30);
+    } catch (err: any) {
+      console.error("❌ Automatic OTP send failed:", err.message || err);
+      setError(err.message || "Failed to send OTP automatically");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  sendOtpIfNull();
+}, [transfer, token]);
+
 React.useEffect(() => {
   if (cooldown <= 0) return
 
