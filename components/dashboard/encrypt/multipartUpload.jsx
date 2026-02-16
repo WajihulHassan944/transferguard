@@ -505,24 +505,32 @@ export const handleMultipartSubmit = async ({
     pool?.terminate();
 
     // ---- complete multipart
-    const completeRes = await fetch(`${baseUrl}/transfers/multipart/complete`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        uploadId,
-        key,
-        parts: uploadedParts
-          .filter((p) => p && p.PartNumber)
-          .sort((a, b) => a.PartNumber - b.PartNumber),
-      }),
-      signal: abortSignal,
-    });
+  /* ---------------- COMPLETE MULTIPART ---------------- */
 
-    const completeData = await completeRes.json().catch(() => ({}));
-    if (!completeRes.ok) {
-      throw new Error(completeData?.message || "Multipart complete failed");
-    }
+const completeRes = await fetch(`${baseUrl}/transfers/multipart/complete`, {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    uploadId,
+    key,
+  }),
+  signal: abortSignal,
+});
+
+
+/* ---------------- HANDLE RESPONSE ---------------- */
+
+const completeData = await completeRes.json().catch(() => ({}));
+
+if (!completeRes.ok) {
+  throw new Error(
+    completeData?.message || "Multipart complete failed"
+  );
+}
+
 
     // ---- metadata save
     const metaRes = await fetch(`${baseUrl}/transfers/create`, {
