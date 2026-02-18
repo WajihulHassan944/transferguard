@@ -35,6 +35,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { deriveEncryptionKey } from "@/components/dashboard/encrypt/deriveKey";
 import { createDecryptWorker } from "@/components/dashboard/decrypt/decryptClient";
+import { getLoginMeta } from "@/hooks/getLoginMeta";
 
 const defaultBrandColor = "hsl(217, 91%, 50%)"
 
@@ -220,6 +221,7 @@ async function decryptMultipartObjectToBlob({
     dec.terminate();
   }
 }
+
 const handleDownload = async () => {
   if (!receiptAccepted) return;
 
@@ -251,7 +253,6 @@ const handleDownload = async () => {
       }
       throw new Error(data.message || "Failed to resolve download");
     }
-
     const {
       fileName,
       downloadUrl,
@@ -303,6 +304,8 @@ const handleDownload = async () => {
     a.click();
     URL.revokeObjectURL(url);
 
+const loginMeta = await getLoginMeta();
+console.log("login meta is", loginMeta);
     // confirmation email
     if (senderEmail && recipientEmail && caseRef) {
       await fetch(`${baseUrl}/transfers/confirm-download`, {
@@ -313,6 +316,7 @@ const handleDownload = async () => {
           sender_email: senderEmail,
           recipient_email: recipientEmail,
           transfer_id: caseRef,
+           login_meta: loginMeta,
         }),
       });
     }

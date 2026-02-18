@@ -1,27 +1,10 @@
+import { baseUrl } from "@/const";
+
 export const getLoginMeta = async () => {
   try {
-    const res = await fetch("https://ipwho.is/");
-    const data = await res.json();
-
-    if (!data.success) throw new Error("IP lookup failed");
-
-    return {
-      ip_address: data.ip,
-      country: data.country,
-      city: data.city,
-      region: data.region,
-      timezone: data.timezone?.id,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      isp: data.connection?.isp,
-      user_agent: navigator.userAgent,
-      device_type: /mobile/i.test(navigator.userAgent)
-        ? "mobile"
-        : "desktop",
-      timestamp: new Date().toISOString(),
-    };
+    const res = await fetch(`${baseUrl}/transfers/login-meta`);
+    return await res.json();
   } catch {
-    // Fallback if IP service fails
     return {
       ip_address: null,
       country: null,
