@@ -70,6 +70,7 @@ interface Transfer {
   downloaded_at: string | null;
   revoked_at: string | null;
   verified_at: string | null;
+audit_certificate?: string | null;
   created_at: string;
   files?: TransferFile[];
 }
@@ -156,7 +157,8 @@ export function TransfersPanel({ userId }: TransfersPanelProps) {
   const [isRevoking, setIsRevoking] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-useEffect(() => {
+
+  useEffect(() => {
   const fetchTransfers = async () => {
     try {
       setLoading(true);
@@ -526,15 +528,16 @@ const handleRevoke = async () => {
                             </Button>
                           )}
 
-                          {isDownloaded && (
-                            <Button
-                              size="sm"
-                              className="bg-cta hover:bg-cta/90 text-cta-foreground h-9 text-xs px-4"
-                            >
-                              <Download className="h-3.5 w-3.5 mr-1.5" />
-                              Certificate
-                            </Button>
-                          )}
+                        {transfer.audit_certificate && (
+  <Button
+    size="sm"
+    onClick={() => window.open(transfer.audit_certificate!, "_blank")}
+    className="bg-cta hover:bg-cta/90 text-cta-foreground h-9 text-xs px-4"
+  >
+    <Download className="h-3.5 w-3.5 mr-1.5" />
+    Certificate
+  </Button>
+)}
                         </div>
                       </div>
                     </div>
@@ -586,6 +589,16 @@ const handleRevoke = async () => {
                         )}>
                           {status.label.split(" ")[0]}
                         </span>
+                        {transfer.audit_certificate && (
+  <Button
+    size="sm"
+    onClick={() => window.open(transfer.audit_certificate!, "_blank")}
+    className="bg-cta hover:bg-cta/90 text-cta-foreground h-9 text-xs px-4 w-full"
+  >
+    <Download className="h-3.5 w-3.5 mr-1.5" />
+    Certificate
+  </Button>
+)}
                       </div>
                     </div>
                   </div>
