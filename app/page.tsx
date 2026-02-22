@@ -64,14 +64,17 @@ const role =
       <ScrollReveal delay={100}>
         <ProtectionLevelSection />
       </ScrollReveal>
+       <ScrollReveal>
+        <CertificateSection />
+      </ScrollReveal>
       <ScrollReveal>
         <section id="pricing">
           <PricingSection />
         </section>
       </ScrollReveal>
-      <ScrollReveal delay={100}>
+      {/* <ScrollReveal delay={100}>
         <ClientPortalSection />
-      </ScrollReveal>
+      </ScrollReveal> */}
       <ScrollReveal>
         <FAQSection />
       </ScrollReveal>

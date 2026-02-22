@@ -17,7 +17,7 @@ const content = {
     page: "Page",
   },
   nl: {
-    viewCertificate: "Bekijk PDF Bewijs",
+    viewCertificate: "Bekijk volledig PDF Bewijs",
     certificateTitle: "Bewijs Certificaat",
     scrollHint: "Scroll om het volledige document te bekijken",
     page: "Pagina",
@@ -30,7 +30,6 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const isLegal = variant === "legal";
-  const accentColor = isLegal ? "amber" : "primary";
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -39,11 +38,11 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
           className={cn(
             "mt-6 group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full",
             "text-sm font-semibold transition-all duration-300",
-            "hover:scale-105 hover:shadow-lg",
+            "hover:scale-105 hover:shadow-md",
             isLegal
-              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-amber-500/25"
-              : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-primary/25",
-            "shadow-md"
+              ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/10"
+              : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-primary/10",
+            "shadow-sm"
           )}
         >
           <Eye className="w-4 h-4" />
@@ -52,7 +51,7 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
             className={cn(
               "absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center",
               "bg-white shadow-sm",
-              isLegal ? "text-amber-600" : "text-primary"
+              isLegal ? "text-emerald-600" : "text-primary"
             )}
           >
             <FileText className="w-3 h-3" />
@@ -67,7 +66,7 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
           className={cn(
             "sticky top-0 z-10 px-6 py-4 border-b",
             isLegal
-              ? "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200"
+              ? "bg-gradient-to-r from-emerald-50 to-emerald-100/50 border-emerald-200"
               : "bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20"
           )}
         >
@@ -75,13 +74,13 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
             <div
               className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center",
-                isLegal ? "bg-amber-500 text-white" : "bg-primary text-primary-foreground"
+                isLegal ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground"
               )}
             >
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h3 className={cn("font-bold", isLegal ? "text-amber-900" : "text-foreground")}>
+              <h3 className={cn("font-bold", isLegal ? "text-emerald-900" : "text-foreground")}>
                 {t.certificateTitle}
               </h3>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -104,7 +103,7 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
                 className={cn(
                   "rounded-xl overflow-hidden border-2 shadow-xl transition-all duration-300",
                   "group-hover:shadow-2xl",
-                  isLegal ? "border-amber-300" : "border-primary/30"
+                  isLegal ? "border-emerald-300" : "border-primary/30"
                 )}
               >
                 <img
@@ -124,12 +123,32 @@ export const CertificatePreview = ({ variant }: CertificatePreviewProps) => {
                 className={cn(
                   "rounded-xl overflow-hidden border-2 shadow-xl transition-all duration-300",
                   "group-hover:shadow-2xl",
-                  isLegal ? "border-amber-300" : "border-primary/30"
+                  isLegal ? "border-emerald-300" : "border-primary/30"
                 )}
               >
                 <img
                   src="/assets/certificate-legal-page2.jpg"
                   alt="Certificate Page 2"
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
+
+            {/* Page 3 */}
+            <div className="relative group">
+              <div className="absolute -top-2 -left-2 px-2 py-1 rounded-md text-xs font-medium bg-background border shadow-sm">
+                {t.page} 3
+              </div>
+              <div
+                className={cn(
+                  "rounded-xl overflow-hidden border-2 shadow-xl transition-all duration-300",
+                  "group-hover:shadow-2xl",
+                  isLegal ? "border-emerald-300" : "border-primary/30"
+                )}
+              >
+                <img
+                  src="/assets/certificate-legal-page3.jpg"
+                  alt="Certificate Page 3"
                   className="w-full h-auto"
                 />
               </div>

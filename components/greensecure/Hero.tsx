@@ -10,10 +10,10 @@ export const Hero = () => {
 
   const content = {
     en: {
-      headline1: "Undisputable Evidence for",
+      headline1: "Verified proof of delivery for",
       headline2: "Every File Transfer.",
       subtitle:
-        "Stop the 'I didn't receive it' debate. Turn every transfer into court-admissible evidence with audit-ready logs.",
+        "Never miss the proof that someone received your file. Turn every transfer into court-admissible evidence with audit-ready logs.",
       bullets: [
         { text: "Secure large dossiers up to ", bold: "100GB" },
         { text: "Guarantee professional secrecy with ", bold: "E2EE" },
@@ -25,7 +25,7 @@ export const Hero = () => {
       gdpr: "GDPR",
       gdprSub: "Compliant",
       iso: "ISO 27001",
-      isoSub: "Certified",
+      isoSub: "Certified hosting",
       legal: "LEGAL",
       idVerified: "ID Verified",
       biometric: "Biometric",
@@ -39,12 +39,12 @@ export const Hero = () => {
     },
     nl: {
       headline1: "Dossieroverdracht met",
-      headline2: "onweerlegbaar bewijs van ontvangst.",
+      headline2: "geverifieerde bewijskracht van ontvangst.",
       subtitle:
-        "Stop de 'ik heb het niet ontvangen' discussie. Maak van elke overdracht juridisch bewijs met audit-ready logs.",
+        "Mis nooit meer het bewijs als iemand uw bestanden heeft ontvangen. Maak van elke overdracht juridisch bewijs met audit-ready logs.",
       bullets: [
-        { text: "Verstuur grote dossiers tot ", bold: "100GB" },
-        { text: "Gegarandeerd beroepsgeheim met ", bold: "E2EE" },
+        { text: "Verstuur wereldwijd dossiers tot ", bold: "100GB" },
+        { text: "Beroepsgeheim met ", bold: "256-bit End-to-End Encryptie" },
         { text: "Onweerlegbaar biometrisch ontvangstbewijs", bold: "" },
       ],
       cta: "Probeer 14 dagen gratis",
@@ -53,8 +53,8 @@ export const Hero = () => {
       gdpr: "AVG",
       gdprSub: "Conform",
       iso: "ISO 27001",
-      isoSub: "Gecertificeerd",
-      legal: "JURIDISCH",
+      isoSub: "Gecertificeerde hosting",
+      legal: "VERIFIED IDENTITY",
       idVerified: "ID Geverifieerd",
       biometric: "Biometrisch",
       identityVerified: "IDENTITEIT GEVERIFIEERD",
@@ -62,7 +62,7 @@ export const Hero = () => {
       privacy: (
         <>
           Geen advertenties. Geen dataverkoop.{" "}
-          <span className="text-foreground font-medium">100% EU privacy gericht.</span>
+          <span className="text-foreground font-medium">100% EU. Privacy gewaarborgd.</span>
         </>
       ),
     },
@@ -71,7 +71,7 @@ export const Hero = () => {
   const c = content[language];
 
   return (
-    <section className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden bg-background">
+    <section className="relative py-10 md:py-16 lg:py-20 px-4 overflow-hidden bg-background">
       {/* Subtle gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent pointer-events-none" />
 
@@ -163,11 +163,11 @@ export const Hero = () => {
               </div>
 
               {/* ID Verification Badge */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-3 rounded-xl border border-amber-200 bg-amber-50/50 hover:border-amber-300 transition-colors relative">
-                <div className="absolute -top-2 -right-1 sm:-right-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-3 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 transition-colors relative">
+                <div className="absolute -top-2 -right-1 sm:-right-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm">
                   {c.legal}
                 </div>
-                <div className="h-5 w-5 sm:h-7 sm:w-7 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center flex-shrink-0">
+                <div className="h-5 w-5 sm:h-7 sm:w-7 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
                   <svg
                     className="h-3 w-3 sm:h-4 sm:w-4 text-white"
                     viewBox="0 0 24 24"
@@ -198,7 +198,7 @@ export const Hero = () => {
               <img
                 src="/assets/hero-id-verification.png"
                 alt="Identity verification with passport and facial recognition"
-                className="w-full h-[280px] sm:h-[320px] md:h-[380px] lg:h-[420px] object-cover object-[center_20%] rounded-2xl shadow-2xl"
+                className="w-full h-[280px] sm:h-[320px] md:h-[380px] lg:h-[420px] object-cover object-[40%_20%] rounded-2xl shadow-2xl"
               />
 
               {/* Identity Verified Overlay Card */}

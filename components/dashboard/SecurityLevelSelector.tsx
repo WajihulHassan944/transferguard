@@ -1,30 +1,44 @@
-import { Lock, Shield, Fingerprint, LucideIcon, Coins, ArrowUpRight, Clock, CheckCircle2 } from "lucide-react";
+import { Lock, Fingerprint, Mail, Smartphone, LucideIcon, Coins, ArrowUpRight, Clock, Sparkles, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export type SecurityLevel = "starter" | "professional" | "eidas_qualified";
+export type SecurityLevel = "email" | "sms" | "email_sms" | "id_verification";
 
 export interface SecurityLevelOption {
   id: SecurityLevel;
   labelKey: string;
   descriptionKey: string;
   Icon: LucideIcon;
-  requiredPlan: "free" | "starter" | "professional" | "premium" | "enterprise";
+  requiredPlan: "free" | "professional" | "premium";
   creditCost?: number;
 }
 
 export const SECURITY_LEVELS: SecurityLevelOption[] = [
   {
-    id: "professional",
-    labelKey: "professional",
-    descriptionKey: "professionalDesc",
-    Icon: Shield,
+    id: "email",
+    labelKey: "emailLabel",
+    descriptionKey: "emailDesc",
+    Icon: Mail,
+    requiredPlan: "free",
+  },
+  {
+    id: "sms",
+    labelKey: "smsLabel",
+    descriptionKey: "smsDesc",
+    Icon: Smartphone,
     requiredPlan: "professional",
   },
   {
-    id: "eidas_qualified",
-    labelKey: "legal",
+    id: "email_sms",
+    labelKey: "emailSmsLabel",
+    descriptionKey: "emailSmsDesc",
+    Icon: MailCheck,
+    requiredPlan: "professional",
+  },
+  {
+    id: "id_verification",
+    labelKey: "legalLabel",
     descriptionKey: "legalDesc",
     Icon: Fingerprint,
     requiredPlan: "premium",
@@ -36,10 +50,11 @@ export const SECURITY_LEVELS: SecurityLevelOption[] = [
 const PLAN_HIERARCHY: Record<string, number> = {
   free: 0,
   starter: 1,
-  trial: 2, // Trial has same access as professional
+  trial: 2, // Trial has Email 2FA + PDF access, but SMS is limited to 5 credits
+  pro: 2,
   professional: 2,
   premium: 3,
-  legal: 3, // Legal plan has premium access
+  legal: 3,
   enterprise: 4,
 };
 
@@ -61,23 +76,51 @@ export const getTrialDaysRemaining = (createdAt: string): number => {
 };
 
 const getContent = (language: string) => ({
-  stepTitle: language === 'nl' ? "Stap 2: Kies bewijsniveau" : "Step 2: Choose evidence level",
-  professional: "Professional Evidence",
-  professionalDesc: language === 'nl' 
-    ? "Email verificatie & Tijdstempel" 
-    : "Email verification & Timestamp",
-  professionalBadge: language === 'nl' ? "Inbegrepen in uw proefperiode" : "Included in your trial",
-  legal: "Full Legal Evidence",
+  sectionTitle: language === 'nl' ? "Verificatiemethode" : "Verification Method",
+  emailLabel: language === 'nl' ? "E-mailverificatie" : "Email Verification",
+  emailDesc: language === 'nl' ? "Ontvanger verifieert via e-mail" : "Recipient verifies via email",
+  emailEvidence: language === 'nl' ? "Basis bewijskracht — e-mailbevestiging van ontvangst" : "Basic strength of evidence — email confirmation of receipt",
+  emailBadge: language === 'nl' ? "Secure Transfer" : "Secure Transfer",
+  smsLabel: language === 'nl' ? "SMS verificatie" : "SMS Verification",
+  smsDesc: language === 'nl' ? "Ontvanger verifieert via SMS code" : "Recipient verifies via SMS code",
+  smsEvidence: language === 'nl' ? "Sterke bewijskracht — bewijs van identiteit via telefoonnummer" : "Strong strength of evidence — proof of identity via phone number",
+  smsBadge: language === 'nl' ? "Certified Delivery & Verified Identity" : "Certified Delivery & Verified Identity",
+  emailSmsLabel: language === 'nl' ? "E-mail + SMS verificatie" : "Email + SMS Verification",
+  emailSmsDesc: language === 'nl' ? "Dubbele verificatie via e-mail én SMS" : "Dual verification via email and SMS",
+  emailSmsEvidence: language === 'nl' ? "Sterke bewijskracht — bewijs van identiteit via e-mail én telefoonnummer" : "Strong strength of evidence — proof of identity via email and phone number",
+  emailSmsBadge: language === 'nl' ? "Certified Delivery & Verified Identity" : "Certified Delivery & Verified Identity",
+  smsUpgradeText: language === 'nl' 
+    ? "Beschikbaar bij Certified Delivery (trial: 5 SMS-credits inbegrepen)" 
+    : "Available with Certified Delivery (trial: 5 SMS credits included)",
+  legalLabel: language === 'nl' ? "ID check + Biometrische verificatie" : "ID Check + Biometric Verification",
   legalDesc: language === 'nl' 
-    ? "Biometrische paspoort-check" 
-    : "Biometric passport verification",
-  legalBadge: language === 'nl' ? "Upgrade vereist" : "Upgrade required",
+    ? "Onweerlegbaar bewijs via paspoort & biometrische match" 
+    : "Irrefutable proof via passport & biometric match",
+  legalEvidence: language === 'nl' ? "Maximale bewijskracht — onweerlegbare identificatie van de ontvanger" : "Maximum evidence — irrefutable identification of recipient",
+  legalBadge: language === 'nl' ? "Alleen Verified Identity" : "Verified Identity Only",
+  legalUpgradeText: language === 'nl' 
+    ? "Exclusief beschikbaar bij het Verified Identity abonnement" 
+    : "Exclusively available with the Verified Identity plan",
+  legalNote: language === 'nl'
+    ? "ID verificatie vervangt e-mail en SMS verificatie — deze worden niet gecombineerd."
+    : "ID verification replaces email and SMS verification — these are not combined.",
+  included: language === 'nl' ? "Inbegrepen" : "Included",
   trialDays: language === 'nl' ? "dagen over in proefperiode" : "days remaining in trial",
   trialExpired: language === 'nl' ? "Proefperiode verlopen" : "Trial expired",
-  upgradeToPro: language === 'nl' ? "Upgrade naar Pro" : "Upgrade to Pro",
+  upgradeNow: language === 'nl' ? "Upgrade nu" : "Upgrade now",
+  upgradeToPro: language === 'nl' ? "Activeer Certified Delivery" : "Activate Certified Delivery",
+  upgradeToLegal: language === 'nl' ? "Activeer Verified Identity" : "Activate Verified Identity",
+  unlockSms: language === 'nl' 
+    ? "Activeer SMS verificatie met een Certified Delivery of Verified Identity abonnement" 
+    : "Unlock SMS verification with a Certified Delivery or Verified Identity plan",
+  unlockLegal: language === 'nl' 
+    ? "Ontgrendel de hoogste bewijskracht met het Verified Identity abonnement" 
+    : "Unlock the highest level of evidence with the Verified Identity plan",
   credits: language === 'nl' ? "credits" : "credits",
   costsCredit: language === 'nl' ? "Kost 1 credit" : "Costs 1 credit",
-  noCredits: language === 'nl' ? "Geen credits meer. Credits worden maandelijks aangevuld." : "No credits remaining. Credits reset monthly.",
+  noCredits: language === 'nl' ? "Geen credits meer" : "No credits remaining",
+  buyCredits: language === 'nl' ? "Credits kopen" : "Buy credits",
+  strongestProof: language === 'nl' ? "Sterkste juridische bewijskracht" : "Strongest legal strength of evidence",
 });
 
 interface SecurityLevelSelectorProps {
@@ -89,6 +132,7 @@ interface SecurityLevelSelectorProps {
   trialDaysRemaining?: number;
   onUpgradeToPro?: () => void;
   onLegalTrialClick?: () => void;
+  onBuyCreditsClick?: () => void;
 }
 
 export function SecurityLevelSelector({
@@ -100,35 +144,30 @@ export function SecurityLevelSelector({
   trialDaysRemaining,
   onUpgradeToPro,
   onLegalTrialClick,
+  onBuyCreditsClick,
 }: SecurityLevelSelectorProps) {
   const { language } = useLanguage();
   const content = getContent(language);
   
-  const isTrial = userPlan.toLowerCase() === "trial";
-  const isProfessional = userPlan.toLowerCase() === "professional";
-  const showUpgradeToLegal = isTrial || isProfessional;
+  const normalizedPlan = userPlan.toLowerCase();
+  const isTrial = normalizedPlan === "trial";
+  const isProfessional = normalizedPlan === "professional" || normalizedPlan === "pro";
+  const isLegalPlan = normalizedPlan === "legal" || normalizedPlan === "premium";
 
   const handleLevelClick = (levelId: SecurityLevel, hasAccess: boolean, canSelect: boolean) => {
-    if (levelId === "eidas_qualified" && !hasAccess && isTrial) {
-      // Trial user clicking on Legal - show the trial modal
-      onLegalTrialClick?.();
-    } else if (canSelect) {
+    if (canSelect) {
       onChange(levelId);
+    } else if ((levelId === "sms" || levelId === "email_sms") && !hasAccess) {
+      onUpgradeToPro?.();
+    } else if (levelId === "id_verification" && !hasAccess && isTrial) {
+      onLegalTrialClick?.();
     } else if (!hasAccess) {
       onUpgradeClick?.();
     }
   };
 
   return (
-    <div className="space-y-3">
-      {/* Step Title */}
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-          2
-        </div>
-        {content.stepTitle}
-      </div>
-
+    <div className="space-y-1.5">
       {/* Trial Status Banner */}
       {isTrial && trialDaysRemaining !== undefined && (
         <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
@@ -151,41 +190,49 @@ export function SecurityLevelSelector({
             }}
           >
             <ArrowUpRight className="h-3 w-3 mr-1" />
-            {content.upgradeToPro}
+            {content.upgradeNow}
           </Button>
         </div>
       )}
 
-      <div className="grid gap-2">
+      <div className="grid gap-1.5">
         {SECURITY_LEVELS.map((level) => {
           const hasAccess = hasAccessToLevel(userPlan, level.requiredPlan);
           const isSelected = value === level.id;
-          const isLegal = level.id === "eidas_qualified";
+          const isEmail = level.id === "email";
+          const isSms = level.id === "sms";
+          const isEmailSms = level.id === "email_sms";
+          const isLegal = level.id === "id_verification";
           const hasCredits = legalCreditsRemaining > 0;
-          const canSelect = hasAccess && (!isLegal || hasCredits);
+          const canSelect = hasAccess;
           
-          // Show upgrade badge for Legal level if user is on trial or professional
-          const showLegalUpgrade = isLegal && !hasAccess && showUpgradeToLegal;
+          // Who sees upgrade buttons
+          const showSmsUpgrade = (isSms || isEmailSms) && !hasAccess;
+          const showLegalUpgrade = isLegal && !isLegalPlan;
 
           return (
             <div
               key={level.id}
               onClick={() => handleLevelClick(level.id, hasAccess, canSelect)}
-              className={`relative flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+              className={`relative flex items-start gap-2.5 p-3 rounded-lg border-2 transition-all cursor-pointer ${
                 isLegal
                   ? isSelected && canSelect
-                    ? "border-amber-400 bg-amber-50/50"
-                    : "border-amber-200 bg-amber-50/30 hover:border-amber-300"
-                  : isSelected
+                    ? "border-emerald-300/70 bg-emerald-50/30"
+                    : showLegalUpgrade 
+                      ? "border-emerald-100/80 bg-emerald-50/10 hover:border-emerald-200/60"
+                      : "border-emerald-100 bg-emerald-50/10 hover:border-emerald-200/60"
+                  : isSelected && canSelect
                     ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50 bg-card/50"
+                    : showSmsUpgrade
+                      ? "border-border/60 bg-muted/30 hover:border-primary/30"
+                      : "border-border hover:border-primary/50 bg-card/50"
               }`}
             >
               {/* Radio indicator */}
               <div className={`flex items-center justify-center w-5 h-5 mt-0.5 rounded-full border-2 shrink-0 ${
                 isSelected && canSelect
                   ? isLegal
-                    ? "border-amber-500 bg-amber-500"
+                    ? "border-emerald-500 bg-emerald-500"
                     : "border-primary bg-primary"
                   : "border-muted-foreground/40"
               }`}>
@@ -196,71 +243,148 @@ export function SecurityLevelSelector({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <level.Icon className={`h-4 w-4 ${isLegal ? "text-amber-600" : "text-primary"}`} />
-                  <span className={`font-semibold text-sm ${!canSelect && !showLegalUpgrade ? "text-muted-foreground" : ""}`}>
+                  <level.Icon className={`h-4 w-4 ${
+                    (showSmsUpgrade || showLegalUpgrade) ? "text-muted-foreground/50" : isLegal ? "text-emerald-600" : "text-primary"
+                  }`} />
+                  <span className={`font-semibold text-sm ${
+                    (showSmsUpgrade || showLegalUpgrade) ? "text-muted-foreground/50" : ""
+                  }`}>
                     {content[level.labelKey as keyof typeof content] as string}
                   </span>
                   
-                  {/* Trial badge for professional */}
-                  {!isLegal && isTrial && (
+                  {/* Email: Standard badge */}
+                  {isEmail && (
                     <Badge variant="secondary" className="text-[10px] px-2 py-0 bg-primary/10 text-primary border-0">
-                      {content.professionalBadge}
+                      {content.emailBadge}
+                    </Badge>
+                  )}
+
+                  {/* SMS / Email+SMS: Plan badge for paid users */}
+                  {(isSms || isEmailSms) && hasAccess && (
+                    <Badge variant="secondary" className="text-[10px] px-2 py-0 bg-primary/10 text-primary border-0">
+                      {isSms ? content.smsBadge : content.emailSmsBadge}
                     </Badge>
                   )}
                   
-                  {/* Lock icon for Legal if not accessible */}
-                  {isLegal && !hasAccess && (
-                    <Badge variant="outline" className="text-[10px] px-2 py-0 border-amber-400 text-amber-600 bg-amber-50">
+                  {/* SMS / Email+SMS: Lock badge for trial users */}
+                  {(isSms || isEmailSms) && !hasAccess && (
+                    <Badge variant="outline" className="text-[10px] px-2 py-0 border-primary/30 text-primary/70 bg-primary/5">
+                      <Lock className="h-2.5 w-2.5 mr-1" />
+                      {isSms ? content.smsBadge : content.emailSmsBadge}
+                    </Badge>
+                  )}
+                  
+                  {/* Legal: Lock badge for non-legal users */}
+                  {isLegal && !isLegalPlan && (
+                    <Badge variant="outline" className="text-[10px] px-2 py-0 border-emerald-200 text-emerald-600/80 bg-emerald-50/30">
                       <Lock className="h-2.5 w-2.5 mr-1" />
                       {content.legalBadge}
                     </Badge>
                   )}
                   
-                  {/* Credits badge for Legal with access */}
-                  {isLegal && hasAccess && (
-                    <Badge variant={hasCredits ? "secondary" : "destructive"} className="text-[10px] px-2 py-0">
+                  {/* Credits badge - ONLY for Legal plan users with access */}
+                  {isLegal && isLegalPlan && hasCredits && (
+                    <Badge variant="secondary" className="text-[10px] px-2 py-0">
                       <Coins className="h-3 w-3 mr-1" />
                       {legalCreditsRemaining}/10 {content.credits}
                     </Badge>
                   )}
-                  
-                  {/* Cost badge */}
-                  {level.creditCost && hasAccess && (
-                    <Badge variant="outline" className="text-[10px] px-2 py-0 border-amber-400/50 text-amber-600">
-                      {content.costsCredit}
-                    </Badge>
-                  )}
                 </div>
-                <p className={`text-xs mt-1 ${!canSelect && !showLegalUpgrade ? "text-muted-foreground/70" : "text-muted-foreground"}`}>
+                
+                <p className={`text-xs mt-1 ${
+                  (showSmsUpgrade || showLegalUpgrade) ? "text-muted-foreground/40" : "text-muted-foreground"
+                }`}>
                   {content[level.descriptionKey as keyof typeof content] as string}
                 </p>
                 
-                {isLegal && hasAccess && !hasCredits && (
-                  <p className="text-xs text-destructive mt-1">
-                    {content.noCredits}
+                {/* Evidence strength indicator */}
+                <p className={`text-[11px] mt-0.5 italic hidden sm:block ${
+                  (showSmsUpgrade || showLegalUpgrade) ? "text-muted-foreground/40" : isLegal ? "text-emerald-600/70" : "text-primary/60"
+                }`}>
+                  {isEmail && content.emailEvidence}
+                  {isSms && content.smsEvidence}
+                  {isEmailSms && content.emailSmsEvidence}
+                  {isLegal && content.legalEvidence}
+                </p>
+
+                {/* Note: ID verification replaces email/sms */}
+                {isLegal && isSelected && canSelect && (
+                  <p className="text-[11px] mt-1.5 text-emerald-600/70 bg-emerald-50/30 border border-emerald-100 rounded px-2 py-1">
+                    {content.legalNote}
                   </p>
                 )}
+                
+                {/* SMS upgrade prompt for trial users */}
+                {showSmsUpgrade && isSms && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
+                    <p className="text-xs text-primary/80 mb-2">
+                      {content.smsUpgradeText}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-7 px-3 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpgradeToPro?.();
+                      }}
+                    >
+                      <ArrowUpRight className="h-3 w-3 mr-1" />
+                      {content.upgradeToPro}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Legal upgrade prompt for trial & professional users */}
+                {showLegalUpgrade && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-emerald-50/30 border border-emerald-100">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Sparkles className="h-3 w-3 text-emerald-500" />
+                      <span className="text-xs font-semibold text-emerald-600">
+                        {content.strongestProof}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {content.legalUpgradeText}
+                    </p>
+                    <Button
+                      size="sm"
+                      className="text-xs h-7 px-3 bg-emerald-500 hover:bg-emerald-600 text-white border-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isTrial) {
+                          onLegalTrialClick?.();
+                        } else {
+                          onUpgradeClick?.();
+                        }
+                      }}
+                    >
+                      <ArrowUpRight className="h-3 w-3 mr-1" />
+                      {content.upgradeToLegal}
+                    </Button>
+                  </div>
+                )}
+
+                {/* No credits warning - ONLY for Legal plan users */}
+                {isLegal && isLegalPlan && !hasCredits && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-emerald-50/30 border border-emerald-100">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {content.noCredits}
+                    </p>
+                    <Button
+                      size="sm"
+                      className="text-xs h-7 px-3 bg-emerald-500 hover:bg-emerald-600 text-white border-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onBuyCreditsClick?.();
+                      }}
+                    >
+                      <Coins className="h-3 w-3 mr-1" />
+                      {content.buyCredits}
+                    </Button>
+                  </div>
+                )}
               </div>
-              
-              {/* Upgrade button for Legal level */}
-              {showLegalUpgrade && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="shrink-0 text-xs h-7 px-2 border-amber-400 text-amber-600 hover:bg-amber-50 hover:text-amber-700"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isTrial) {
-                      onLegalTrialClick?.();
-                    } else {
-                      onUpgradeClick?.();
-                    }
-                  }}
-                >
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  Upgrade
-                </Button>
-              )}
             </div>
           );
         })}

@@ -32,8 +32,9 @@ import { ClientWorkspacesPanel } from "@/components/dashboard/ClientWorkspacesPa
 import { SubscriptionPanel } from "@/components/dashboard/SubscriptionPanel";
 import { BillingPanel } from "@/components/dashboard/BillingPanel";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { PdfSignPanel } from "@/components/dashboard/PdfSignPanel";
 
-export type DashboardView = "transfers" | "certificates" | "contacts" | "teams" | "profile" | "branding" | "security" | "portals" | "workspaces" | "subscription" | "billing";
+export type DashboardView = "pdf-sign" | "transfers" | "certificates" | "contacts" | "teams" | "profile" | "branding" | "security" | "portals" | "workspaces" | "subscription" | "billing";
 
 const proFeatures = [
   {
@@ -93,45 +94,18 @@ type User = {
   name: string;
   plan: string;
 };
-const usered = useAppSelector((state) => state.user);
+const user = useAppSelector((state) => state.user);
 
-  console.log("usr is", usered);
-const [user, setUser] = useState<User | null>(null);
+  console.log("usr is", user);
 const [session, setSession] = useState<{ user: User } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<DashboardView>("transfers");
   const [userPlan, setUserPlan] = useState<string>("free");
   const [checkingPlan, setCheckingPlan] = useState(true);
   const [transfersKey, setTransfersKey] = useState(0);
 const router = useRouter();
-  useEffect(() => {
-  // Simulate loading
-  setTimeout(() => {
-    const dummyUser = {
-      id: "123456",
-      email: "dummy@example.com",
-      name: "John Doe",
-      plan: "free",
-    };
-
-    setUser(dummyUser);
-    setSession({ user: dummyUser });
-    setUserPlan("free"); // or "pro"
-    setLoading(false);
-    setCheckingPlan(false);
-  }, 500);
-}, []);
-
   const isPaidUser = userPlan === "pro" || userPlan === "premium";
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
+ 
   if (!user) {
     return null;
   }
@@ -263,14 +237,6 @@ const router = useRouter();
     );
   }
 
-  // Show loading while checking plan
-  if (checkingPlan) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Checking subscription...</div>
-      </div>
-    );
-  }
 
   const handleTransferCreated = () => {
     setTransfersKey(prev => prev + 1);
@@ -279,32 +245,34 @@ const router = useRouter();
   const renderContent = () => {
     switch (activeView) {
       case "transfers":
-        return <TransfersPanel key={transfersKey} userId={user.id} />;
+        return <TransfersPanel key={transfersKey}  />;
       case "certificates":
-        return <CertificatesPanel userId={user.id} />;
+        return <CertificatesPanel />;
+      case "pdf-sign":
+        return <PdfSignPanel />;
       case "portals":
-        return <ClientPortalsPanel userId={user.id} />;
+        return <ClientPortalsPanel userId={user.id ?? "123"} />;
       case "workspaces":
-        return <ClientWorkspacesPanel userId={user.id} userEmail={user.email || ""} />;
+        return <ClientWorkspacesPanel userId={user.id ?? "123"} userEmail={user.email || ""} />;
       case "contacts":
-        return <ContactsPanel userId={user.id} />;
+        return <ContactsPanel userId={user.id ?? "123"} />;
       case "teams":
-        return <TeamsPanel userId={user.id} />;
+        return <TeamsPanel userId={user.id ?? "123"} />;
       case "branding":
-        return <BrandingPanel userId={user.id} isPro={isPaidUser} />;
+        return <BrandingPanel userId={user.id ?? "123"} isPro={isPaidUser} />;
       case "profile":
         return <ProfilePanel />;
       case "security":
-        return <SecurityPanel userId={user.id} />;
+        return <SecurityPanel userId={user.id ?? "123"} />;
       case "subscription":
-        return <SubscriptionPanel userId={user.id} />;
+        return <SubscriptionPanel userId={user.id ?? "123"} />;
       case "billing":
-        return <BillingPanel userId={user.id} />;
+        return <BillingPanel userId={user.id ?? "123"} />;
       default:
-        return <TransfersPanel key={transfersKey} userId={user.id} />;
+        return <TransfersPanel key={transfersKey}  />;
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-muted/30">
       <DashboardHeader />
@@ -312,9 +280,10 @@ const router = useRouter();
         <DashboardSidebar 
           activeView={activeView} 
           onViewChange={setActiveView} 
-          userId={user.id}
+          userId={user.id ?? "123"}
           userEmail={user.email || ""}
           onTransferCreated={handleTransferCreated}
+          effectivePlan={user.plan ?? undefined}
         />
       <main className="flex-1 p-4 md:p-8 overflow-auto">
           <div className="max-w-6xl mx-auto">

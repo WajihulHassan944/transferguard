@@ -1,4 +1,4 @@
-import { Upload, Download, Shield, Fingerprint, FileCheck, BadgeCheck, Lock, FileText } from "lucide-react";
+import { Upload, Download, Shield, Fingerprint, FileCheck, BadgeCheck, Lock, FileText, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
@@ -8,7 +8,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CertificatePreview } from "./CertificatePreview";
 
-type PlanType = "professional" | "legal";
+type PlanType = "starter" | "professional" | "legal";
 
 interface StepInfo {
   icon: React.ElementType;
@@ -20,15 +20,15 @@ interface StepInfo {
 const getSteps = (language: "en" | "nl") => {
   const content = {
     en: {
-      professional: [
+      starter: [
         {
           icon: Upload,
           title: "Upload & Send",
           tooltipTitle: "Secure File Transfer",
           tooltipDetails: [
             "AES-256 encryption in transit",
-            "Files up to 50GB supported",
-            "Automatic virus scanning",
+            "Files up to 10GB supported",
+            "500 GB total storage",
             "Zero-knowledge architecture",
           ],
         },
@@ -38,6 +38,60 @@ const getSteps = (language: "en" | "nl") => {
           tooltipTitle: "Two-Factor Authentication",
           tooltipDetails: [
             "6-digit one-time code via email",
+            "SMS verification (EU only, 20/mo)",
+            "Code expires after 15 minutes",
+            "Maximum 3 attempts allowed",
+            "IP address logged",
+          ],
+        },
+        {
+          icon: Download,
+          title: "Secure Download",
+          tooltipTitle: "Protected Download",
+          tooltipDetails: [
+            "Encrypted download channel",
+            "Download link expires after use",
+            "Browser fingerprint captured",
+            "Real-time notification to sender",
+          ],
+        },
+        {
+          icon: FileCheck,
+          title: "Access Granted",
+          tooltipTitle: "Complete Audit Trail",
+          tooltipDetails: [
+            "Timestamp with milliseconds",
+            "Geolocation data captured",
+            "Device information logged",
+            "Immutable audit record created",
+          ],
+        },
+        {
+          icon: FileText,
+          title: "Email Proof",
+          tooltipTitle: "Email Proof of Receipt",
+          tooltipDetails: ["Email delivery confirmation", "IP & Timestamp", "Device Fingerprint", "SHA-256 Hash"],
+        },
+      ],
+      professional: [
+        {
+          icon: Upload,
+          title: "Upload & Send",
+          tooltipTitle: "Secure File Transfer",
+          tooltipDetails: [
+            "AES-256 encryption in transit",
+            "Files up to 50GB supported",
+            "1 TB total storage",
+            "Zero-knowledge architecture",
+          ],
+        },
+        {
+          icon: Lock,
+          title: "2FA Verification",
+          tooltipTitle: "Two-Factor Authentication",
+          tooltipDetails: [
+            "6-digit one-time code via email",
+            "SMS verification code to phone",
             "Code expires after 15 minutes",
             "Maximum 3 attempts allowed",
             "IP address logged",
@@ -69,7 +123,7 @@ const getSteps = (language: "en" | "nl") => {
           icon: FileText,
           title: "PDF Proof",
           tooltipTitle: "PDF Proof of Receipt",
-          tooltipDetails: ["2FA Email Verified", "IP & Timestamp", "Device Fingerprint", "SHA-256 Hash"],
+          tooltipDetails: ["2FA Email Verified", "2FA SMS Verified", "IP & Timestamp", "Device Fingerprint", "SHA-256 Hash"],
         },
       ],
       legal: [
@@ -79,8 +133,7 @@ const getSteps = (language: "en" | "nl") => {
           tooltipTitle: "Secure File Transfer",
           tooltipDetails: [
             "AES-256 encryption in transit",
-            "Files up to 50GB supported",
-            "Automatic virus scanning",
+            "Files up to 100GB supported",
             "Zero-knowledge architecture",
           ],
         },
@@ -92,7 +145,7 @@ const getSteps = (language: "en" | "nl") => {
             "Government ID document scan",
             "Live biometric facial recognition",
             "AI-powered liveness detection",
-            "eIDAS compliant verification",
+            "EU-compliant data processing",
           ],
         },
         {
@@ -126,15 +179,15 @@ const getSteps = (language: "en" | "nl") => {
       ],
     },
     nl: {
-      professional: [
+      starter: [
         {
           icon: Upload,
           title: "Upload & Verstuur",
           tooltipTitle: "Veilige Bestandsoverdracht",
           tooltipDetails: [
             "AES-256 encryptie tijdens transport",
-            "Bestanden tot 50GB ondersteund",
-            "Automatische virusscan",
+            "Bestanden tot 10GB ondersteund",
+            "500 GB totale opslag",
             "Zero-knowledge architectuur",
           ],
         },
@@ -144,6 +197,60 @@ const getSteps = (language: "en" | "nl") => {
           tooltipTitle: "Tweefactor Authenticatie",
           tooltipDetails: [
             "6-cijferige eenmalige code via email",
+            "SMS verificatiecode (alleen EU, 20/mnd)",
+            "Code verloopt na 15 minuten",
+            "Maximaal 3 pogingen toegestaan",
+            "IP-adres geregistreerd",
+          ],
+        },
+        {
+          icon: Download,
+          title: "Veilige Download",
+          tooltipTitle: "Beschermde Download",
+          tooltipDetails: [
+            "Versleuteld downloadkanaal",
+            "Downloadlink verloopt na gebruik",
+            "Browser fingerprint vastgelegd",
+            "Realtime melding naar verzender",
+          ],
+        },
+        {
+          icon: FileCheck,
+          title: "Toegang Verleend",
+          tooltipTitle: "Complete Audit Trail",
+          tooltipDetails: [
+            "Tijdstempel met milliseconden",
+            "Geolocatiedata vastgelegd",
+            "Apparaatinformatie gelogd",
+            "Onveranderlijk auditrecord aangemaakt",
+          ],
+        },
+        {
+          icon: FileText,
+          title: "E-mail Bewijs",
+          tooltipTitle: "E-mail Bewijs van Ontvangst",
+          tooltipDetails: ["E-mail leveringsbevestiging", "IP & Tijdstempel", "Apparaat Fingerprint", "SHA-256 Hash"],
+        },
+      ],
+      professional: [
+        {
+          icon: Upload,
+          title: "Upload & Verstuur",
+          tooltipTitle: "Veilige Bestandsoverdracht",
+          tooltipDetails: [
+            "AES-256 encryptie tijdens transport",
+            "Bestanden tot 50GB ondersteund",
+            "1 TB totale opslag",
+            "Zero-knowledge architectuur",
+          ],
+        },
+        {
+          icon: Lock,
+          title: "2FA Verificatie",
+          tooltipTitle: "Tweefactor Authenticatie",
+          tooltipDetails: [
+            "6-cijferige eenmalige code via email",
+            "SMS verificatiecode naar telefoon",
             "Code verloopt na 15 minuten",
             "Maximaal 3 pogingen toegestaan",
             "IP-adres geregistreerd",
@@ -175,7 +282,7 @@ const getSteps = (language: "en" | "nl") => {
           icon: FileText,
           title: "PDF Bewijs",
           tooltipTitle: "PDF Bewijs van Ontvangst",
-          tooltipDetails: ["2FA Email Geverifieerd", "IP & Tijdstempel", "Apparaat Fingerprint", "SHA-256 Hash"],
+          tooltipDetails: ["2FA Email Geverifieerd", "2FA SMS Geverifieerd", "IP & Tijdstempel", "Apparaat Fingerprint", "SHA-256 Hash"],
         },
       ],
       legal: [
@@ -185,15 +292,14 @@ const getSteps = (language: "en" | "nl") => {
           tooltipTitle: "Veilige Bestandsoverdracht",
           tooltipDetails: [
             "AES-256 encryptie tijdens transport",
-            "Bestanden tot 50GB ondersteund",
-            "Automatische virusscan",
+            "Bestanden tot 100GB ondersteund",
             "Zero-knowledge architectuur",
           ],
         },
         {
           icon: Fingerprint,
           title: "Biometrische ID",
-          tooltipTitle: "Juridisch Niveau Identiteitsverificatie",
+          tooltipTitle: "Legal Niveau Identiteitsverificatie",
           tooltipDetails: [
             "Overheids-ID document scan",
             "Live biometrische gezichtsherkenning",
@@ -214,7 +320,7 @@ const getSteps = (language: "en" | "nl") => {
         {
           icon: FileCheck,
           title: "Toegang Verleend",
-          tooltipTitle: "Juridisch Bewijs Gegenereerd",
+          tooltipTitle: "Legal Bewijs Gegenereerd",
           tooltipDetails: [
             "Geverifieerde ontvangeridentiteit opgeslagen",
             "Overheids-ID referentie vastgelegd",
@@ -236,24 +342,28 @@ const getSteps = (language: "en" | "nl") => {
 
 const sectionContent = {
   en: {
-    title: "Secure & Legally Sealed Delivery",
+    title: "Three Levels of Evidence",
+    titleSub: "Choose the Certainty Your Case Requires",
     identityVerified: "Identity-Verified",
     proofOfDelivery: "Proof of Delivery",
+    downloadConfirmation: "Download Confirmation",
     switchToLegal: "Need verified recipient identity? Switch to",
-    legalText: "Legal",
+    legalText: "Verified Identity",
     forBiometric: "for biometric ID verification.",
     identityVerifiedDelivery: "Identity-Verified Delivery",
     proofOfWho: "— proof of exactly who received your documents.",
   },
   nl: {
-    title: "Veilige & Juridisch Verzegelde Levering",
+    title: "Drie Niveaus van Bewijskracht",
+    titleSub: "Kies de Zekerheid die Uw Dossier Vereist",
     identityVerified: "Identiteit-Geverifieerd",
     proofOfDelivery: "Bewijs van Levering",
+    downloadConfirmation: "Download Bevestiging",
     switchToLegal: "Geverifieerde ontvanger nodig? Schakel naar",
-    legalText: "Juridisch",
+    legalText: "Verified Identity",
     forBiometric: "voor biometrische ID-verificatie.",
     identityVerifiedDelivery: "Identiteit-Geverifieerde Levering",
-    proofOfWho: "— bewijs van precies wie uw documenten heeft ontvangen.",
+    proofOfWho: "— bewijs precies wie uw documenten heeft ontvangen.",
   },
 };
 
@@ -265,24 +375,39 @@ export const HowItWorks = () => {
 
   const steps = getSteps(language);
   const content = sectionContent[language];
-  const currentSteps = activePlan === "legal" ? steps.legal : steps.professional;
+  const currentSteps = activePlan === "legal" ? steps.legal : activePlan === "starter" ? steps.starter : steps.professional;
 
   return (
     <section id="how-it-works" ref={ref} className="py-24 lg:py-32 px-4 bg-muted/30 overflow-hidden">
       <div className="container max-w-6xl mx-auto">
         {/* Header */}
         <div className={`text-center mb-16 scroll-animate ${isVisible ? "is-visible" : ""}`}>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 tracking-tight">{content.title}</h2>
-          <p className="text-2xl md:text-3xl text-muted-foreground font-medium mb-12">
-            ({activePlan === "legal" ? content.identityVerified : content.proofOfDelivery})
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 tracking-tight">{content.title}</h2>
+          <p className="text-xl sm:text-2xl md:text-3xl text-primary font-semibold mb-3">{content.titleSub}</p>
+          <p className="text-lg md:text-xl text-muted-foreground font-medium mb-12">
+            ({activePlan === "legal" ? content.identityVerified : activePlan === "starter" ? content.downloadConfirmation : content.proofOfDelivery})
           </p>
 
           {/* Toggle Switch */}
           <div className="inline-flex items-center bg-background rounded-full p-1.5 border border-border shadow-lg">
             <button
+              onClick={() => setActivePlan("starter")}
+              className={cn(
+                "relative px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300",
+                activePlan === "starter"
+                  ? "bg-muted-foreground/80 text-white shadow-md"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                <span>Secure Transfer</span>
+              </div>
+            </button>
+            <button
               onClick={() => setActivePlan("professional")}
               className={cn(
-                "relative px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300",
+                "relative px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300",
                 activePlan === "professional"
                   ? "bg-primary text-primary-foreground shadow-md"
                   : "text-muted-foreground hover:text-foreground",
@@ -290,21 +415,21 @@ export const HowItWorks = () => {
             >
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                <span>{language === "nl" ? "Professioneel" : "Professional"}</span>
+                <span>Certified Delivery</span>
               </div>
             </button>
             <button
               onClick={() => setActivePlan("legal")}
               className={cn(
-                "relative px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300",
+                "relative px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300",
                 activePlan === "legal"
-                  ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"
+                  ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               <div className="flex items-center gap-2">
                 <Fingerprint className="w-4 h-4" />
-                <span>{language === "nl" ? "Juridisch" : "Legal"}</span>
+                <span>Verified Identity</span>
               </div>
             </button>
           </div>
@@ -313,7 +438,14 @@ export const HowItWorks = () => {
         {/* Timeline */}
         <div className={`relative scroll-animate ${isVisible ? "is-visible" : ""}`}>
           {/* Horizontal line - desktop - behind circles */}
-          <div className="hidden lg:block absolute top-[60px] left-[10%] right-[10%] h-1 bg-gradient-to-r from-primary via-primary to-amber-500 rounded-full z-0" />
+          <div className={cn(
+            "hidden lg:block absolute top-[60px] left-[10%] right-[10%] h-1 rounded-full z-0",
+            activePlan === "starter"
+              ? "bg-gradient-to-r from-muted-foreground/40 via-muted-foreground/40 to-muted-foreground/40"
+              : activePlan === "legal"
+                ? "bg-gradient-to-r from-primary via-primary to-emerald-500"
+                : "bg-gradient-to-r from-primary via-primary to-primary",
+          )} />
 
           {/* Steps container */}
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 lg:gap-0 relative z-10">
@@ -336,20 +468,26 @@ export const HowItWorks = () => {
                             "relative w-[120px] h-[120px] rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer group",
                             "hover:scale-110 hover:shadow-2xl",
                             isLast && activePlan === "legal"
-                              ? "bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30"
-                              : isLast
-                                ? "bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30"
-                                : isBiometric
-                                  ? "bg-amber-100 border-4 border-amber-400"
-                                  : "bg-background border-4 border-primary",
+                              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30"
+                              : isLast && activePlan === "starter"
+                                ? "bg-gradient-to-br from-muted-foreground/60 to-muted-foreground/80 shadow-lg shadow-muted-foreground/20"
+                                : isLast
+                                  ? "bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30"
+                                  : isBiometric
+                                    ? "bg-emerald-100 border-4 border-emerald-400"
+                                    : activePlan === "starter"
+                                      ? "bg-background border-4 border-muted-foreground/40"
+                                      : "bg-background border-4 border-primary",
                           )}
                         >
                           {isLast && (
                             <div
                               className={cn(
                                 "absolute inset-0 rounded-full animate-pulse opacity-50",
-                                activePlan === "legal"
-                                  ? "bg-gradient-to-br from-amber-300 to-amber-500"
+                              activePlan === "legal"
+                                ? "bg-gradient-to-br from-emerald-300 to-emerald-500"
+                                : activePlan === "starter"
+                                  ? "bg-gradient-to-br from-muted-foreground/30 to-muted-foreground/50"
                                   : "bg-gradient-to-br from-primary/50 to-primary/70",
                               )}
                             />
@@ -358,7 +496,7 @@ export const HowItWorks = () => {
                           <step.icon
                             className={cn(
                               "w-10 h-10 relative z-10 transition-transform duration-300 group-hover:scale-110",
-                              isLast ? "text-white" : isBiometric ? "text-amber-600" : "text-primary",
+                              isLast && activePlan === "starter" ? "text-white" : isLast ? "text-white" : isBiometric ? "text-emerald-600" : activePlan === "starter" ? "text-muted-foreground" : "text-primary",
                             )}
                           />
 
@@ -367,12 +505,14 @@ export const HowItWorks = () => {
                               className={cn(
                                 "absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center",
                                 activePlan === "legal"
-                                  ? "bg-white border-2 border-amber-400"
-                                  : "bg-white border-2 border-primary",
+                                  ? "bg-white border-2 border-emerald-400"
+                                  : activePlan === "starter"
+                                    ? "bg-white border-2 border-muted-foreground/40"
+                                    : "bg-white border-2 border-primary",
                               )}
                             >
                               <BadgeCheck
-                                className={cn("w-5 h-5", activePlan === "legal" ? "text-amber-600" : "text-primary")}
+                                className={cn("w-5 h-5", activePlan === "legal" ? "text-emerald-600" : activePlan === "starter" ? "text-muted-foreground" : "text-primary")}
                               />
                             </div>
                           )}
@@ -384,7 +524,7 @@ export const HowItWorks = () => {
                         className={cn(
                           "w-72 p-4 rounded-xl shadow-2xl border-2 z-[9999]",
                           isBiometric || (isLast && activePlan === "legal")
-                            ? "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-300"
+                            ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300"
                             : "bg-background border-primary/30",
                         )}
                       >
@@ -392,7 +532,7 @@ export const HowItWorks = () => {
                           <h4
                             className={cn(
                               "font-bold text-sm flex items-center gap-2",
-                              isBiometric || (isLast && activePlan === "legal") ? "text-amber-800" : "text-primary",
+                              isBiometric || (isLast && activePlan === "legal") ? "text-emerald-800" : "text-primary",
                             )}
                           >
                             <step.icon className="w-4 h-4" />
@@ -404,13 +544,13 @@ export const HowItWorks = () => {
                                 <div
                                   className={cn(
                                     "w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0",
-                                    isBiometric || (isLast && activePlan === "legal") ? "bg-amber-500" : "bg-primary",
+                                    isBiometric || (isLast && activePlan === "legal") ? "bg-emerald-500" : "bg-primary",
                                   )}
                                 />
                                 <span
                                   className={
                                     isBiometric || (isLast && activePlan === "legal")
-                                      ? "text-amber-800"
+                                      ? "text-emerald-800"
                                       : "text-foreground"
                                   }
                                 >
@@ -430,12 +570,16 @@ export const HowItWorks = () => {
                             "relative w-[120px] h-[120px] rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer group",
                             "hover:scale-110 hover:shadow-2xl",
                             isLast && activePlan === "legal"
-                              ? "bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30"
-                              : isLast
-                                ? "bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30"
-                                : isBiometric
-                                  ? "bg-amber-100 border-4 border-amber-400"
-                                  : "bg-background border-4 border-primary",
+                              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30"
+                              : isLast && activePlan === "starter"
+                                ? "bg-gradient-to-br from-muted-foreground/60 to-muted-foreground/80 shadow-lg shadow-muted-foreground/20"
+                                : isLast
+                                  ? "bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30"
+                                  : isBiometric
+                                    ? "bg-emerald-100 border-4 border-emerald-400"
+                                    : activePlan === "starter"
+                                      ? "bg-background border-4 border-muted-foreground/40"
+                                      : "bg-background border-4 border-primary",
                           )}
                         >
                           {isLast && (
@@ -443,8 +587,10 @@ export const HowItWorks = () => {
                               className={cn(
                                 "absolute inset-0 rounded-full animate-pulse opacity-50",
                                 activePlan === "legal"
-                                  ? "bg-gradient-to-br from-amber-300 to-amber-500"
-                                  : "bg-gradient-to-br from-primary/50 to-primary/70",
+                                  ? "bg-gradient-to-br from-emerald-300 to-emerald-500"
+                                  : activePlan === "starter"
+                                    ? "bg-gradient-to-br from-muted-foreground/30 to-muted-foreground/50"
+                                    : "bg-gradient-to-br from-primary/50 to-primary/70",
                               )}
                             />
                           )}
@@ -452,7 +598,7 @@ export const HowItWorks = () => {
                           <step.icon
                             className={cn(
                               "w-10 h-10 relative z-10 transition-transform duration-300 group-hover:scale-110",
-                              isLast ? "text-white" : isBiometric ? "text-amber-600" : "text-primary",
+                              isLast && activePlan === "starter" ? "text-white" : isLast ? "text-white" : isBiometric ? "text-emerald-600" : activePlan === "starter" ? "text-muted-foreground" : "text-primary",
                             )}
                           />
 
@@ -461,12 +607,14 @@ export const HowItWorks = () => {
                               className={cn(
                                 "absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center",
                                 activePlan === "legal"
-                                  ? "bg-white border-2 border-amber-400"
-                                  : "bg-white border-2 border-primary",
+                                  ? "bg-white border-2 border-emerald-400"
+                                  : activePlan === "starter"
+                                    ? "bg-white border-2 border-muted-foreground/40"
+                                    : "bg-white border-2 border-primary",
                               )}
                             >
                               <BadgeCheck
-                                className={cn("w-5 h-5", activePlan === "legal" ? "text-amber-600" : "text-primary")}
+                                className={cn("w-5 h-5", activePlan === "legal" ? "text-emerald-600" : activePlan === "starter" ? "text-muted-foreground" : "text-primary")}
                               />
                             </div>
                           )}
@@ -478,7 +626,7 @@ export const HowItWorks = () => {
                         className={cn(
                           "w-72 p-4 rounded-xl shadow-2xl border-2 z-[100]",
                           isBiometric || (isLast && activePlan === "legal")
-                            ? "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-300"
+                            ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300"
                             : "bg-background border-primary/30",
                         )}
                       >
@@ -486,7 +634,7 @@ export const HowItWorks = () => {
                           <h4
                             className={cn(
                               "font-bold text-sm flex items-center gap-2",
-                              isBiometric || (isLast && activePlan === "legal") ? "text-amber-800" : "text-primary",
+                              isBiometric || (isLast && activePlan === "legal") ? "text-emerald-800" : "text-primary",
                             )}
                           >
                             <step.icon className="w-4 h-4" />
@@ -498,13 +646,13 @@ export const HowItWorks = () => {
                                 <div
                                   className={cn(
                                     "w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0",
-                                    isBiometric || (isLast && activePlan === "legal") ? "bg-amber-500" : "bg-primary",
+                                    isBiometric || (isLast && activePlan === "legal") ? "bg-emerald-500" : "bg-primary",
                                   )}
                                 />
                                 <span
                                   className={
                                     isBiometric || (isLast && activePlan === "legal")
-                                      ? "text-amber-800"
+                                      ? "text-emerald-800"
                                       : "text-foreground"
                                   }
                                 >
@@ -524,10 +672,12 @@ export const HowItWorks = () => {
                       className={cn(
                         "text-sm font-bold",
                         isLast && activePlan === "legal"
-                          ? "text-amber-600"
-                          : isLast
-                            ? "text-primary"
-                            : "text-foreground",
+                          ? "text-emerald-600"
+                          : isLast && activePlan === "starter"
+                            ? "text-muted-foreground"
+                            : isLast
+                              ? "text-primary"
+                              : "text-foreground",
                       )}
                     >
                       {index + 1}. {step.title}
@@ -535,9 +685,7 @@ export const HowItWorks = () => {
                   </div>
 
                   {/* Certificate preview button for last step */}
-                  {isLast && (
-                    <CertificatePreview variant={activePlan} />
-                  )}
+                  {isLast && activePlan !== "starter" && <CertificatePreview variant={activePlan} />}
                 </div>
               );
             })}
@@ -550,10 +698,10 @@ export const HowItWorks = () => {
           style={{ transitionDelay: "400ms" }}
         >
           <p className="text-muted-foreground text-sm">
-            {activePlan === "professional" && (
+            {(activePlan === "starter" || activePlan === "professional") && (
               <>
                 {content.switchToLegal}{" "}
-                <button onClick={() => setActivePlan("legal")} className="text-amber-600 font-medium hover:underline">
+                <button onClick={() => setActivePlan("legal")} className="text-emerald-600 font-medium hover:underline">
                   {content.legalText}
                 </button>{" "}
                 {content.forBiometric}
@@ -561,7 +709,7 @@ export const HowItWorks = () => {
             )}
             {activePlan === "legal" && (
               <>
-                <span className="text-amber-600 font-medium">{content.identityVerifiedDelivery}</span>{" "}
+                <span className="text-emerald-600 font-medium">{content.identityVerifiedDelivery}</span>{" "}
                 {content.proofOfWho}
               </>
             )}

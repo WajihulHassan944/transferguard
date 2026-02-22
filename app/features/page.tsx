@@ -2,10 +2,13 @@
 import { Clock, Hash, Globe, Monitor, FileCheck, Fingerprint, Stethoscope, GraduationCap, Landmark, Factory, Building2, CheckCircle2, ArrowRight, Receipt, MapPin, Scale } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BurdenOfProofSection } from "@/components/greensecure/BurdenOfProofSection";
+
+import { ClientPortalSection } from "@/components/greensecure/ClientPortalSection";
+import { ClientWorkspaceSection } from "@/components/greensecure/ClientWorkspaceSection";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AatlSealingSection } from "@/components/greensecure/AatlSealingSection";
 import Link from "next/link";
 
 const getContent = (language: string) => {
@@ -27,7 +30,7 @@ const getContent = (language: string) => {
       },
       subtitle: {
         en: "When your recipient downloads, you receive a complete delivery report with timestamp, file hash, IP address, device info, and OS. Court-admissible evidence for every file transfer.",
-        nl: "Wanneer uw ontvanger downloadt, ontvangt u een volledig leveringsrapport met tijdstempel, bestandshash, IP-adres, apparaatinfo en OS. Rechtsgeldige bewijslast voor elke bestandsoverdracht.",
+        nl: "Wanneer uw ontvanger downloadt, ontvangt u een volledig leveringsrapport met tijdstempel, bestandshash, IP-adres, apparaatinfo en OS. Rechtsgeldige bewijskracht voor elke bestandsoverdracht.",
       },
     },
     certifications: [
@@ -38,11 +41,11 @@ const getContent = (language: string) => {
     proofSection: {
       badge: {
         en: "Complete Delivery Proof",
-        nl: "Volledig Leveringsbewijs",
+        nl: "Certificaat van Ontvangst & Verificatie",
       },
       title: {
         en: "Court-admissible evidence",
-        nl: "Rechtsgeldige bewijslast",
+        nl: "Rechtsgeldige bewijskracht",
       },
       subtitle: {
         en: "Every download generates a complete proof package: technical data for transparency, legal certification for court validity.",
@@ -85,7 +88,7 @@ const getContent = (language: string) => {
       {
         icon: Receipt,
         title: { en: "PDF Delivery Certificate", nl: "PDF Leveringscertificaat" },
-        description: { en: "Automatic legally-sealed PDF certificate with every download. Court-admissible proof you can store and present.", nl: "Automatisch juridisch verzegeld PDF-certificaat bij elke download. Rechtsgeldige bewijslast die u kunt bewaren en presenteren." },
+        description: { en: "Automatic legally-sealed PDF certificate with every download. Court-admissible proof you can store and present.", nl: "Automatisch juridisch verzegeld PDF-certificaat bij elke download. Rechtsgeldige bewijskracht die u kunt bewaren en presenteren." },
         category: "legal",
       },
       {
@@ -110,7 +113,7 @@ const getContent = (language: string) => {
     identitySection: {
       badge: {
         en: "Legal Plan Exclusive",
-        nl: "Legal Abonnement Exclusief",
+        nl: "Verified Identity Exclusief",
       },
       title: {
         en: "Identity-Verified Delivery",
@@ -137,7 +140,7 @@ const getContent = (language: string) => {
       evidencePackage: {
         title: { en: "Your Evidence Package", nl: "Uw Bewijspakket" },
         subtitle: { en: "Complete non-repudiation proof", nl: "Volledig onweerlegbaar bewijs" },
-        badge: { en: "Legal Gold Standard", nl: "Juridische Gouden Standaard" },
+        badge: { en: "Verified Identity", nl: "Verified Identity" },
         description: {
           en: "When identity verification is complete, you receive a comprehensive <strong class=\"text-foreground\">evidence package</strong> that proves exactly who received your documents and when.",
           nl: "Wanneer de identiteitsverificatie is voltooid, ontvangt u een uitgebreid <strong class=\"text-foreground\">bewijspakket</strong> dat exact bewijst wie uw documenten heeft ontvangen en wanneer.",
@@ -154,7 +157,7 @@ const getContent = (language: string) => {
         label: { en: "Legal standing:", nl: "Juridische waarde:" },
         text: {
           en: "This evidence package provides strong circumstantial proof for civil proceedings. The combination of verified identity, cryptographic timestamps, and file hashes creates a robust chain of evidence that is difficult to refute.",
-          nl: "Dit bewijspakket biedt sterke indirecte bewijslast voor civiele procedures. De combinatie van geverifieerde identiteit, cryptografische tijdstempels en bestandshashes creëert een robuuste bewijsketen die moeilijk te weerleggen is.",
+          nl: "Dit bewijspakket biedt sterke indirecte bewijskracht voor civiele procedures. De combinatie van geverifieerde identiteit, cryptografische tijdstempels en bestandshashes creëert een robuuste bewijsketen die moeilijk te weerleggen is.",
         },
       },
     },
@@ -162,8 +165,8 @@ const getContent = (language: string) => {
       badge: { en: "Industry Solutions", nl: "Brancheoplossingen" },
       title: { en: "Trusted by regulated industries", nl: "Vertrouwd door gereguleerde sectoren" },
       subtitle: {
-        en: "When data security isn't optional. Transfer Guard serves organizations where confidentiality and compliance are business-critical.",
-        nl: "Wanneer gegevensbeveiliging geen optie is. Transfer Guard bedient organisaties waar vertrouwelijkheid en compliance bedrijfskritisch zijn.",
+        en: "When data security isn't optional. TransferGuard serves organizations where confidentiality and compliance are business-critical.",
+        nl: "Wanneer gegevensbeveiliging geen optie is. TransferGuard bedient organisaties waar vertrouwelijkheid en compliance bedrijfskritisch zijn.",
       },
       useCasesLabel: { en: "Use cases:", nl: "Toepassingen:" },
       items: [
@@ -179,8 +182,8 @@ const getContent = (language: string) => {
         },
         {
           icon: Scale,
-          title: { en: "Law Firms & Legal", nl: "Advocatenkantoren & Juridisch" },
-          description: { en: "Attorney-client privilege protected with end-to-end encryption. Share case files and contracts securely.", nl: "Advocaat-cliënt privilege beschermd met end-to-end encryptie. Deel processtukken en contracten veilig." },
+          title: { en: "Lawyers & Notaries", nl: "Advocatuur & Notariaat" },
+          description: { en: "Attorney-client privilege protected with end-to-end encryption. Share case files, deeds and contracts securely.", nl: "Beroepsgeheim beschermd met end-to-end encryptie. Deel processtukken, aktes en contracten veilig." },
           useCases: [
             { en: "Client case files", nl: "Cliënt dossiers" },
             { en: "Contract documents", nl: "Contractdocumenten" },
@@ -266,6 +269,16 @@ const Features = () => {
             }}>
               {content.hero.subtitle[lang]}
             </p>
+            <div className="flex flex-wrap justify-center gap-3 mt-5 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                Certified Delivery
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                Verified Identity
+              </span>
+            </div>
           </div>
 
           {/* Certification Badges */}
@@ -332,25 +345,25 @@ const Features = () => {
           {/* Legal Certification */}
           <div>
             <div className="flex items-center gap-4 mb-8">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-              <span className="text-xs font-semibold text-amber-600 uppercase tracking-widest px-4 py-2 rounded-full bg-amber-500/5 border border-amber-500/20">{content.proofSection.legalBadge[lang]}</span>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+              <span className="text-xs font-semibold text-emerald-600 uppercase tracking-widest px-4 py-2 rounded-full bg-emerald-500/5 border border-emerald-500/20">{content.proofSection.legalBadge[lang]}</span>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
             </div>
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
               {content.proofFeatures.filter(f => f.category === "legal").map((feature, index) => (
                 <div 
                   key={feature.title[lang]} 
-                  className="group relative p-6 rounded-2xl bg-background/60 backdrop-blur-sm border border-amber-500/10 hover:border-amber-500/30 hover:bg-background/80 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/5"
+                  className="group relative p-6 rounded-2xl bg-background/60 backdrop-blur-sm border border-emerald-500/10 hover:border-emerald-500/30 hover:bg-background/80 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {/* Gradient overlay on hover */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-amber-500/20 transition-all duration-500">
-                      <feature.icon className="h-5 w-5 text-amber-600" />
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-500">
+                      <feature.icon className="h-5 w-5 text-emerald-600" />
                     </div>
-                    <h3 className="font-semibold text-base mb-2 group-hover:text-amber-600 transition-colors duration-300">{feature.title[lang]}</h3>
+                    <h3 className="font-semibold text-base mb-2 group-hover:text-emerald-600 transition-colors duration-300">{feature.title[lang]}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{feature.description[lang]}</p>
                   </div>
                 </div>
@@ -379,8 +392,8 @@ const Features = () => {
             {/* How it works Card */}
             <Card className="p-8 bg-background border border-border rounded-2xl shadow-sm">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border">
-                <div className="p-4 rounded-xl bg-amber-500/10">
-                  <Fingerprint className="h-7 w-7 text-amber-600" />
+                <div className="p-4 rounded-xl bg-emerald-500/10">
+                  <Fingerprint className="h-7 w-7 text-emerald-600" />
                 </div>
                 <div>
                   <h3 className="font-bold text-2xl">{content.identitySection.howItWorks.title[lang]}</h3>
@@ -390,12 +403,12 @@ const Features = () => {
               
               <p className="text-muted-foreground mb-6" dangerouslySetInnerHTML={{ __html: content.identitySection.howItWorks.description[lang] }} />
               
-              <div className="bg-amber-50 dark:bg-amber-500/10 rounded-xl p-5 border-l-4 border-amber-500">
+              <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-xl p-5 border-l-4 border-emerald-500">
                 <p className="font-semibold mb-3 text-foreground">{content.identitySection.howItWorks.processTitle[lang]}</p>
                 <ul className="space-y-3">
                   {content.identitySection.howItWorks.steps.map((step, index) => (
                     <li key={index} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
                       <span className="text-muted-foreground">{step[lang]}</span>
                     </li>
                   ))}
@@ -404,18 +417,18 @@ const Features = () => {
             </Card>
 
             {/* Evidence Package Card */}
-            <Card className="p-8 bg-background border border-amber-500/30 rounded-2xl shadow-sm relative">
+            <Card className="p-8 bg-background border border-emerald-500/30 rounded-2xl shadow-sm relative">
               {/* Legal Gold Standard Badge */}
               <div className="absolute top-4 right-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
                   <Scale className="h-3.5 w-3.5" />
                   {content.identitySection.evidencePackage.badge[lang]}
                 </span>
               </div>
               
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-amber-500/20">
-                <div className="p-4 rounded-xl bg-amber-500/10">
-                  <FileCheck className="h-7 w-7 text-amber-600" />
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-emerald-500/20">
+                <div className="p-4 rounded-xl bg-emerald-500/10">
+                  <FileCheck className="h-7 w-7 text-emerald-600" />
                 </div>
                 <div>
                   <h3 className="font-bold text-2xl">{content.identitySection.evidencePackage.title[lang]}</h3>
@@ -448,19 +461,17 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Burden of Proof Section */}
-      <BurdenOfProofSection />
 
       <section className="py-12 px-4 bg-muted/20">
         <div className="container max-w-5xl mx-auto">
           <div className="text-center mb-8">
-            <p className="text-primary font-medium text-sm tracking-wide uppercase mb-2">
+            <p className="text-primary font-medium text-sm tracking-wide uppercase mb-3">
               {content.industries.badge[lang]}
             </p>
-            <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
               {content.industries.title[lang]}
             </h2>
-            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               {content.industries.subtitle[lang]}
             </p>
           </div>
@@ -510,6 +521,15 @@ const Features = () => {
         </div>
       </section>
 
+      {/* Client Portal Section */}
+      <ClientPortalSection />
+
+      {/* Client Workspace Section */}
+      <ClientWorkspaceSection />
+
+      {/* Adobe PDF Sealing Section */}
+      <AatlSealingSection />
+
       {/* CTA Section */}
       <section className="py-24 px-4">
         <div className="container max-w-4xl mx-auto text-center">
@@ -525,9 +545,6 @@ const Features = () => {
                 {content.cta.primaryButton[lang]}
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild className="text-lg px-8 py-6 h-auto border-2 border-border hover:bg-muted/50 hover:border-primary/30">
-              <Link href="/#pricing">{content.cta.secondaryButton[lang]}</Link>
             </Button>
           </div>
         </div>

@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
 import useLogout from "@/hooks/useLogout";
+import { LanguageSwitcher } from "../LanguageSwitcher";
 interface DashboardHeaderProps {
   onMobileMenuToggle?: () => void;
 }
@@ -24,32 +25,23 @@ const getPlanInfo = (plan?: string | null) => {
     case "premium":
     case "legal":
       return {
-        label: "Legal",
+        label: "Verified Identity",
         icon: Scale,
         className: "bg-legal-light text-legal-foreground border-legal-border",
       };
-
     case "professional":
     case "pro":
+      return { label: "Certified Delivery", icon: Shield, className: "bg-primary/10 text-primary border-primary/20" };
+    case "trial":
       return {
-        label: "Professional",
+        label: "Certified Delivery Trial",
         icon: Shield,
         className: "bg-primary/10 text-primary border-primary/20",
       };
-
-    case "trial":
-      return {
-        label: "Trial",
-        icon: Crown,
-        className: "bg-success-light text-success border-success-border",
-      };
-
+    case "starter":
+      return { label: "Secure Transfer", icon: Shield, className: "bg-muted text-muted-foreground border-border" };
     default:
-      return {
-        label: "Free",
-        icon: Shield,
-        className: "bg-muted text-muted-foreground border-border",
-      };
+      return { label: "Free", icon: Shield, className: "bg-muted text-muted-foreground border-border" };
   }
 };
 
@@ -59,7 +51,7 @@ export function DashboardHeader({ onMobileMenuToggle }: DashboardHeaderProps) {
 const logout = useLogout();
   const user = useAppSelector((state) => state.user);
 const email = typeof user?.email === "string" ? user.email : "";
-
+  
   const handleLogout = async () => {
     logout();
     toast.success("Logged out");
@@ -99,6 +91,8 @@ const getInitials = (email?: string | null) => {
 
         {/* Right - Actions & User */}
         <div className="flex items-center gap-2">
+          <LanguageSwitcher variant="compact" />
+       
           {/* Plan Badge */}
           <Badge variant="outline" className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 font-medium rounded-full ${planInfo.className}`}>
             <PlanIcon className="h-3.5 w-3.5" />

@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Send, TrendingUp, AlertTriangle } from "lucide-react";
 
 interface StorageUsageCardProps {
-  userId: string;
+  effectivePlan?: string;
 }
 
 interface UserAccount {
@@ -13,10 +13,20 @@ interface UserAccount {
   plan: string;
 }
 
-export function StorageUsageCard({ userId }: StorageUsageCardProps) {
+export function StorageUsageCard({  effectivePlan }: StorageUsageCardProps) {
   const [account, setAccount] = useState<UserAccount | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
+useEffect(() => {
+  // 🔹 Dummy Professional Account (for UI testing)
+  const dummyAccount: UserAccount = {
+    storage_used: 320 * 1024 * 1024 * 1024, // 320GB used
+    storage_limit: 1024 * 1024 * 1024 * 1024, // 1TB (not required but included)
+    plan: "professional",
+  };
+
+  setAccount(dummyAccount);
+}, []);
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return "0 B";
     if (bytes < 1024) return `${bytes} B`;
@@ -24,10 +34,15 @@ export function StorageUsageCard({ userId }: StorageUsageCardProps) {
     if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(0)} GB`;
   };
+  const getStorageLimit = (): number => {
+    if (!account) return 0;
+    return getPlanStorageLimit(effectivePlan || account.plan);
+  };
 
   const getUsagePercentage = (): number => {
-    if (!account || account.storage_limit === 0) return 0;
-    return Math.min((account.storage_used / account.storage_limit) * 100, 100);
+    const limit = getStorageLimit();
+    if (!account || limit === 0) return 0;
+    return Math.min((account.storage_used / limit) * 100, 100);
   };
 
   const getProgressColor = (): string => {
@@ -49,13 +64,39 @@ export function StorageUsageCard({ userId }: StorageUsageCardProps) {
   };
 
   const getPlanLabel = (plan: string): string => {
-    switch (plan) {
+    switch (plan.toLowerCase()) {
+      case "premium":
+      case "legal":
+        return "Verified Identity";
+      case "professional":
       case "pro":
-        return "Pro";
-      case "basic":
-        return "Basic";
-      default:
+        return "Certified Delivery";
+      case "trial":
         return "Trial";
+      case "starter":
+      case "basic":
+        return "Secure Transfer";
+      default:
+        return "Free";
+    }
+  };
+
+  // Return the correct storage limit in bytes based on plan specs
+  const getPlanStorageLimit = (plan: string): number => {
+    switch (plan.toLowerCase()) {
+      case "premium":
+      case "legal":
+        return 3 * 1024 * 1024 * 1024 * 1024; // 3TB
+      case "professional":
+      case "pro":
+        return 1024 * 1024 * 1024 * 1024; // 1TB
+      case "trial":
+        return 50 * 1024 * 1024 * 1024; // 50GB
+      case "starter":
+      case "basic":
+        return 500 * 1024 * 1024 * 1024; // 500GB
+      default:
+        return 5 * 1024 * 1024 * 1024; // 5GB free
     }
   };
 
@@ -74,44 +115,40 @@ export function StorageUsageCard({ userId }: StorageUsageCardProps) {
     return null;
   }
 
+  const activePlan = effectivePlan || account.plan;
   const percentage = getUsagePercentage();
-  const remainingBytes = Math.max(account.storage_limit - account.storage_used, 0);
+  const storageLimit = getPlanStorageLimit(activePlan);
+  const remainingBytes = Math.max(storageLimit - account.storage_used, 0);
 
   return (
-    <Card className="p-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+    <div className="p-3 bg-muted/30 rounded-xl">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
           {getStatusIcon()}
-          <span className="text-xs font-medium">Transfer Quota</span>
+          <span className="text-[11px] font-semibold text-foreground">Transfer Quota</span>
         </div>
-        <span className="text-xs text-primary font-medium">
-          {getPlanLabel(account.plan)}
+        <span className="text-[10px] text-primary font-semibold">
+          {getPlanLabel(activePlan)}
         </span>
       </div>
       
-      <div className="space-y-1.5">
-        <div className="relative">
-          <Progress 
-            value={percentage} 
-            className="h-2"
-          />
-          <div 
-            className={`absolute top-0 left-0 h-2 rounded-full transition-all ${getProgressColor()}`}
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{formatBytes(account.storage_used)} used</span>
-          <span>{formatBytes(remainingBytes)} left</span>
-        </div>
+      <div className="relative h-1.5 bg-border rounded-full overflow-hidden mb-1.5">
+        <div 
+          className={`absolute top-0 left-0 h-full rounded-full transition-all ${getProgressColor()}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+      
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>{formatBytes(account.storage_used)} used</span>
+        <span>{formatBytes(remainingBytes)} left</span>
       </div>
 
       {percentage >= 90 && (
-        <div className="mt-2 p-1.5 bg-destructive/10 rounded text-xs text-destructive font-medium">
+        <p className="text-[10px] font-medium text-destructive mt-1">
           ⚠️ Quota almost full
-        </div>
+        </p>
       )}
-    </Card>
+    </div>
   );
 }

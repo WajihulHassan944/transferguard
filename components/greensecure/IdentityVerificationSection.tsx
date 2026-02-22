@@ -49,20 +49,20 @@ const getVerificationSteps = (language: "en" | "nl") => {
 
 const sectionContent = {
   en: {
-    badge: "Legal Plan Feature",
+    badge: "Verified Identity Feature",
     title: "Only send privacy-sensitive documents to the",
     titleHighlight: "person",
     titleEnd: "they are specifically intended for.",
     subtitle: "Legal-grade biometric verification.",
-    legalGrade: "LEGAL GRADE",
+    legalGrade: "VERIFIED IDENTITY",
     valueTitle: 'From "I didn\'t receive it" to undeniable proof',
     valueText:
       "Standard file transfers can be disputed. Our Identity-Verified Delivery uses government-issued ID combined with live biometric verification to create irrefutable evidence that the specific person received your documents.",
-    eidasTitle: "eIDAS Compliant",
+    eidasTitle: "EU Regulation Compliant",
     eidasItems: [
-      "Our processes are designed in full alignment with the eIDAS regulation.",
-      "We utilize identity verification that meets stringent eIDAS standards.",
-      "Supports legally binding signatures in accordance with EU Regulation No 910/2014.",
+      "Biometric verification meets the highest EU standards for identity assurance.",
+      "Court-admissible evidence through government ID and live selfie verification.",
+      "Supports legally binding delivery proof in accordance with EU regulations.",
     ],
     trustGdpr: "GDPR Compliant",
     trustDeleted: "Data deleted after verification",
@@ -70,22 +70,22 @@ const sectionContent = {
     cta: "Get Identity-Verified Delivery",
   },
   nl: {
-    badge: "Legal Plan Functie",
+    badge: "Verified Identity Functie",
     title: "Stuur privacy gevoelige documenten alleen naar",
     titleHighlight: "diegene",
     titleEnd: "voor wie het bedoeld is.",
     subtitle: "Juridisch waterdichte, Biometrische verificatie .",
-    legalGrade: "JURIDISCH NIVEAU",
+    legalGrade: "VERIFIED IDENTITY",
     valueTitle: 'Van "Ik heb het niet ontvangen" naar onweerlegbaar bewijs',
     valueText:
-      "Standaard bestandsoverdrachten kunnen worden betwist. Onze Identiteit-Geverifieerde Levering gebruikt overheids-ID gecombineerd met live biometrische verificatie om onweerlegbaar bewijs te creëren dat de specifieke persoon uw documenten heeft ontvangen.",
-    eidasTitle: "eIDAS Conform",
+      "Standaard bestandsoverdrachten bieden vaak onvoldoende bewijskracht. Exclusief binnen ons Legal Plan introduceert TransferGuard de Identiteit-Geverifieerde Levering. Door de controle van een officieel overheids-ID te combineren met live biometrische verificatie, creëert u onweerlegbaar bewijs dat exact de juiste persoon uw documenten heeft ontvangen en geopend.",
+    eidasTitle: "EU-Regelgeving Conform",
     eidasItems: [
-      "Onze processen zijn ontworpen in volledige overeenstemming met de eIDAS-verordening.",
-      "Wij gebruiken identiteitsverificatie die voldoet aan strenge eIDAS-normen.",
-      "Ondersteunt juridisch bindende handtekeningen conform EU-Verordening Nr. 910/2014.",
+      "Biometrische verificatie voldoet aan de hoogste EU-normen voor identiteitsborging.",
+      "Juridisch toelaatbaar bewijs door overheids-ID en live selfie-verificatie.",
+      "Ondersteunt juridisch bindend leveringsbewijs conform EU-regelgeving.",
     ],
-    trustGdpr: "AVG Conform",
+    trustGdpr: "AVG-conform",
     trustDeleted: "Data verwijderd na verificatie",
     trustEu: "EU-gebaseerde verwerking",
     cta: "Krijg Identiteit-Geverifieerde Levering",
@@ -100,15 +100,15 @@ export const IdentityVerificationSection = () => {
   const content = sectionContent[language];
 
   return (
-    <section ref={ref} className="py-24 lg:py-32 px-4 bg-gradient-to-b from-background to-amber-50/30">
+    <section ref={ref} className="py-24 lg:py-32 px-4 bg-gradient-to-b from-background to-emerald-50/30">
       <div className="container max-w-6xl mx-auto">
         {/* Header */}
         <div className={`text-center mb-12 sm:mb-16 scroll-animate ${isVisible ? "is-visible" : ""}`}>
-          <p className="inline-block text-xs font-semibold text-amber-600 bg-amber-100 px-4 py-2 rounded-full uppercase tracking-wider mb-4">
+          <p className="inline-block text-xs font-semibold text-emerald-600 bg-emerald-100 px-4 py-2 rounded-full uppercase tracking-wider mb-4">
             {content.badge}
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            {content.title} <span className="text-amber-600">{content.titleHighlight}</span> {content.titleEnd}
+            {content.title} <span className="text-emerald-600">{content.titleHighlight}</span> {content.titleEnd}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{content.subtitle}</p>
         </div>
@@ -120,17 +120,17 @@ export const IdentityVerificationSection = () => {
             className={`relative scroll-animate-left ${isVisible ? "is-visible" : ""}`}
             style={{ transitionDelay: "150ms" }}
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50">
+            <div className="relative rounded-2xl overflow-hidden shadow-md border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50">
               <img
                 src="/assets/id-verification-hero.jpg"
                 alt="ID Verification Process - Passport matched with live selfie"
                 className="w-full h-auto object-contain"
               />
-              <div className="absolute hidden sm:block top-4 right-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+              <div className="absolute hidden sm:block top-4 right-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                 {content.legalGrade}
               </div>
             </div>
-            <div className="absolute -z-10 top-4 left-4 w-full h-full bg-amber-200/30 rounded-2xl" />
+            <div className="absolute -z-10 top-4 left-4 w-full h-full bg-emerald-200/30 rounded-2xl" />
           </div>
 
           {/* Right: Content */}
@@ -149,11 +149,11 @@ export const IdentityVerificationSection = () => {
               {verificationSteps.map((step, index) => (
                 <Card
                   key={index}
-                  className="p-4 bg-background border-l-4 border-l-amber-500 card-hover card-hover-amber"
+                  className="p-4 bg-background border-l-4 border-l-emerald-500 card-hover card-hover-emerald"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                      <step.icon className="h-5 w-5 text-amber-600" />
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <step.icon className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground text-sm">{step.title}</h4>
@@ -181,16 +181,18 @@ export const IdentityVerificationSection = () => {
             </div>
 
             {/* CTA */}
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg group"
-            >
-              <Link href="/checkout?plan=legal">
-                {content.cta}
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
+            <div className="flex justify-center sm:justify-start">
+              <Button
+                asChild
+                size="lg"
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg group"
+              >
+                <Link href="/checkout?plan=legal">
+                  {content.cta}
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
