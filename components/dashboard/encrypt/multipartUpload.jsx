@@ -171,6 +171,8 @@ export const handleMultipartSubmit = async ({
   setUploadKey,
   resetForm,
   onTransferCreated,
+  setShowSuccess,
+  setSuccessData,
   onOpenChange,
   toast,
   speedRef,
@@ -562,9 +564,20 @@ if (!completeRes.ok) {
 
     toast.success("Secure transfer created successfully");
 
+setSuccessData({
+  recipientEmail,
+  fileCount: files.length,
+  totalSize: file.size,
+  expiresAt: expiresAt,
+  downloadLink: `${window.location.origin}/download/sample-secure-link`,
+  dossierNumber,
+  securityLevel: "professional",
+});
+
+setShowSuccess(true);
     resetForm();
-    onTransferCreated();
-    onOpenChange(false);
+    // onTransferCreated();
+    // onOpenChange(false);
   } catch (err) {
     if (err?.name === "AbortError") {
       toast.error("Upload cancelled by user");
