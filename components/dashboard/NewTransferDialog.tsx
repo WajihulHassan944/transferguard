@@ -226,7 +226,7 @@ const [uploadKey, setUploadKey] = useState<string | null>(null);
 const [chunkProgress, setChunkProgress] = useState<Record<number, number>>({});
 const [uploadMessage, setUploadMessage] = useState<string>("");
 const [uploadSpeed, setUploadSpeed] = useState<string>("");
-const [e2eeEnabled, setE2eeEnabled] = useState(false);
+const [e2eeEnabled, setE2eeEnabled] = useState(true);
   
 
 
