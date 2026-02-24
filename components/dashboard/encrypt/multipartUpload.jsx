@@ -162,6 +162,7 @@ export const handleMultipartSubmit = async ({
   baseUrl,
   expiryDays,
   recipientEmail,
+  recipientName,
   message,
   dossierNumber,
   e2eeEnabled,
@@ -541,6 +542,7 @@ if (!completeRes.ok) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         recipientEmail,
+        recipientName,
         message,
         dossierNumber,
         securityLevel: "professional",

@@ -106,6 +106,9 @@ const getContent = (language: string) => ({
   perTransfer: language === 'nl' ? "per overdracht" : "per transfer",
   total: language === 'nl' ? "Totaal" : "Total",
   recipientEmail: language === 'nl' ? "E-mailadres Ontvanger" : "Recipient Email",
+   recipientName: language === 'nl' ? "Naam Ontvanger" : "Recipient Name",
+  recipientNamePlaceholder: language === 'nl' ? "Volledige naam ontvanger" : "Recipient full name",
+ 
   recipientPlaceholder: language === 'nl' ? "ontvanger@bedrijf.nl" : "recipient@company.com",
   publicWarning: language === 'nl' ? "Let op: Je verstuurt naar een openbaar e-mailadres." : "Warning: You are sending to a public email provider.",
   recipientPhone: language === 'nl' ? "Telefoonnummer ontvanger" : "Recipient phone number",
@@ -208,7 +211,8 @@ export function NewTransferDialog({
 const abortControllerRef = useRef<AbortController | null>(null);
 const activeUploadIdRef = useRef<string | null>(null);
 const activeKeyRef = useRef<string | null>(null);
-  
+   const [recipientName, setRecipientName] = useState("");
+ 
   const [files, setFiles] = useState<File[]>([]);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -341,6 +345,7 @@ const handleSubmit = async () => {
     baseUrl,
     expiryDays,
     recipientEmail,
+    recipientName,
     message,
     dossierNumber,
 e2eeEnabled,
@@ -661,21 +666,27 @@ const handleCancelUpload = async () => {
             </div>
 
             {/* Recipient Email */}
-            <div className="space-y-2">
-              <Label htmlFor="recipientEmail">{content.recipientEmail} *</Label>
-              <Input
-                id="recipientEmail"
-                type="email"
-                placeholder={content.recipientPlaceholder}
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-              />
-              {showPublicWarning && (
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 text-amber-600 text-xs">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>{content.publicWarning}</span>
-                </div>
-              )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="recipientName">{content.recipientName} *</Label>
+                <Input
+                  id="recipientName"
+                  type="text"
+                  placeholder={content.recipientNamePlaceholder}
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="recipientEmail">{content.recipientEmail} *</Label>
+                <Input
+                  id="recipientEmail"
+                  type="email"
+                  placeholder={content.recipientPlaceholder}
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Recipient Phone - shown when SMS or Email+SMS is selected */}
