@@ -22,7 +22,7 @@ useEffect(() => {
   const dummyAccount: UserAccount = {
     storage_used: 320 * 1024 * 1024 * 1024, // 320GB used
     storage_limit: 1024 * 1024 * 1024 * 1024, // 1TB (not required but included)
-    plan: "professional",
+    plan: "Certified Delivery",
   };
 
   setAccount(dummyAccount);
@@ -64,12 +64,13 @@ useEffect(() => {
   };
 
   const getPlanLabel = (plan: string): string => {
-    switch (plan.toLowerCase()) {
+  
+    switch (plan) {
       case "premium":
       case "legal":
         return "Verified Identity";
       case "professional":
-      case "pro":
+      case "Certified Delivery":
         return "Certified Delivery";
       case "trial":
         return "Trial";
@@ -83,12 +84,12 @@ useEffect(() => {
 
   // Return the correct storage limit in bytes based on plan specs
   const getPlanStorageLimit = (plan: string): number => {
-    switch (plan.toLowerCase()) {
+    switch (plan) {
       case "premium":
       case "legal":
         return 3 * 1024 * 1024 * 1024 * 1024; // 3TB
       case "professional":
-      case "pro":
+      case "Certified Delivery":
         return 1024 * 1024 * 1024 * 1024; // 1TB
       case "trial":
         return 50 * 1024 * 1024 * 1024; // 50GB

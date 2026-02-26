@@ -41,7 +41,7 @@ export const SECURITY_LEVELS: SecurityLevelOption[] = [
     labelKey: "legalLabel",
     descriptionKey: "legalDesc",
     Icon: Fingerprint,
-    requiredPlan: "premium",
+    requiredPlan: "professional",
     creditCost: 1,
   },
 ];
@@ -146,6 +146,7 @@ export function SecurityLevelSelector({
   onLegalTrialClick,
   onBuyCreditsClick,
 }: SecurityLevelSelectorProps) {
+  
   const { language } = useLanguage();
   const content = getContent(language);
   

@@ -1,36 +1,69 @@
-'use client'
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Clock, Bell, Layers } from "lucide-react";
+import { Mail, Clock, Bell } from "lucide-react";
 import { toast } from "sonner";
-
+import { baseUrl } from "@/const";
 const ComingSoon = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    
-    setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success("You've been added to the waitlist!");
-    setEmail("");
-    setIsSubmitting(false);
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  if (!email.trim()) {
+    toast.error("Please enter your email");
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    toast.error("Please enter a valid email address");
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    const response = await fetch(`${baseUrl}/subscribers/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 409) {
+        toast.error("You are already on the waitlist!");
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+      return;
+    }
+
+    toast.success("You've been added to the waitlist 🎉");
+    setEmail("");
+
+  } catch (error) {
+    console.error("Subscribe error:", error);
+    toast.error("Server error. Please try again later.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const badges = [
-    { logo: "/assets/eidas-logo.png", name: "eIDAS", description: "Compliant", hasLegalBadge: true },
+    { logo: "/assets/sovereign-eu-cloud-logo.png", name: "100% EU Data", description: "Storage & Processing" },
     { logo: "/assets/gdpr-logo.png", name: "GDPR", description: "Compliant" },
     { logo: "/assets/iso27001-logo.png", name: "ISO 27001", description: "Certified Infrastructure" },
-    { icon: Layers, name: "Blockchain", description: "Anchored", hasLegalBadge: true },
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
-  {/* Background Pattern */}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-6">
+      {/* Background Pattern */}
       <div className="absolute inset-0 secure-pattern opacity-30" />
       
       <div className="relative z-10 max-w-3xl w-full text-center space-y-8">
@@ -74,41 +107,36 @@ const ComingSoon = () => {
               required
             />
           </div>
-          <Button 
-            type="submit" 
-            size="lg" 
-            className="h-12 bg-cta hover:bg-cta/90 text-white"
-            disabled={isSubmitting}
-          >
-            <Bell className="w-4 h-4 mr-2" />
-            {isSubmitting ? "Submitting..." : "Notify me"}
-          </Button>
+        <Button 
+  type="submit" 
+  size="lg" 
+  className="h-12 bg-cta hover:bg-cta/90 text-white"
+  disabled={isSubmitting}
+>
+  {isSubmitting ? (
+    "Submitting..."
+  ) : (
+    <>
+      <Bell className="w-4 h-4 mr-2" />
+      Notify me
+    </>
+  )}
+</Button>
         </form>
 
         {/* Compliance Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-8">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-8">
           {badges.map((badge, index) => (
             <div 
               key={index}
-              className="relative bg-muted/50 rounded-xl p-4 flex items-center gap-3"
+              className="bg-muted/50 rounded-xl p-4 flex items-center gap-3 w-full sm:w-auto sm:min-w-[180px]"
             >
-              {badge.hasLegalBadge && (
-                <span className="absolute -top-2 right-3 bg-accent text-accent-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-                  Legal
-                </span>
-              )}
               <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-                {badge.logo ? (
-                  <img src={badge.logo} alt={badge.name} className="w-10 h-10 object-contain" />
-                ) : badge.icon ? (
-                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                    <badge.icon className="w-5 h-5 text-white" />
-                  </div>
-                ) : null}
+                <img src={badge.logo} alt={badge.name} className="w-10 h-10 object-contain" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-sm">{badge.name}</h3>
-                <p className="text-xs text-muted-foreground">{badge.description}</p>
+                <h3 className="font-semibold text-sm whitespace-nowrap">{badge.name}</h3>
+                <p className="text-xs text-muted-foreground whitespace-nowrap">{badge.description}</p>
               </div>
             </div>
           ))}

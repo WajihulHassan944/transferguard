@@ -18,9 +18,9 @@ export function SmsCreditsCard({ userId, effectivePlan }: SmsCreditsCardProps) {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const normalizedPlan = effectivePlan.toLowerCase();
+  const normalizedPlan = effectivePlan;
   const isTrialPlan = normalizedPlan === "trial";
-  const hasSmsAccess = normalizedPlan === "professional" || normalizedPlan === "pro" || normalizedPlan === "legal" || normalizedPlan === "premium" || isTrialPlan;
+  const hasSmsAccess = normalizedPlan === "Certified Delivery" || normalizedPlan === "pro" || normalizedPlan === "legal" || normalizedPlan === "premium" || isTrialPlan;
 
   useEffect(() => {
     if (!hasSmsAccess) return;

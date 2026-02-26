@@ -17,9 +17,9 @@ export function SignCreditsCard({ userId, effectivePlan }: SignCreditsCardProps)
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const normalizedPlan = effectivePlan.toLowerCase();
+  const normalizedPlan = effectivePlan;
   const isVerified = normalizedPlan === "legal" || normalizedPlan === "premium";
-  const isCertified = normalizedPlan === "pro" || normalizedPlan === "professional";
+  const isCertified = normalizedPlan === "pro" || normalizedPlan === "Certified Delivery";
   const hasAccess = isVerified || isCertified;
 
   // Both Verified Identity and Certified Delivery use credits

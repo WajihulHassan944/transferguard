@@ -88,8 +88,9 @@ type SecurityLevel = 'standard' | 'adobe_sealed' | 'legal';
 
 // Security level configuration with consistent colors
 const getSecurityLevelInfo = (level: SecurityLevel | undefined, hasPhone: boolean) => {
+  
   // Legal Seal (Level 3) - Amber/Gold with Scale icon
-  if (hasPhone || level === 'legal') {
+  if (level === 'legal') {
     return {
       level: 3,
       label: 'Verified Identity',

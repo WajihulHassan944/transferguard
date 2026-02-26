@@ -56,6 +56,7 @@ import { WorkerPool } from "./encrypt/workerPool";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BuyCreditsModal } from "./BuyCreditsModal";
 import { LegalTrialModal } from "./LegalTrialModal";
+import { useAppSelector } from "@/redux/hooks";
 
 interface MultipartInitPayload {
   uploadId: string;
@@ -207,6 +208,9 @@ export function NewTransferDialog({
 }: NewTransferDialogProps) {
   const { language } = useLanguage();
   const content = getContent(language);
+  
+const user = useAppSelector((state) => state.user);
+
 // NEW refs
 const abortControllerRef = useRef<AbortController | null>(null);
 const activeUploadIdRef = useRef<string | null>(null);
@@ -346,8 +350,12 @@ const handleSubmit = async () => {
     expiryDays,
     recipientEmail,
     recipientName,
+    recipientPhone,
     message,
     dossierNumber,
+    agreement_type: acknowledgementMethod, 
+  verification_method: securityLevel,
+  userPlan:user?.plan,
 e2eeEnabled,
     setIsUploading,
     setProgress,

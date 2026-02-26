@@ -17,10 +17,10 @@ import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
 import useLogout from "@/hooks/useLogout";
 import { LanguageSwitcher } from "../LanguageSwitcher";
+import { userAgent } from "next/server";
 interface DashboardHeaderProps {
   onMobileMenuToggle?: () => void;
-}
-const getPlanInfo = (plan?: string | null) => {
+}const getPlanInfo = (plan?: string | null) => {
   switch (plan?.toLowerCase()) {
     case "premium":
     case "legal":
@@ -29,23 +29,36 @@ const getPlanInfo = (plan?: string | null) => {
         icon: Scale,
         className: "bg-legal-light text-legal-foreground border-legal-border",
       };
-    case "professional":
-    case "pro":
-      return { label: "Certified Delivery", icon: Shield, className: "bg-primary/10 text-primary border-primary/20" };
+
+    case "certified delivery":
+      return {
+        label: "Certified Delivery",
+        icon: Shield,
+        className: "bg-primary/10 text-primary border-primary/20",
+      };
+
     case "trial":
       return {
         label: "Certified Delivery Trial",
         icon: Shield,
         className: "bg-primary/10 text-primary border-primary/20",
       };
+
     case "starter":
-      return { label: "Secure Transfer", icon: Shield, className: "bg-muted text-muted-foreground border-border" };
+      return {
+        label: "Secure Transfer",
+        icon: Shield,
+        className: "bg-muted text-muted-foreground border-border",
+      };
+
     default:
-      return { label: "Free", icon: Shield, className: "bg-muted text-muted-foreground border-border" };
+      return {
+        label: "Free",
+        icon: Shield,
+        className: "bg-muted text-muted-foreground border-border",
+      };
   }
 };
-
-
 export function DashboardHeader({ onMobileMenuToggle }: DashboardHeaderProps) {
     const router = useRouter();
 const logout = useLogout();
