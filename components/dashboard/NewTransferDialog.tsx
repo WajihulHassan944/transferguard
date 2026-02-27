@@ -284,12 +284,12 @@ const planLimitGB =
   user?.plan === "Verified Identity"
     ? 100
     : user?.plan === "Certified Delivery"
-    ? 25
+    ? 50
     : user?.plan === "Secure Transfer"
     ? 5
     : user?.plan === "trial"
-    ? 25
-    : 5;
+    ? 50
+    : 25;
 
 const planLimitBytes = planLimitGB * 1024 * 1024 * 1024;
 const isOverPlanLimit = totalSize > planLimitBytes;
@@ -624,11 +624,11 @@ const handleCancelUpload = async () => {
   {user?.plan === "Verified Identity"
     ? "100GB"
     : user?.plan === "Certified Delivery"
-    ? "25GB"
+    ? "50GB"
     : user?.plan === "Secure Transfer"
     ? "5GB"
     : user?.plan === "trial"
-    ? "25GB"
+    ? "50GB"
     : "5GB"}{" "}
   {content.perTransfer}
 </p>
