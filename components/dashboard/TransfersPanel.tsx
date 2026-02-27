@@ -594,7 +594,7 @@ const paginatedTransfers = filteredTransfers.slice(
               </div>
               
               {/* Plan */}
-              <div className="w-[120px] flex-shrink-0">
+              <div className="w-[180px] flex-shrink-0">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {t('transfers.col.evidence')}
                 </span>
@@ -672,7 +672,7 @@ const paginatedTransfers = filteredTransfers.slice(
                       </div>
                       
                       {/* Security Level / Plan - Fixed width */}
-                      <div className="w-[120px] flex-shrink-0">
+                      <div className="w-[180px] flex-shrink-0">
                         <div className={cn(
                           "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border",
                           securityInfo.badgeBg,

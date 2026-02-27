@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCheck, FileCheck, Cloud, Check, X, Lock } from "lucide-react";
+import { UserCheck, FileCheck, Cloud, Check, X, Lock, Clock, Hash, Trash2, Smartphone } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const getComparisonData = (language: "en" | "nl") => {
@@ -26,7 +26,7 @@ const getComparisonData = (language: "en" | "nl") => {
           legacy: "Link-only, no proof",
           tg: "Biometric ID scan",
           legacyBad: true,
-          tgBadge: "LEGAL",
+          tgBadge: "VERIFIED IDENTITY",
         },
         {
           id: "evidence",
@@ -42,6 +42,30 @@ const getComparisonData = (language: "en" | "nl") => {
           feature: "End-to-End Encryption",
           legacy: "Optional for enterprise",
           tg: "Available in every plan",
+          legacyBad: true,
+        },
+        {
+          id: "timestamp",
+          icon: Clock,
+          feature: "Qualified Timestamp",
+          legacy: "No independent timestamp",
+          tg: "Externally validated timestamp",
+          legacyBad: true,
+        },
+        {
+          id: "integrity",
+          icon: Hash,
+          feature: "File Integrity",
+          legacy: "No hash verification",
+          tg: "SHA-256 proof",
+          legacyBad: true,
+        },
+        {
+          id: "device",
+          icon: Smartphone,
+          feature: "Device Tracking",
+          legacy: "No logging",
+          tg: "IP, geolocation & fingerprint",
           legacyBad: true,
         },
       ],
@@ -68,7 +92,7 @@ const getComparisonData = (language: "en" | "nl") => {
           legacy: "Alleen link, geen bewijs",
           tg: "Biometrische ID-scan",
           legacyBad: true,
-          tgBadge: "JURIDISCH",
+          tgBadge: "VERIFIED IDENTITY",
         },
         {
           id: "evidence",
@@ -84,6 +108,30 @@ const getComparisonData = (language: "en" | "nl") => {
           feature: "End-to-End Encryptie",
           legacy: "Optioneel voor enterprise",
           tg: "Beschikbaar in elk abonnement",
+          legacyBad: true,
+        },
+        {
+          id: "timestamp",
+          icon: Clock,
+          feature: "Gekwalificeerde Tijdstempel",
+          legacy: "Geen onafhankelijke tijdstempel",
+          tg: "Extern gevalideerde tijdstempel",
+          legacyBad: true,
+        },
+        {
+          id: "integrity",
+          icon: Hash,
+          feature: "Bestandsintegriteit",
+          legacy: "Geen hashverificatie",
+          tg: "SHA-256 bewijs",
+          legacyBad: true,
+        },
+        {
+          id: "device",
+          icon: Smartphone,
+          feature: "Apparaat Tracking",
+          legacy: "Geen logging",
+          tg: "IP, geolocatie en fingerprint",
           legacyBad: true,
         },
       ],
@@ -177,13 +225,13 @@ export const ComparisonSection = () => {
   }, [oldText, newText]);
 
   return (
-    <section className="py-24 lg:py-32 px-4 bg-gradient-to-b from-muted/20 to-background">
+    <section className="py-16 lg:py-20 px-4 bg-gradient-to-b from-muted/20 to-background">
       <div className="container max-w-5xl mx-auto">
         {/* Animated Header - Typewriter Effect */}
-        <div className="text-center mb-12">
-          <div className="h-14 sm:h-16 md:h-20 flex items-center justify-center">
+        <div className="text-center mb-8">
+          <div className="h-12 sm:h-14 md:h-16 flex items-center justify-center">
             <h2
-              className={`text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight ${
+              className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight ${
                 isTypingNew ? "text-primary" : "text-muted-foreground"
               }`}
             >
@@ -191,21 +239,21 @@ export const ComparisonSection = () => {
               <span className="inline-block w-[2px] h-[1em] ml-1 bg-current animate-pulse" />
             </h2>
           </div>
-          <p className="text-lg text-muted-foreground mt-2">{data.subtitle}</p>
+          <p className="text-base text-muted-foreground mt-1">{data.subtitle}</p>
         </div>
 
         {/* Comparison Table */}
         <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-md">
           {/* Desktop Table Header - Hidden on mobile */}
           <div className="hidden md:grid grid-cols-[1.2fr_1fr_1fr] bg-muted/50 border-b border-border">
-            <div className="p-5 lg:p-6" />
-            <div className="p-5 lg:p-6 text-center border-x border-border/50">
+            <div className="px-4 py-3" />
+            <div className="px-4 py-3 text-center border-x border-border/50">
               <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                 <X className="h-4 w-4 text-destructive" />
                 {data.legacyLabel}
               </span>
             </div>
-            <div className="p-5 lg:p-6 text-center">
+            <div className="px-4 py-3 text-center">
               <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
                 <Check className="h-4 w-4" />
                 {data.tgLabel}
@@ -222,22 +270,22 @@ export const ComparisonSection = () => {
                   index !== data.rows.length - 1 ? "border-b border-border/50" : ""
                 } hover:bg-muted/30 transition-colors`}
               >
-                <div className="p-5 lg:p-6 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <row.icon className="h-6 w-6 text-primary" />
+              <div className="px-4 py-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <row.icon className="h-4.5 w-4.5 text-primary" />
                   </div>
-                  <span className="font-semibold text-base text-foreground">{row.feature}</span>
+                  <span className="font-semibold text-sm text-foreground">{row.feature}</span>
                 </div>
-                <div className="p-5 lg:p-6 text-center border-x border-border/30">
+                <div className="px-4 py-3 text-center border-x border-border/30">
                   <span className={`text-sm ${row.legacyBad ? "text-destructive" : "text-muted-foreground"}`}>
                     {row.legacy}
                   </span>
                 </div>
-                <div className="p-5 lg:p-6 text-center">
+                <div className="px-4 py-3 text-center">
                   <div className="flex items-center justify-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-primary">{row.tg}</span>
                     {row.tgBadge && (
-                      <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-md border border-amber-200">
+                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md border border-emerald-200">
                         {row.tgBadge}
                       </span>
                     )}
@@ -247,39 +295,29 @@ export const ComparisonSection = () => {
             ))}
           </div>
 
-          {/* Mobile Card Layout */}
+          {/* Mobile Card Layout - Compact */}
           <div className="md:hidden">
             {data.rows.map((row, index) => (
-              <div key={row.id} className={`p-5 ${index !== data.rows.length - 1 ? "border-b border-border/50" : ""}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <row.icon className="h-5 w-5 text-primary" />
+              <div key={row.id} className={`px-4 py-3 ${index !== data.rows.length - 1 ? "border-b border-border/50" : ""}`}>
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <row.icon className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="font-semibold text-base text-foreground">{row.feature}</span>
+                  <span className="font-semibold text-sm text-foreground">{row.feature}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-destructive/5 rounded-xl p-3 border border-destructive/20">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <X className="h-3.5 w-3.5 text-destructive" />
-                      <span className="text-xs font-medium text-muted-foreground">{data.legacyLabel}</span>
-                    </div>
-                    <p className={`text-sm ${row.legacyBad ? "text-destructive" : "text-muted-foreground"}`}>
+                <div className="grid grid-cols-2 gap-2 pl-[42px]">
+                  <div className="bg-destructive/5 rounded-lg px-2.5 py-2 border border-destructive/20">
+                    <p className={`text-xs leading-snug ${row.legacyBad ? "text-destructive" : "text-muted-foreground"}`}>
                       {row.legacy}
                     </p>
                   </div>
-                  <div className="bg-primary/5 rounded-xl p-3 border border-primary/20">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Check className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-xs font-medium text-primary">{data.tgLabel}</span>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <p className="text-sm font-semibold text-primary">{row.tg}</p>
-                      {row.tgBadge && (
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200 w-fit">
-                          {row.tgBadge}
-                        </span>
-                      )}
-                    </div>
+                  <div className="bg-primary/5 rounded-lg px-2.5 py-2 border border-primary/20">
+                    <p className="text-xs font-semibold text-primary leading-snug">{row.tg}</p>
+                    {row.tgBadge && (
+                      <span className="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-1">
+                        {row.tgBadge}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

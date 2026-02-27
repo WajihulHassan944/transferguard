@@ -279,6 +279,20 @@ const speedRef = useRef({
 });
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
+  // Plan-based size limit (in GB)
+const planLimitGB =
+  user?.plan === "Verified Identity"
+    ? 100
+    : user?.plan === "Certified Delivery"
+    ? 25
+    : user?.plan === "Secure Transfer"
+    ? 5
+    : user?.plan === "trial"
+    ? 25
+    : 5;
+
+const planLimitBytes = planLimitGB * 1024 * 1024 * 1024;
+const isOverPlanLimit = totalSize > planLimitBytes;
   const showPublicWarning = recipientEmail && isPublicDomain(recipientEmail);
 const handleFiles = useCallback((newFiles: FileList | File[]) => {
   const fileArray = Array.from(newFiles);
@@ -496,7 +510,7 @@ const handleCancelUpload = async () => {
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-sm font-semibold">
                         {content.successSecurityLevel}:{' '}
-                        {successData.securityLevel === 'id_verification' ? 'Legal' : 'Professional'}
+                        {user.plan}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -541,25 +555,7 @@ const handleCancelUpload = async () => {
                 </div>
               </div>
 
-              {/* Copy link */}
-              <div className="flex items-center gap-2">
-                <Input 
-                  readOnly 
-                  value={successData.downloadLink} 
-                  className="text-xs bg-background font-mono"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-shrink-0"
-                  onClick={() => {
-                    try { navigator.clipboard.writeText(successData.downloadLink); } catch {}
-                    toast.success(content.successLinkCopied);
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
+             
 
               {/* Secured by footer */}
               <div className="flex items-center justify-center gap-2 pt-1 text-xs text-muted-foreground">
@@ -623,9 +619,19 @@ const handleCancelUpload = async () => {
                 >
                   <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">{content.dropzone}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {content.maxSize} 5 {content.perTransfer}
-                  </p>
+                <p className="text-xs text-muted-foreground mt-1">
+  {content.maxSize}{" "}
+  {user?.plan === "Verified Identity"
+    ? "100GB"
+    : user?.plan === "Certified Delivery"
+    ? "25GB"
+    : user?.plan === "Secure Transfer"
+    ? "5GB"
+    : user?.plan === "trial"
+    ? "25GB"
+    : "5GB"}{" "}
+  {content.perTransfer}
+</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -671,6 +677,14 @@ const handleCancelUpload = async () => {
                   <p className="text-xs text-muted-foreground">{content.total}: {formatFileSize(totalSize)}</p>
                 </div>
               )}
+              {isOverPlanLimit && (
+  <div className="flex items-start gap-2 mt-2 p-2 rounded-md bg-destructive/10 border border-destructive/20">
+    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
+    <p className="text-xs text-destructive">
+      {content.sizeLimitExceeded} ({planLimitGB}GB)
+    </p>
+  </div>
+)}
             </div>
 
             {/* Recipient Email */}
@@ -904,7 +918,7 @@ const handleCancelUpload = async () => {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {content.cancel}
           </Button>
-          <Button onClick={handleSubmit} disabled={!isValid || isUploading}>
+         <Button onClick={handleSubmit} disabled={!isValid || isUploading || isOverPlanLimit}>
             {isUploading ? content.creating : content.sendTransfer}
           </Button>
         </DialogFooter>
