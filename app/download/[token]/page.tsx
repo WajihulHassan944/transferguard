@@ -1,4 +1,5 @@
 "use client"
+import SignatureCanvas from "react-signature-canvas";
 
 import {
     AlertCircle,
@@ -19,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { baseUrl } from "@/const"
+import { toast } from "sonner";
 const defaultBrandColor = "hsl(217, 91%, 50%)"
 
 const activeBrandColor = defaultBrandColor
@@ -30,11 +32,19 @@ const lightBrandColor = activeBrandColor.replace(
 const page = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const router = useRouter()
-const { token } = useParams()
+  const params = useParams();
+const token = Array.isArray(params?.token)
+  ? params.token[0]
+  : params?.token ?? "";
+const [signatureData, setSignatureData] = useState<string | null>(null);
+ const [receiptSign, setReceiptSign] = useState(false); 
 const [transfer, setTransfer] = useState<any>(null)
 const [resending, setResending] = useState(false)
 const [cooldown, setCooldown] = useState(0)
-
+const [smsVerificationPhase, setSmsVerificationPhase] = useState<'email' | 'sms'>('email');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [sigPad, setSigPad] = useState<SignatureCanvas | null>(null);
+const [signatureEmpty, setSignatureEmpty] = useState(true);
 const [otpCode, setOtpCode] = useState("")
 const [loading, setLoading] = useState(false)
 const [loadingUI, setLoadingUI] = useState(true)
@@ -47,8 +57,14 @@ React.useEffect(() => {
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.message)
+// After loading transfer from backend
+setTransfer(data);
+setEmailVerified(data.emailVerified || false);
 
-      setTransfer(data)
+// Update SMS verification phase based on emailVerified
+if (data.verificationMethod === "email_sms") {
+  setSmsVerificationPhase(data.emailVerified ? "sms" : "email");
+}
     } catch (err: any) {
       setError(err.message || "Invalid link")
     } finally {
@@ -101,35 +117,45 @@ React.useEffect(() => {
 
 
 const handleVerify = async () => {
-  if (otpCode.length !== 6 || !termsAccepted) return
+  if (otpCode.length !== 6 || !termsAccepted) return;
 
   try {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
-    const res = await fetch(
-      `${baseUrl}/transfers/verify`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token,
-          otp: otpCode,
-        }),
-      }
-    )
+    const res = await fetch(`${baseUrl}/transfers/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token,
+        otp: otpCode,
+      }),
+    });
 
-    const data = await res.json()
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
 
-    if (!res.ok) throw new Error(data.message)
+    // ✅ Show success toast
+    toast.success(data.message || "OTP verified successfully");
 
-    router.push(data.redirectUrl)
+    // If email_sms → move to SMS step
+    if (data.step === "sms") {
+      setOtpCode(""); // clear previous OTP
+      return;
+    }
+
+    // If verification fully completed
+    if (data.step === "completed") {
+      setReceiptSign(true);
+    }
+
   } catch (err: any) {
-    setError(err.message || "Verification failed")
+    setError(err.message || "Verification failed");
+    toast.error(err.message || "Verification failed");
   } finally {
-    setLoading(false)
+    setLoading(false);
   }
-}
+};
 
 const handleResendOtp = async () => {
   if (resending || cooldown > 0) return
@@ -275,8 +301,182 @@ if (!loadingUI && error && !transfer) {
 
             {/* ================= RIGHT COLUMN ================= */}
                <Card className="border-border shadow-soft ">
-                {/* file summary */}
-                <div className="flex items-center gap-4 border-b p-4 bg-primary/5 border-primary/10 mb-12 " style={{borderTopLeftRadius:'15px',borderTopRightRadius:'15px'}}>
+         {receiptSign && (
+  <CardContent className="pt-0 pb-6 px-0 mx-0">
+    <div className="flex items-center gap-4 border-b p-4 bg-primary/5 border-primary/10 mb-12 rounded-t-lg">
+      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+        <Lock className="h-5 w-5 text-primary" />
+      </div>
+      <div>
+        <p className="font-semibold">{transfer?.fileLabel || "Encrypted Files"}</p>
+        <p className="text-sm text-muted-foreground">{transfer?.sizeLabel || ""}</p>
+      </div>
+    </div>
+
+    <div className="text-center space-y-6">
+      <h3 className="text-xl font-semibold text-foreground mb-2">Confirm Receipt</h3>
+      <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+        To access the encrypted files, confirm that you are the recipient.
+      </p>
+
+      {transfer?.agreementType === "one_click" ? (
+        <>
+          {/* One-Click Agreement */}
+          <div
+            className={`flex items-start gap-4 text-left rounded-xl p-5 max-w-md mx-auto border-2 transition-all cursor-pointer ${
+              signatureData
+                ? "bg-success-light border-success ring-2 ring-success/20"
+                : "bg-muted/30 border-border hover:border-primary/50"
+            }`}
+            onClick={() =>
+              setSignatureData(signatureData ? null : "agreement-accepted")
+            }
+          >
+            <Checkbox
+              id="receipt-agreement"
+              checked={!!signatureData}
+              onCheckedChange={(checked) =>
+                setSignatureData(checked ? "agreement-accepted" : null)
+              }
+              className={`mt-0.5 h-5 w-5 border-2 ${
+                signatureData
+                  ? "border-success data-[state=checked]:bg-success data-[state=checked]:text-success-foreground"
+                  : "border-muted-foreground/50"
+              }`}
+            />
+            <label htmlFor="receipt-agreement" className="flex-1 cursor-pointer">
+              <p
+                className={`text-sm font-medium ${
+                  signatureData ? "text-success" : "text-foreground"
+                }`}
+              >
+                I confirm receipt of these files
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                By confirming, you agree to the recording of this moment as proof of receipt.
+              </p>
+            </label>
+          </div>
+
+          <Button
+            onClick={async () => {
+              if (!signatureData) return;
+              try {
+                setLoading(true);
+                const res = await fetch(`${baseUrl}/transfers/agree`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token, oneClickAgreementDone: true }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                router.push(data.redirectUrl);
+              } catch (err: any) {
+                setError(err.message || "Failed to confirm agreement");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={!signatureData || loading}
+            className="w-full max-w-md h-14 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Processing..." : "Confirm & Unlock Files"}
+          </Button>
+        </>
+      ) : (
+        <>
+         {/* Digital Signature Canvas */}
+<div className="max-w-md mx-auto border rounded-xl p-5 bg-muted/20 space-y-4">
+
+  <div className="text-center space-y-2">
+    <p className="text-md font-semibold text-foreground">
+      Signature Required by Sender
+    </p>
+    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+      Please provide your digital signature to confirm receipt of these files.
+      Your signature will be recorded as proof of delivery.
+    </p>
+  </div>
+
+  <div className="flex justify-center">
+    <SignatureCanvas
+      penColor="black"
+      canvasProps={{
+        width: 350,
+        height: 150,
+        className: "bg-white rounded-lg border w-full max-w-sm",
+      }}
+      ref={(ref) => setSigPad(ref)}
+      onEnd={() => setSignatureEmpty(false)}
+    />
+  </div>
+
+  <div className="flex justify-between mt-2">
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => {
+        sigPad?.clear();
+        setSignatureEmpty(true);
+      }}
+    >
+      Clear
+    </Button>
+
+    <Button
+      size="sm"
+      onClick={async () => {
+        if (!sigPad || sigPad.isEmpty()) return;
+        if (!token) {
+          setError("Invalid token");
+          return;
+        }
+
+        try {
+          setLoading(true);
+
+        const blob = await new Promise<Blob | null>((resolve) => {
+  sigPad
+    ?.getTrimmedCanvas()
+    .toBlob((b) => resolve(b), "image/png");
+});
+          if (!blob) throw new Error("Failed to capture signature");
+
+          const formData = new FormData();
+          formData.append("token", token);
+          formData.append("signature", blob, "signature.png");
+
+          const res = await fetch(`${baseUrl}/transfers/agree`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message);
+
+          router.push(data.redirectUrl);
+        } catch (err: any) {
+          setError(err.message || "Failed to upload signature");
+        } finally {
+          setLoading(false);
+        }
+      }}
+      disabled={signatureEmpty || loading}
+    >
+      {loading ? "Uploading..." : "Confirm & Unlock Files"}
+    </Button>
+  </div>
+</div>
+        </>
+      )}
+
+      {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+    </div>
+  </CardContent>
+)}
+           {!receiptSign && ( 
+               <CardContent className="pt-0 pb-6 px-0 mx-0">
+                 <div className="flex items-center gap-4 border-b p-4 bg-primary/5 border-primary/10 mb-12 " style={{borderTopLeftRadius:'15px',borderTopRightRadius:'15px'}}>
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <Lock className="h-5 w-5 text-primary" />
                   </div>
@@ -290,23 +490,51 @@ if (!loadingUI && error && !transfer) {
     </p>
                   </div>
                 </div>
-
-                {/* 2FA */}
+<center>{transfer?.verificationMethod === "email_sms" && (
+                          <div className="flex items-center justify-center gap-2 max-w-sm mx-auto mb-15">
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                              smsVerificationPhase === 'email' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-success-light text-success'
+                            }`}>
+                              {emailVerified ? <CheckCircle2 className="h-3.5 w-3.5" /> : <span>1</span>}
+                              <span>Email</span>
+                            </div>
+                            <div className="w-6 h-0.5 bg-border" />
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                              smsVerificationPhase === 'sms' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              <span>2</span>
+                              <span>SMS</span>
+                            </div>
+                          </div>
+                        )}
+</center>
                 <div className="text-center space-y-5">
+  
                   <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                     <KeyRound className="h-7 w-7 text-primary" />
                   </div>
 
-                  <div>
-                    <h3 className="text-xl font-semibold">
-                      Two-Factor Verification
-                    </h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Enter the security code sent to
-                    </p>
-<p className="font-medium">{transfer?.recipientEmail}</p>
-
-                  </div>
+    <div>
+                   <h3 className="text-xl font-semibold">
+  {transfer?.verificationMethod === "email_sms"
+    ? smsVerificationPhase === "email"
+      ? "Step 1: Email Verification"
+      : "Step 2: SMS Verification"
+    : "Two-Factor Verification"}
+</h3>
+<p className="text-muted-foreground text-sm mt-1">
+  Enter the security code sent to
+</p>
+<p className="font-medium">
+  {smsVerificationPhase === "email"
+    ? transfer?.recipientEmail
+    : transfer?.recipientPhone}
+</p>
+    </div>
 
                   {/* OTP inputs */}
                   <div className="flex justify-center pt-2">
@@ -389,6 +617,7 @@ if (!loadingUI && error && !transfer) {
 </Button>
 
                 </div>
+               </CardContent> )}
             </Card>
           </div>
         </div>
